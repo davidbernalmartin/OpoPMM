@@ -117,13 +117,14 @@ elif st.session_state.examen_iniciado is True:
     p = st.session_state.preguntas[idx]
     total = len(st.session_state.preguntas)
 
+    # Panel de Stats (igual que antes)
     st.markdown(f"""
         <div style="background-color: #34495e; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 25px;">
             <b>Pregunta {idx+1}/{total}</b> | ✅ {st.session_state.aciertos} | ❌ {st.session_state.fallos}
         </div>
     """, unsafe_allow_html=True)
 
-    # Enunciado con fuente ajustada y mejor espaciado
+    # Enunciado centrado y con fuente ajustada
     st.markdown(f"""
         <div style='text-align: center; margin-bottom: 35px; padding: 0 20px;'>
             <h3 style='font-size: 20px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
@@ -132,12 +133,24 @@ elif st.session_state.examen_iniciado is True:
         </div>
     """, unsafe_allow_html=True)
 
-    # Definimos la fila de acción: [Iconos, Respuestas, Siguiente]
-    _, col_iconos, col_respuestas, col_sig, _ = st.columns([0.05, 0.08, 0.65, 0.17, 0.05])
+    # Bloque de respuestas (sin columnas, todo en una)
+    _, col_central, _ = st.columns([0.1, 0.8, 0.1]) # Un poco más de margen para que los botones sean el centro de atención
     
-    with col_respuestas:
+    with col_central:
         for letra in ["A", "B", "C"]:
-            texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
+            texto_base = f"{letra}) {p[f'opcion_{letra.lower()}']}"
+            
+            # Lógica de Emojis INTEGRADOS en el texto
+            icon_prefix = "" # Espacio vacío por defecto
+            if st.session_state.respuesta_dada:
+                if letra == p['correcta']:
+                    icon_prefix = " ✅ " # Emoji integrado a la izquierda
+                elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
+                    icon_prefix = " ❌ " # Emoji integrado a la izquierda
+                
+            texto_opcion = f"{icon_prefix} {texto_base}"
+            
+            # Dibujamos el botón (con el emoji integrado en el texto)
             if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
                 st.session_state.respuesta_dada = letra
                 if letra == p['correcta']:
@@ -146,27 +159,7 @@ elif st.session_state.examen_iniciado is True:
                     st.session_state.fallos += 1
                 st.rerun()
 
-    with col_iconos:
-        if st.session_state.respuesta_dada:
-            for letra in ["A", "B", "C"]:
-                icon = "✅" if letra == p['correcta'] else "❌"
-                if letra == p['correcta'] or letra == st.session_state.respuesta_dada:
-                    st.markdown(f'<div class="icon-container"><span class="icon-style">{icon}</span></div>', unsafe_allow_html=True)
-                else:
-                    st.markdown('<div class="icon-container"></div>', unsafe_allow_html=True)
-
-    with col_sig:
-        if st.session_state.respuesta_dada:
-            # El botón de siguiente ahora se estira gracias al CSS
-            if st.button("SIGUIENTE ➔", key="btn_sig", use_container_width=True):
-                if st.session_state.indice < total - 1:
-                    st.session_state.indice += 1
-                    st.session_state.respuesta_dada = None
-                    st.rerun()
-                else:
-                    st.session_state.examen_iniciado = "FINALIZADO"
-                    st.rerun()
-
+    # La explicación debajo de todo el bloque
     if st.session_state.respuesta_dada:
         st.markdown(f"""
             <div style="background-color: #1a252f; padding: 20px; border-radius: 10px; border-left: 5px solid #3498db; margin: 25px 0;">
@@ -174,6 +167,18 @@ elif st.session_state.examen_iniciado is True:
                 <div style="margin-top: 10px;">{p['explicacion'] if p.get('explicacion') else 'Sin explicación.'}</div>
             </div>
         """, unsafe_allow_html=True)
+        
+        # Botón de Siguiente, centrado y debajo de la explicación
+        _, col_btn, _ = st.columns([0.2, 0.6, 0.2])
+        with col_btn:
+            if st.button("Siguiente Pregunta ➔", key="btn_sig", type="primary", use_container_width=True):
+                if st.session_state.indice < total - 1:
+                    st.session_state.indice += 1
+                    st.session_state.respuesta_dada = None
+                    st.rerun()
+                else:
+                    st.session_state.examen_iniciado = "FINALIZADO"
+                    st.rerun()
 
 # --- PANTALLA 3: RESUMEN FINAL ---
 elif st.session_state.examen_iniciado == "FINALIZADO":
