@@ -13,12 +13,26 @@ supabase = create_client(URL, KEY)
 # --- ESTILOS ---
 st.markdown("""
     <style>
-    /* Fondo y texto general */
-    .stApp { 
-        background-color: #2c3e50; 
-        color: white; 
+    /* Fondo de la app */
+    .stApp { background-color: #2c3e50; color: white; }
+    
+    /* EL ENUNCIADO: Forzamos el tamaño aquí */
+    .enunciado-test {
+        font-size: 22px !important;
+        color: #ecf0f1 !important;
+        text-align: center;
+        line-height: 1.4;
+        margin-bottom: 30px;
     }
-</style>
+
+    /* Los botones: solo altura mínima y que el texto no se corte */
+    div.stButton > button {
+        min-height: 85px !important;
+        font-size: 18px !important;
+        border-radius: 10px !important;
+        white-space: normal !important;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
 # --- LÓGICA DE ESTADO ---
