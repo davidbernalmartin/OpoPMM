@@ -24,7 +24,7 @@ st.markdown("""
         min-height: 85px !important; 
         height: auto !important;
         width: 100% !important;
-        font-size: 19px !important; /* Un pelín más grande para que se lea mejor */
+        font-size: 20px !important; /* Un pelín más grande para que se lea mejor */
         border-radius: 12px !important;
         padding: 15px 25px !important; /* Más aire a los lados para el icono */
         display: flex !important;
@@ -34,12 +34,6 @@ st.markdown("""
         word-wrap: break-word !important;
         transition: all 0.3s ease;
         border: 1px solid rgba(255,255,255,0.1) !important;
-    }
-
-    /* Efecto al pasar el ratón por las respuestas */
-    div.stButton > button:hover {
-        border: 1px solid #3498db !important;
-        background-color: #34495e !important;
     }
 
     /* DISEÑO ESPECÍFICO DEL BOTÓN SIGUIENTE */
@@ -53,17 +47,6 @@ st.markdown("""
         border: none !important;
         margin-top: 20px;
         box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
-    }
-
-    div.stButton > button[key*="sig"]:hover {
-        background-color: #2980b9 !important;
-        transform: scale(1.02);
-    }
-
-    /* Ajuste para el texto del enunciado */
-    h3 {
-        margin-top: 0 !important;
-        padding-top: 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -141,7 +124,7 @@ elif st.session_state.examen_iniciado is True:
     # Enunciado centrado y con fuente ajustada
     st.markdown(f"""
         <div style='text-align: center; margin-bottom: 35px; padding: 0 20px;'>
-            <h3 style='font-size: 20px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
+            <h3 style='font-size: 18px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
                 {p['enunciado']}
             </h3>
         </div>
