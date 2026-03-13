@@ -29,6 +29,14 @@ st.markdown("""
         white-space: normal !important; /* Fuerza el salto de línea del texto */
         word-wrap: break-word !important;
     }
+    
+    /* Estilo para que el botón "Siguiente" ocupe todo el alto */
+    .stButton > button[key="btn_sig"] {
+        height: 100% !important;
+        min-height: 275px !important; /* Aproximadamente la altura de 3 botones + márgenes */
+        background-color: #3498db !important;
+        border: none !important;
+    }
 
     /* El contenedor del icono: debe estirarse igual que el botón */
     .icon-container {
@@ -124,32 +132,40 @@ elif st.session_state.examen_iniciado is True:
         </div>
     """, unsafe_allow_html=True)
 
-    _, col_central, _ = st.columns([0.05, 0.9, 0.05])
+    # Definimos la fila de acción: [Iconos, Respuestas, Siguiente]
+    _, col_iconos, col_respuestas, col_sig, _ = st.columns([0.05, 0.08, 0.65, 0.17, 0.05])
     
-    with col_central:
+    with col_respuestas:
         for letra in ["A", "B", "C"]:
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
-            col_izq, col_btn_resp, col_der = st.columns([0.15, 0.7, 0.15])
-            
-            with col_btn_resp:
-                if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
-                    st.session_state.respuesta_dada = letra
-                    if letra == p['correcta']:
-                        st.session_state.aciertos += 1
-                    else:
-                        st.session_state.fallos += 1
-                    st.rerun()
+            if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
+                st.session_state.respuesta_dada = letra
+                if letra == p['correcta']:
+                    st.session_state.aciertos += 1
+                else:
+                    st.session_state.fallos += 1
+                st.rerun()
 
-            with col_izq:
-                if st.session_state.respuesta_dada:
-                    # Envolvemos el icono en un div que ocupa todo el alto
-                    icon = "✅" if letra == p['correcta'] else "❌"
-                    if letra == p['correcta'] or letra == st.session_state.respuesta_dada:
-                        st.markdown(f"""
-                            <div class="icon-container">
-                                <span class="icon-style">{icon}</span>
-                            </div>
-                        """, unsafe_allow_html=True)
+    with col_iconos:
+        if st.session_state.respuesta_dada:
+            for letra in ["A", "B", "C"]:
+                icon = "✅" if letra == p['correcta'] else "❌"
+                if letra == p['correcta'] or letra == st.session_state.respuesta_dada:
+                    st.markdown(f'<div class="icon-container"><span class="icon-style">{icon}</span></div>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<div class="icon-container"></div>', unsafe_allow_html=True)
+
+    with col_sig:
+        if st.session_state.respuesta_dada:
+            # El botón de siguiente ahora se estira gracias al CSS
+            if st.button("SIGUIENTE ➔", key="btn_sig", use_container_width=True):
+                if st.session_state.indice < total - 1:
+                    st.session_state.indice += 1
+                    st.session_state.respuesta_dada = None
+                    st.rerun()
+                else:
+                    st.session_state.examen_iniciado = "FINALIZADO"
+                    st.rerun()
 
     if st.session_state.respuesta_dada:
         st.markdown(f"""
@@ -158,16 +174,6 @@ elif st.session_state.examen_iniciado is True:
                 <div style="margin-top: 10px;">{p['explicacion'] if p.get('explicacion') else 'Sin explicación.'}</div>
             </div>
         """, unsafe_allow_html=True)
-        
-        with col_der:
-            if st.button("Siguiente Pregunta ➔", type="primary", use_container_width=True):
-                if st.session_state.indice < total - 1:
-                    st.session_state.indice += 1
-                    st.session_state.respuesta_dada = None
-                    st.rerun()
-                else:
-                    st.session_state.examen_iniciado = "FINALIZADO"
-                    st.rerun()
 
 # --- PANTALLA 3: RESUMEN FINAL ---
 elif st.session_state.examen_iniciado == "FINALIZADO":
