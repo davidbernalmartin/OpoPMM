@@ -13,45 +13,59 @@ supabase = create_client(URL, KEY)
 # --- ESTILOS ---
 st.markdown("""
     <style>
-    .stApp { background-color: #2c3e50; color: white; }
+    /* Fondo y texto general */
+    .stApp { 
+        background-color: #2c3e50; 
+        color: white; 
+    }
     
-    /* El botón: mínimo 2 líneas, crece si es necesario */
+    /* DISEÑO DE LOS BOTONES DE RESPUESTA */
     div.stButton > button {
         min-height: 85px !important; 
-        height: auto !important; /* Permite que crezca */
+        height: auto !important;
         width: 100% !important;
-        font-size: 18px !important;
-        border-radius: 10px !important;
-        padding: 10px 15px !important;
+        font-size: 19px !important; /* Un pelín más grande para que se lea mejor */
+        border-radius: 12px !important;
+        padding: 15px 25px !important; /* Más aire a los lados para el icono */
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        white-space: normal !important; /* Fuerza el salto de línea del texto */
+        white-space: normal !important;
         word-wrap: break-word !important;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.1) !important;
     }
-    
-    /* Estilo para que el botón "Siguiente" ocupe todo el alto */
-    .stButton > button[key="btn_sig"] {
-        height: 100% !important;
-        min-height: 275px !important; /* Aproximadamente la altura de 3 botones + márgenes */
+
+    /* Efecto al pasar el ratón por las respuestas */
+    div.stButton > button:hover {
+        border: 1px solid #3498db !important;
+        background-color: #34495e !important;
+    }
+
+    /* DISEÑO ESPECÍFICO DEL BOTÓN SIGUIENTE */
+    /* Usamos el selector de atributo para apuntar solo al botón de siguiente */
+    div.stButton > button[key*="sig"] {
         background-color: #3498db !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 22px !important;
+        min-height: 70px !important;
         border: none !important;
+        margin-top: 20px;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
     }
 
-    /* El contenedor del icono: debe estirarse igual que el botón */
-    .icon-container {
-        display: flex;
-        align-items: center; /* Mantiene el icono centrado verticalmente siempre */
-        justify-content: center;
-        min-height: 85px; 
-        height: 100%; /* Se acopla a la altura de la fila */
+    div.stButton > button[key*="sig"]:hover {
+        background-color: #2980b9 !important;
+        transform: scale(1.02);
     }
 
-    .icon-style {
-        font-size: 35px;
-        line-height: 1;
+    /* Ajuste para el texto del enunciado */
+    h3 {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
     }
-    </style>
+</style>
 """, unsafe_allow_html=True)
 
 # --- LÓGICA DE ESTADO ---
