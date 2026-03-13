@@ -24,7 +24,7 @@ st.markdown("""
         min-height: 85px !important; 
         height: auto !important;
         width: 100% !important;
-        font-size: 20px !important; /* Un pelín más grande para que se lea mejor */
+        font-size: 200px !important; /* Un pelín más grande para que se lea mejor */
         border-radius: 12px !important;
         padding: 15px 25px !important; /* Más aire a los lados para el icono */
         display: flex !important;
