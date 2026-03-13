@@ -57,7 +57,7 @@ def iniciar_examen(temas_ids, cantidad):
 if not st.session_state.examen_iniciado:
     st.markdown("""
         <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
-            <h1 style='margin:0; color: white;'>SISTEMA PMM CLOUD</h1>
+            <h3 style='margin:0; color: white;'>TEST PMM</h3>
             <p style='margin:0; color: #bdc3c7;'>Selecciona modalidad de test</p>
         </div>
     """, unsafe_allow_html=True)
