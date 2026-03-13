@@ -15,15 +15,6 @@ st.markdown("""
     <style>
     /* Fondo de la app */
     .stApp { background-color: #2c3e50; color: white; }
-    
-    /* EL ENUNCIADO: Forzamos el tamaño aquí */
-    .enunciado-test {
-        font-size: 22px !important;
-        color: #ecf0f1 !important;
-        text-align: center;
-        line-height: 1.4;
-        margin-bottom: 30px;
-    }
 
     /* Los botones: solo altura mínima y que el texto no se corte */
     div.stButton > button {
@@ -108,7 +99,7 @@ elif st.session_state.examen_iniciado is True:
     # Enunciado centrado y con fuente ajustada
     st.markdown(f"""
         <div style='text-align: center; margin-bottom: 35px; padding: 0 20px;'>
-            <b style='font-size: 18px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
+            <b style='font-size: 20px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
                 {p['enunciado']}
             </b>
         </div>
