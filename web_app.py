@@ -118,7 +118,7 @@ elif st.session_state.examen_iniciado is True:
     # Enunciado con fuente ajustada y mejor espaciado
     st.markdown(f"""
         <div style='text-align: center; margin-bottom: 35px; padding: 0 20px;'>
-            <h3 style='font-size: 24px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
+            <h3 style='font-size: 20px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
                 {p['enunciado']}
             </h3>
         </div>
@@ -159,8 +159,7 @@ elif st.session_state.examen_iniciado is True:
             </div>
         """, unsafe_allow_html=True)
         
-        _, col_btn, _ = st.columns([0.2, 0.6, 0.2])
-        with col_btn:
+        with col_der:
             if st.button("Siguiente Pregunta ➔", type="primary", use_container_width=True):
                 if st.session_state.indice < total - 1:
                     st.session_state.indice += 1
