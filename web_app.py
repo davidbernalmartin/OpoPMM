@@ -115,7 +115,14 @@ elif st.session_state.examen_iniciado is True:
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"<h3 style='text-align: center; margin-bottom: 30px;'>{p['enunciado']}</h3>", unsafe_allow_html=True)
+    # Enunciado con fuente ajustada y mejor espaciado
+    st.markdown(f"""
+        <div style='text-align: center; margin-bottom: 35px; padding: 0 20px;'>
+            <h3 style='font-size: 24px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
+                {p['enunciado']}
+            </h3>
+        </div>
+    """, unsafe_allow_html=True)
 
     _, col_central, _ = st.columns([0.05, 0.9, 0.05])
     
@@ -133,7 +140,7 @@ elif st.session_state.examen_iniciado is True:
                         st.session_state.fallos += 1
                     st.rerun()
 
-            with col_der:
+            with col_izq:
                 if st.session_state.respuesta_dada:
                     # Envolvemos el icono en un div que ocupa todo el alto
                     icon = "✅" if letra == p['correcta'] else "❌"
