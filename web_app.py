@@ -14,20 +14,22 @@ supabase = create_client(URL, KEY)
 
 # --- ESTILOS ESENCIALES (El resto ya lo hace el config.toml) ---
 st.markdown("""
-    <style>
-    /* ... (tus otros estilos) ... */
-
-    .icon-style {
-        font-size: 32px; /* Un pelín más pequeño para que no "tire" de la línea */
-        display: flex;
-        align-items: center; /* Centrado vertical */
-        justify-content: center; /* Centrado horizontal en su columna */
-        height: 60px; /* Misma altura que el min-height del botón */
-        line-height: 60px;
-        margin-top: 2px; /* Pequeño ajuste fino para nivelar con el texto del botón */
-    }
-    </style>
-""", unsafe_allow_html=True)
+        <style>
+        .icon-style {
+            font-size: 30px; /* Tamaño un poco más contenido */
+            display: flex;
+            align-items: center; /* Alineación vertical central en su columna */
+            justify-content: center;
+            height: 60px; /* Misma altura que el min-height del botón */
+            margin-top: 1px; /* Ajuste fino universal */
+        }
+        
+        /* Ajuste fino específico para la cruz roja: la subimos un par de píxeles */
+        .icon-fix-red {
+            margin-top: -2px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 # --- LÓGICA DE ESTADO ---
 if "examen_iniciado" not in st.session_state:
@@ -118,9 +120,9 @@ elif st.session_state.examen_iniciado is True:
         for letra in ["A", "B", "C"]:
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
             
-            # Creamos 3 columnas: [Icono vacío (izq), Botón (centro), Icono (der)]
-            # Al poner 0.15 a ambos lados, el botón queda perfectamente centrado
-            col_izq, col_btn_resp, col_der = st.columns([0.15, 0.7, 0.15])
+            # Usamos una proporción que de un poco más de aire al icono
+            # col_izq y col_der equilibradas para que el botón central no se mueva
+            col_izq, col_btn_resp, col_der = st.columns([0.16, 0.68, 0.16])
             
             with col_btn_resp:
                 if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
@@ -134,10 +136,11 @@ elif st.session_state.examen_iniciado is True:
             with col_der:
                 if st.session_state.respuesta_dada:
                     if letra == p['correcta']:
-                        # Usamos la clase corregida
+                        # El tic suele estar bien, usamos la clase estándar
                         st.markdown('<div class="icon-style">✅</div>', unsafe_allow_html=True)
                     elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
-                        st.markdown('<div class="icon-style">❌</div>', unsafe_allow_html=True)
+                        # A la cruz roja le aplicamos el ajuste fino para subirla
+                        st.markdown('<div class="icon-style icon-fix-red">❌</div>', unsafe_allow_html=True)
 
 # --- MOSTRAR EXPLICACIÓN Y BOTÓN SIGUIENTE SOLO DESPUÉS DE RESPONDER ---
     if st.session_state.respuesta_dada:
