@@ -7,8 +7,8 @@ st.set_page_config(page_title="OpoTests PMM - Web", page_icon="👮‍♂️", l
 
 # --- CONEXIÓN A SUPABASE ---
 # --- CONFIGURACIÓN ---
-URL= "https://viglgksnpajdgpfprmqg.supabase.co"
-KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpZ2xna3NucGFqZGdwZnBybXFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNDkzNDcsImV4cCI6MjA4ODkyNTM0N30.k2o2KzYnRvg3fSjMA5fCvn2-VAJVZMJiUW1_UKFNZiA"
+URL = st.secrets["SUPABASE_URL"]
+KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(URL, KEY)
 

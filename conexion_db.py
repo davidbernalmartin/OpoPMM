@@ -2,8 +2,8 @@ import sqlite3
 from supabase import create_client, Client
 
 # --- CONFIGURACIÓN ---
-URL_SUPABASE = "https://viglgksnpajdgpfprmqg.supabase.co"
-KEY_SUPABASE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpZ2xna3NucGFqZGdwZnBybXFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNDkzNDcsImV4cCI6MjA4ODkyNTM0N30.k2o2KzYnRvg3fSjMA5fCvn2-VAJVZMJiUW1_UKFNZiA"
+URL = st.secrets["SUPABASE_URL"]
+KEY = st.secrets["SUPABASE_KEY"]
 
 supabase: Client = create_client(URL_SUPABASE, KEY_SUPABASE)
 
