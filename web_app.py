@@ -112,7 +112,7 @@ if not st.session_state.examen_iniciado:
         cols_temas = st.columns(2)
         for i, t in enumerate(res_temas):
             with cols_temas[i % 2]:
-                if st.button(f"TEMA {t['id']}", key=f"btn_t_{t['id']}", use_container_width=True, help=t['nombre']):
+                if st.button(f"{t['nombre']}", key=f"btn_t_{t['id']}", use_container_width=True):
                     iniciar_examen([t['id']], st.session_state.cantidad_preguntas)
                     st.rerun()
 
