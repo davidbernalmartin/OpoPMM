@@ -116,12 +116,11 @@ elif st.session_state.examen_iniciado is True:
         for letra in ["A", "B", "C"]:
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
             
-            # 2. Creamos dos columnas internas: una para el botón y otra para el icono
-            # El botón ocupa el 85% y el icono el 15%
-            col_btn_resp, col_icon = st.columns([0.85, 0.15])
+            # Creamos 3 columnas: [Icono vacío (izq), Botón (centro), Icono (der)]
+            # Al poner 0.15 a ambos lados, el botón queda perfectamente centrado
+            col_izq, col_btn_resp, col_der = st.columns([0.15, 0.7, 0.15])
             
             with col_btn_resp:
-                # Dibujamos el botón (limpio, sin iconos dentro)
                 if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
                     st.session_state.respuesta_dada = letra
                     if letra == p['correcta']:
@@ -130,14 +129,11 @@ elif st.session_state.examen_iniciado is True:
                         st.session_state.fallos += 1
                     st.rerun()
 
-            with col_icon:
-                # 3. Mostramos el icono fuera solo tras responder
+            with col_der:
                 if st.session_state.respuesta_dada:
                     if letra == p['correcta']:
-                        # Icono ✅ centrado y grande
                         st.markdown('<div class="icon-style">✅</div>', unsafe_allow_html=True)
                     elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
-                        # Icono ❌ centrado y grande
                         st.markdown('<div class="icon-style">❌</div>', unsafe_allow_html=True)
 
 # --- MOSTRAR EXPLICACIÓN Y BOTÓN SIGUIENTE SOLO DESPUÉS DE RESPONDER ---
