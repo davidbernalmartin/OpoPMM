@@ -29,6 +29,7 @@ st.markdown("""
 # --- LÓGICA DE ESTADO ---
 if "examen_iniciado" not in st.session_state:
     st.session_state.examen_iniciado = False
+    st.session_state.pantalla = "menu"
     st.session_state.preguntas = []
     st.session_state.indice = 0
     st.session_state.aciertos = 0
@@ -51,37 +52,56 @@ def iniciar_examen(temas_ids, cantidad):
     except Exception as e:
         st.error(f"Error al cargar preguntas: {e}")
 
-# --- PANTALLA 1: CONFIGURACIÓN ---
+# --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
     st.markdown("""
         <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
             <h1 style='margin:0; color: white;'>SISTEMA PMM CLOUD</h1>
-            <p style='margin:0; color: #bdc3c7;'>Panel de Configuración</p>
         </div>
     """, unsafe_allow_html=True)
-    
-    try:
-        res_temas = supabase.table("temas").select("id, nombre").order("id").execute().data
-        _, col_config, _ = st.columns([0.1, 0.8, 0.1])
-        with col_config:
-            st.markdown("### 📚 Selecciona los Temas")
-            with st.container(height=300, border=True):
-                temas_seleccionados_ids = []
-                seleccionar_todos = st.checkbox("Marcar todos los temas", value=True)
-                st.divider()
-                for t in res_temas:
-                    if st.checkbox(t['nombre'], value=seleccionar_todos, key=f"check_{t['id']}"):
-                        temas_seleccionados_ids.append(t['id'])
+
+    # --- MODO 1: EL MENÚ DE LOS 3 BOTONES ---
+    if st.session_state.pantalla == "menu":
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("🇬🇧\n\nEXAMEN INGLÉS\n(Tema 0)", use_container_width=True):
+                iniciar_examen([0], 20) # Tema 0, 20 preguntas
+                st.rerun()
+
+        with col2:
+            if st.button("📚\n\nTEST POR TEMAS\n(Específicos)", use_container_width=True):
+                st.session_state.pantalla = "seleccion_temas"
+                st.rerun()
+
+        with col3:
+            if st.button("🔥\n\nSIMULACRO\n(Teoría)", use_container_width=True):
+                # Obtenemos todos los temas menos el 0
+                res_temas = supabase.table("temas").select("id").neq("id", 0).execute()
+                todos_ids = [t['id'] for t in res_temas.data]
+                iniciar_examen(todos_ids, 60) # Simulacro de 60 preguntas
+                st.rerun()
+
+    # --- MODO 2: EL PANEL DE LOS 40 BOTONES ---
+    elif st.session_state.pantalla == "seleccion_temas":
+        if st.button("⬅️ Volver al Menú"):
+            st.session_state.pantalla = "menu"
+            st.rerun()
             
-            cantidad = st.select_slider("Cantidad de preguntas:", options=[10, 20, 40, 60, 80, 100], value=20)
-            if st.button("🚀 INICIAR EXAMEN", type="primary", use_container_width=True):
-                if not temas_seleccionados_ids:
-                    st.warning("Selecciona al menos un tema.")
-                else:
-                    iniciar_examen(temas_seleccionados_ids, cantidad)
+        st.markdown("### Selecciona el Tema a estudiar:")
+        
+        # Obtenemos temas reales (quitando el 0 de inglés)
+        res_temas = supabase.table("temas").select("id, nombre").neq("id", 0).order("id").execute().data
+        
+        # Grid de 4 columnas
+        cols = st.columns(4)
+        for i, t in enumerate(res_temas):
+            with cols[i % 4]:
+                # Mostramos solo el número del tema para que no quede un botón gigante con mucho texto
+                # El nombre completo aparecerá al pasar el ratón (opcional)
+                if st.button(f"TEMA {t['id']}", key=f"btn_t_{t['id']}", use_container_width=True, help=t['nombre']):
+                    iniciar_examen([t['id']], 20)
                     st.rerun()
-    except Exception as e:
-        st.error(f"Error: {e}")
 
 # --- PANTALLA 2: EL EXAMEN ---
 elif st.session_state.examen_iniciado is True:
@@ -167,4 +187,5 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
 
     if st.button("Volver al Inicio", use_container_width=True):
         st.session_state.examen_iniciado = False
+        st.session_state.pantalla = "menu"
         st.rerun()
