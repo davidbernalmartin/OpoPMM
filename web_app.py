@@ -80,7 +80,7 @@ if not st.session_state.examen_iniciado:
         
         with col_menu:
             if st.button("🇬🇧 EXAMEN INGLÉS", use_container_width=True):
-                iniciar_examen([0], st.session_state.cantidad_preguntas)
+                iniciar_examen([1], st.session_state.cantidad_preguntas)
                 st.rerun()
             
             st.write("") # Espaciado entre botones
@@ -92,7 +92,7 @@ if not st.session_state.examen_iniciado:
             st.write("")
             
             if st.button("🔥 SIMULACRO GENERAL", use_container_width=True):
-                res_temas = supabase.table("temas").select("id").neq("id", 0).execute()
+                res_temas = supabase.table("temas").select("id").neq("id", 1).execute()
                 todos_ids = [t['id'] for t in res_temas.data]
                 iniciar_examen(todos_ids, st.session_state.cantidad_preguntas)
                 st.rerun()
@@ -107,11 +107,11 @@ if not st.session_state.examen_iniciado:
         
         # Aquí los temas sí los mantenemos en cuadrícula (grid) porque 40 botones 
         # uno encima del otro obligarían a hacer un scroll eterno.
-        res_temas = supabase.table("temas").select("id, nombre").neq("id", 0).order("id").execute().data
+        res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute().data
         
-        cols_temas = st.columns(4)
+        cols_temas = st.columns(2)
         for i, t in enumerate(res_temas):
-            with cols_temas[i % 4]:
+            with cols_temas[i % 2]:
                 if st.button(f"TEMA {t['id']}", key=f"btn_t_{t['id']}", use_container_width=True, help=t['nombre']):
                     iniciar_examen([t['id']], st.session_state.cantidad_preguntas)
                     st.rerun()
