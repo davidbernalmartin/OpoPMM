@@ -6,30 +6,33 @@ import random
 st.set_page_config(page_title="OpoTests PMM - Web", page_icon="👮‍♂️", layout="wide")
 
 # --- CONEXIÓN A SUPABASE ---
-# --- CONFIGURACIÓN ---
 URL = st.secrets["SUPABASE_URL"]
 KEY = st.secrets["SUPABASE_KEY"]
-
 supabase = create_client(URL, KEY)
 
-# --- ESTILOS ESENCIALES (El resto ya lo hace el config.toml) ---
+# --- ESTILOS ---
 st.markdown("""
-        <style>
-        .icon-style {
-            font-size: 30px; /* Tamaño un poco más contenido */
-            display: flex;
-            align-items: center; /* Alineación vertical central en su columna */
-            justify-content: center;
-            height: 60px; /* Misma altura que el min-height del botón */
-            margin-top: 1px; /* Ajuste fino universal */
-        }
-        
-        /* Ajuste fino específico para la cruz roja: la subimos un par de píxeles */
-        .icon-fix-red {
-            margin-top: -2px !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    <style>
+    .stApp { background-color: #2c3e50; color: white; }
+    
+    /* Estilo para los botones */
+    div.stButton > button {
+        min-height: 60px !important;
+        width: 100% !important;
+        font-size: 18px !important;
+        border-radius: 10px !important;
+    }
+
+    /* Estilo para los iconos laterales */
+    .icon-style {
+        font-size: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- LÓGICA DE ESTADO ---
 if "examen_iniciado" not in st.session_state:
@@ -56,7 +59,7 @@ def iniciar_examen(temas_ids, cantidad):
     except Exception as e:
         st.error(f"Error al cargar preguntas: {e}")
 
-# --- PANTALLA 1: MENÚ PRINCIPAL (CONFIGURACIÓN) ---
+# --- PANTALLA 1: CONFIGURACIÓN ---
 if not st.session_state.examen_iniciado:
     st.markdown("""
         <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
@@ -67,36 +70,26 @@ if not st.session_state.examen_iniciado:
     
     try:
         res_temas = supabase.table("temas").select("id, nombre").order("id").execute().data
-        
         _, col_config, _ = st.columns([0.1, 0.8, 0.1])
-        
         with col_config:
             st.markdown("### 📚 Selecciona los Temas")
-            
             with st.container(height=300, border=True):
                 temas_seleccionados_ids = []
                 seleccionar_todos = st.checkbox("Marcar todos los temas", value=True)
                 st.divider()
-                
                 for t in res_temas:
                     if st.checkbox(t['nombre'], value=seleccionar_todos, key=f"check_{t['id']}"):
                         temas_seleccionados_ids.append(t['id'])
             
-            st.write(f" *Temas listos: {len(temas_seleccionados_ids)}*")
-            
-            st.markdown("### 📝 Número de preguntas")
-            cantidad = st.select_slider("Cantidad:", options=[10, 20, 40, 60, 80, 100], value=20)
-            
-            st.write("")
+            cantidad = st.select_slider("Cantidad de preguntas:", options=[10, 20, 40, 60, 80, 100], value=20)
             if st.button("🚀 INICIAR EXAMEN", type="primary", use_container_width=True):
                 if not temas_seleccionados_ids:
                     st.warning("Selecciona al menos un tema.")
                 else:
                     iniciar_examen(temas_seleccionados_ids, cantidad)
                     st.rerun()
-
     except Exception as e:
-        st.error(f"Error de conexión: {e}")
+        st.error(f"Error: {e}")
 
 # --- PANTALLA 2: EL EXAMEN ---
 elif st.session_state.examen_iniciado is True:
@@ -104,7 +97,6 @@ elif st.session_state.examen_iniciado is True:
     p = st.session_state.preguntas[idx]
     total = len(st.session_state.preguntas)
 
-    # Panel de Stats
     st.markdown(f"""
         <div style="background-color: #34495e; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 25px;">
             <b>Pregunta {idx+1}/{total}</b> | ✅ {st.session_state.aciertos} | ❌ {st.session_state.fallos}
@@ -113,16 +105,12 @@ elif st.session_state.examen_iniciado is True:
 
     st.markdown(f"<h3 style='text-align: center; margin-bottom: 30px;'>{p['enunciado']}</h3>", unsafe_allow_html=True)
 
-    # 1. Definimos el espacio central
     _, col_central, _ = st.columns([0.05, 0.9, 0.05])
     
     with col_central:
         for letra in ["A", "B", "C"]:
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
-            
-            # Usamos una proporción que de un poco más de aire al icono
-            # col_izq y col_der equilibradas para que el botón central no se mueva
-            col_izq, col_btn_resp, col_der = st.columns([0.16, 0.68, 0.16])
+            col_izq, col_btn_resp, col_der = st.columns([0.15, 0.7, 0.15])
             
             with col_btn_resp:
                 if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
@@ -136,15 +124,11 @@ elif st.session_state.examen_iniciado is True:
             with col_der:
                 if st.session_state.respuesta_dada:
                     if letra == p['correcta']:
-                        # El tic suele estar bien, usamos la clase estándar
                         st.markdown('<div class="icon-style">✅</div>', unsafe_allow_html=True)
                     elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
-                        # A la cruz roja le aplicamos el ajuste fino para subirla
-                        st.markdown('<div class="icon-style icon-fix-red">❌</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="icon-style">❌</div>', unsafe_allow_html=True)
 
-# --- MOSTRAR EXPLICACIÓN Y BOTÓN SIGUIENTE SOLO DESPUÉS DE RESPONDER ---
     if st.session_state.respuesta_dada:
-        # 1. El cuadro de explicación elegante
         st.markdown(f"""
             <div style="background-color: #1a252f; padding: 20px; border-radius: 10px; border-left: 5px solid #3498db; margin: 25px 0;">
                 <small style="color: #3498db;"><b>💡 EXPLICACIÓN</b></small><br>
@@ -152,7 +136,6 @@ elif st.session_state.examen_iniciado is True:
             </div>
         """, unsafe_allow_html=True)
         
-        # 2. El botón de Siguiente centrado
         _, col_btn, _ = st.columns([0.2, 0.6, 0.2])
         with col_btn:
             if st.button("Siguiente Pregunta ➔", type="primary", use_container_width=True):
@@ -168,7 +151,6 @@ elif st.session_state.examen_iniciado is True:
 elif st.session_state.examen_iniciado == "FINALIZADO":
     st.balloons()
     st.markdown("<h1 style='text-align: center;'>Resultado</h1>", unsafe_allow_html=True)
-    
     total = len(st.session_state.preguntas)
     netos = max(0, st.session_state.aciertos - (st.session_state.fallos * 0.33))
     nota = (netos / total * 10) if total > 0 else 0
