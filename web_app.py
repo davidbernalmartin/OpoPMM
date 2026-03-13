@@ -18,11 +18,13 @@ st.markdown("""
     /* ... (tus otros estilos) ... */
 
     .icon-style {
-        font-size: 35px; /* Tamaño del icono */
+        font-size: 32px; /* Un pelín más pequeño para que no "tire" de la línea */
         display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 60px; /* Misma altura que el botón para que se alineen */
+        align-items: center; /* Centrado vertical */
+        justify-content: center; /* Centrado horizontal en su columna */
+        height: 60px; /* Misma altura que el min-height del botón */
+        line-height: 60px;
+        margin-top: 2px; /* Pequeño ajuste fino para nivelar con el texto del botón */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -132,6 +134,7 @@ elif st.session_state.examen_iniciado is True:
             with col_der:
                 if st.session_state.respuesta_dada:
                     if letra == p['correcta']:
+                        # Usamos la clase corregida
                         st.markdown('<div class="icon-style">✅</div>', unsafe_allow_html=True)
                     elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
                         st.markdown('<div class="icon-style">❌</div>', unsafe_allow_html=True)
