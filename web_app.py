@@ -17,20 +17,25 @@ st.markdown("""
     <style>
     .stApp { background-color: #2c3e50; color: white; }
     
-    /* BOTONES SIEMPRE UNIFORMES */
+    /* ESTILO BASE PARA LOS BOTONES */
     div.stButton > button {
-        min-height: 60px !important; /* min-height para que crezca si el texto es largo */
+        min-height: 60px !important;
         width: 100% !important;
         font-weight: 500 !important;
         font-size: 18px !important;
         border-radius: 10px !important;
         color: white !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
-        transition: background-color 0.3s ease;
         padding: 10px 20px !important;
+        transition: background-color 0.2s ease !important;
+    }
+
+    /* Evitar el cambio de color gris al pasar el ratón una vez respondido */
+    div.stButton > button:active, div.stButton > button:focus {
+        color: white !important;
     }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- LÓGICA DE ESTADO ---
 if "examen_iniciado" not in st.session_state:
@@ -120,16 +125,15 @@ elif st.session_state.examen_iniciado is True:
         for letra in ["A", "B", "C"]:
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
             
-            # 1. Determinar el color del botón según el estado
-            color_btn = "#34495e"  # Gris azulado por defecto
-            
+            # 1. Definir color dinámico
+            color_btn = "#34495e" # Gris por defecto
             if st.session_state.respuesta_dada:
                 if letra == p['correcta']:
-                    color_btn = "#27ae60"  # Verde si es la correcta
+                    color_btn = "#27ae60" # Verde (Correcta)
                 elif letra == st.session_state.respuesta_dada:
-                    color_btn = "#c0392b"  # Rojo si es la que fallaste
+                    color_btn = "#c0392b" # Rojo (Tu fallo)
 
-            # 2. Inyectar el color SOLO para este botón específico mediante una pequeña "trampa" de CSS dinámico
+            # 2. Inyectar el color mediante la clave del botón
             st.markdown(f"""
                 <style>
                 div.stButton > button[key*="btn_{letra}_{idx}"] {{
@@ -138,15 +142,16 @@ elif st.session_state.examen_iniciado is True:
                 </style>
             """, unsafe_allow_html=True)
 
-            # 3. Dibujar el botón (siempre es el mismo componente)
-            # Deshabilitamos el botón solo después de responder para que no se pueda cambiar la respuesta
-            if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
-                st.session_state.respuesta_dada = letra
-                if letra == p['correcta']:
-                    st.session_state.aciertos += 1
-                else:
-                    st.session_state.fallos += 1
-                st.rerun()
+            # 3. El Botón (NUNCA está disabled)
+            if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True):
+                # Solo ejecutamos la lógica si NO se ha respondido aún
+                if st.session_state.respuesta_dada is None:
+                    st.session_state.respuesta_dada = letra
+                    if letra == p['correcta']:
+                        st.session_state.aciertos += 1
+                    else:
+                        st.session_state.fallos += 1
+                    st.rerun()
 
     if st.session_state.respuesta_dada:
         st.markdown(f"""
