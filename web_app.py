@@ -17,22 +17,12 @@ st.markdown("""
     <style>
     .stApp { background-color: #2c3e50; color: white; }
     
-    /* ESTILO BASE PARA LOS BOTONES */
+    /* Botones grandes y con texto centrado */
     div.stButton > button {
         min-height: 60px !important;
         width: 100% !important;
-        font-weight: 500 !important;
         font-size: 18px !important;
         border-radius: 10px !important;
-        color: white !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        padding: 10px 20px !important;
-        transition: background-color 0.2s ease !important;
-    }
-
-    /* Evitar el cambio de color gris al pasar el ratón una vez respondido */
-    div.stButton > button:active, div.stButton > button:focus {
-        color: white !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -123,38 +113,29 @@ elif st.session_state.examen_iniciado is True:
     
     with col_central:
         for letra in ["A", "B", "C"]:
+            # Texto base de la opción
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
-            key_boton = f"btn_{letra}_{idx}"
             
-            # 1. Lógica de colores (Igual que antes)
-            color_btn = "#34495e"  # Gris azulado por defecto
+            # Lógica de Iconos POST-RESPUESTA
             if st.session_state.respuesta_dada:
                 if letra == p['correcta']:
-                    color_btn = "#27ae60"  # VERDE
-                elif letra == st.session_state.respuesta_dada:
-                    color_btn = "#c0392b"  # ROJO
+                    texto_opcion += "  ✅"  # Añadimos el tic a la correcta
+                elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
+                    texto_opcion += "  ❌"  # Añadimos la cruz si es la que falló
+            
+            # Dibujamos el botón
+            # Se deshabilita solo cuando ya hay una respuesta dada
+            if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
+                st.session_state.respuesta_dada = letra
+                if letra == p['correcta']:
+                    st.session_state.aciertos += 1
+                else:
+                    st.session_state.fallos += 1
+                st.rerun()
 
-            # 2. INYECCIÓN DE CSS MEJORADA
-            # Usamos un selector de atributo que busca cualquier botón cuyo ID contenga nuestra clave
-            st.markdown(f"""
-                <style>
-                button[aria-label*="{texto_opcion}"], 
-                button[key*="{key_boton}"] {{
-                    background-color: {color_btn} !important;
-                    color: white !important;
-                }}
-                </style>
-            """, unsafe_allow_html=True)
-
-            # 3. EL BOTÓN
-            if st.button(texto_opcion, key=key_boton, use_container_width=True):
-                if st.session_state.respuesta_dada is None:
-                    st.session_state.respuesta_dada = letra
-                    if letra == p['correcta']:
-                        st.session_state.aciertos += 1
-                    else:
-                        st.session_state.fallos += 1
-                    st.rerun()
+    # Mostrar la explicación solo después de responder
+    if st.session_state.respuesta_dada:
+        st.info(f"💡 **Explicación:**\n\n{p['explicacion'] if p.get('explicacion') else 'Sin explicación disponible.'}")
 
     if st.session_state.respuesta_dada:
         st.markdown(f"""
