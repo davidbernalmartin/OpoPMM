@@ -56,7 +56,7 @@ def iniciar_examen(temas_ids, cantidad):
 # --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
     st.markdown("""
-        <div style="background-color: #34495e; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+        <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
             <h3 style='margin:0; color: white;'>TEST PMM</h3>
         </div>
     """, unsafe_allow_html=True)
