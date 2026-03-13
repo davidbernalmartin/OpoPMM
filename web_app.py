@@ -30,6 +30,7 @@ st.markdown("""
 if "examen_iniciado" not in st.session_state:
     st.session_state.examen_iniciado = False
     st.session_state.pantalla = "menu"
+    st.session_state.cantidad_preguntas = 20
     st.session_state.preguntas = []
     st.session_state.indice = 0
     st.session_state.aciertos = 0
@@ -57,50 +58,62 @@ if not st.session_state.examen_iniciado:
     st.markdown("""
         <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
             <h1 style='margin:0; color: white;'>SISTEMA PMM CLOUD</h1>
+            <p style='margin:0; color: #bdc3c7;'>Selecciona modalidad de test</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # --- MODO 1: EL MENÚ DE LOS 3 BOTONES ---
-    if st.session_state.pantalla == "menu":
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("🇬🇧\n\nEXAMEN INGLÉS\n(Tema 0)", use_container_width=True):
-                iniciar_examen([0], 20) # Tema 0, 20 preguntas
-                st.rerun()
+    # --- SELECTOR DE CANTIDAD ---
+    # Lo centramos un poco para que no ocupe todo el ancho si no quieres
+    _, col_slider, _ = st.columns([0.1, 0.8, 0.1])
+    with col_slider:
+        st.session_state.cantidad_preguntas = st.select_slider(
+            "📊 ¿Cuántas preguntas realizar?",
+            options=[10, 20, 40, 60, 80, 100],
+            value=st.session_state.cantidad_preguntas
+        )
+    st.divider()
 
-        with col2:
-            if st.button("📚\n\nTEST POR TEMAS\n(Específicos)", use_container_width=True):
+    # --- MODO 1: MENÚ VERTICAL (Uno encima del otro) ---
+    if st.session_state.pantalla == "menu":
+        # Usamos una sola columna central para que los botones no sean infinitamente anchos
+        _, col_menu, _ = st.columns([0.2, 0.6, 0.2])
+        
+        with col_menu:
+            if st.button("🇬🇧 EXAMEN INGLÉS", use_container_width=True):
+                iniciar_examen([0], st.session_state.cantidad_preguntas)
+                st.rerun()
+            
+            st.write("") # Espaciado entre botones
+            
+            if st.button("📚 TEST POR TEMAS (Específicos)", use_container_width=True):
                 st.session_state.pantalla = "seleccion_temas"
                 st.rerun()
-
-        with col3:
-            if st.button("🔥\n\nSIMULACRO\n(Teoría)", use_container_width=True):
-                # Obtenemos todos los temas menos el 0
+            
+            st.write("")
+            
+            if st.button("🔥 SIMULACRO GENERAL", use_container_width=True):
                 res_temas = supabase.table("temas").select("id").neq("id", 0).execute()
                 todos_ids = [t['id'] for t in res_temas.data]
-                iniciar_examen(todos_ids, 60) # Simulacro de 60 preguntas
+                iniciar_examen(todos_ids, st.session_state.cantidad_preguntas)
                 st.rerun()
 
-    # --- MODO 2: EL PANEL DE LOS 40 BOTONES ---
+    # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
-        if st.button("⬅️ Volver al Menú"):
+        if st.button("⬅️ Volver al Menú Principal"):
             st.session_state.pantalla = "menu"
             st.rerun()
             
-        st.markdown("### Selecciona el Tema a estudiar:")
+        st.markdown("### Selecciona el Tema:")
         
-        # Obtenemos temas reales (quitando el 0 de inglés)
+        # Aquí los temas sí los mantenemos en cuadrícula (grid) porque 40 botones 
+        # uno encima del otro obligarían a hacer un scroll eterno.
         res_temas = supabase.table("temas").select("id, nombre").neq("id", 0).order("id").execute().data
         
-        # Grid de 4 columnas
-        cols = st.columns(4)
+        cols_temas = st.columns(4)
         for i, t in enumerate(res_temas):
-            with cols[i % 4]:
-                # Mostramos solo el número del tema para que no quede un botón gigante con mucho texto
-                # El nombre completo aparecerá al pasar el ratón (opcional)
+            with cols_temas[i % 4]:
                 if st.button(f"TEMA {t['id']}", key=f"btn_t_{t['id']}", use_container_width=True, help=t['nombre']):
-                    iniciar_examen([t['id']], 20)
+                    iniciar_examen([t['id']], st.session_state.cantidad_preguntas)
                     st.rerun()
 
 # --- PANTALLA 2: EL EXAMEN ---
