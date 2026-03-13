@@ -133,11 +133,9 @@ elif st.session_state.examen_iniciado is True:
                     st.session_state.fallos += 1
                 st.rerun()
 
-    # Mostrar la explicación solo después de responder
+# --- MOSTRAR EXPLICACIÓN Y BOTÓN SIGUIENTE SOLO DESPUÉS DE RESPONDER ---
     if st.session_state.respuesta_dada:
-        st.info(f"💡 **Explicación:**\n\n{p['explicacion'] if p.get('explicacion') else 'Sin explicación disponible.'}")
-
-    if st.session_state.respuesta_dada:
+        # 1. El cuadro de explicación elegante
         st.markdown(f"""
             <div style="background-color: #1a252f; padding: 20px; border-radius: 10px; border-left: 5px solid #3498db; margin: 25px 0;">
                 <small style="color: #3498db;"><b>💡 EXPLICACIÓN</b></small><br>
@@ -145,9 +143,10 @@ elif st.session_state.examen_iniciado is True:
             </div>
         """, unsafe_allow_html=True)
         
+        # 2. El botón de Siguiente centrado
         _, col_btn, _ = st.columns([0.2, 0.6, 0.2])
         with col_btn:
-            if st.button("Siguiente ➔", type="primary", use_container_width=True):
+            if st.button("Siguiente Pregunta ➔", type="primary", use_container_width=True):
                 if st.session_state.indice < total - 1:
                     st.session_state.indice += 1
                     st.session_state.respuesta_dada = None
