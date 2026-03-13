@@ -99,7 +99,7 @@ elif st.session_state.examen_iniciado is True:
     # Enunciado centrado y con fuente ajustada
     st.markdown(f"""
         <div style='text-align: center; margin-bottom: 35px; padding: 0 20px;'>
-            <b style='font-size: 20px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
+            <b style='font-size: 24px !important; font-weight: 500; line-height: 1.4; color: #ecf0f1;'>
                 {p['enunciado']}
             </b>
         </div>
