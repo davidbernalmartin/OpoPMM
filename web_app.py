@@ -17,38 +17,17 @@ st.markdown("""
     <style>
     .stApp { background-color: #2c3e50; color: white; }
     
-    /* 1. BOTONES ORIGINALES (Antes de pulsar) */
+    /* BOTONES SIEMPRE UNIFORMES */
     div.stButton > button {
-        height: 60px !important;
+        min-height: 60px !important; /* min-height para que crezca si el texto es largo */
         width: 100% !important;
         font-weight: 500 !important;
         font-size: 18px !important;
         border-radius: 10px !important;
         color: white !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
-        background-color: #34495e !important;
-        transition: none !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important; /* Centrado del botón */
-    }
-
-    /* 2. BLOQUES DE RESPUESTA (Después de pulsar) */
-    .respuesta-block {
-        height: 60px;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center; /* Centrado horizontal */
-        text-align: center;      /* Centrado del texto interno */
-        padding: 10px 20px;
-        border-radius: 10px;
-        margin-bottom: 12px;
-        font-weight: 500 !important;
-        font-size: 18px !important;
-        border: 1px solid rgba(255,255,255,0.1);
-        box-sizing: border-box;
+        transition: background-color 0.3s ease;
+        padding: 10px 20px !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -135,39 +114,39 @@ elif st.session_state.examen_iniciado is True:
 
     st.markdown(f"<h3 style='text-align: center; margin-bottom: 30px;'>{p['enunciado']}</h3>", unsafe_allow_html=True)
 
-    # Bucle de Respuestas Reparado y Centrado
     _, col_central, _ = st.columns([0.05, 0.9, 0.05])
     
     with col_central:
         for letra in ["A", "B", "C"]:
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
             
-            # CASO A: Aún no ha respondido (Botones Normales de Streamlit)
-            if st.session_state.respuesta_dada is None:
-                if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True):
-                    st.session_state.respuesta_dada = letra
-                    if letra == p['correcta']:
-                        st.session_state.aciertos += 1
-                    else:
-                        st.session_state.fallos += 1
-                    st.rerun() # Esto recarga y activa el CASO B
+            # 1. Determinar el color del botón según el estado
+            color_btn = "#34495e"  # Gris azulado por defecto
             
-            # CASO B: Ya respondió (Dibujamos bloques HTML uniformes y coloreados)
-            else:
-                # Aquí es donde aplicamos el color de fondo DINÁMICO
-                color_fondo = "#34495e" # Gris azulado por defecto (idéntico al botón sin hover)
-                
+            if st.session_state.respuesta_dada:
                 if letra == p['correcta']:
-                    color_fondo = "#27ae60" # VERDE sólido
+                    color_btn = "#27ae60"  # Verde si es la correcta
                 elif letra == st.session_state.respuesta_dada:
-                    color_fondo = "#c0392b" # ROJO sólido
-                
-                # Pintamos el bloque HTML uniforme
-                st.markdown(f"""
-                    <div class="respuesta-block" style="background-color: {color_fondo};">
-                        {texto_opcion}
-                    </div>
-                """, unsafe_allow_html=True)
+                    color_btn = "#c0392b"  # Rojo si es la que fallaste
+
+            # 2. Inyectar el color SOLO para este botón específico mediante una pequeña "trampa" de CSS dinámico
+            st.markdown(f"""
+                <style>
+                div.stButton > button[key*="btn_{letra}_{idx}"] {{
+                    background-color: {color_btn} !important;
+                }}
+                </style>
+            """, unsafe_allow_html=True)
+
+            # 3. Dibujar el botón (siempre es el mismo componente)
+            # Deshabilitamos el botón solo después de responder para que no se pueda cambiar la respuesta
+            if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
+                st.session_state.respuesta_dada = letra
+                if letra == p['correcta']:
+                    st.session_state.aciertos += 1
+                else:
+                    st.session_state.fallos += 1
+                st.rerun()
 
     if st.session_state.respuesta_dada:
         st.markdown(f"""
