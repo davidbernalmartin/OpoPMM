@@ -15,14 +15,14 @@ supabase = create_client(URL, KEY)
 # --- ESTILOS ESENCIALES (El resto ya lo hace el config.toml) ---
 st.markdown("""
     <style>
-    .stApp { background-color: #2c3e50; color: white; }
-    
-    /* Botones grandes y con texto centrado */
-    div.stButton > button {
-        min-height: 60px !important;
-        width: 100% !important;
-        font-size: 18px !important;
-        border-radius: 10px !important;
+    /* ... (tus otros estilos) ... */
+
+    .icon-style {
+        font-size: 35px; /* Tamaño del icono */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px; /* Misma altura que el botón para que se alineen */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -109,29 +109,36 @@ elif st.session_state.examen_iniciado is True:
 
     st.markdown(f"<h3 style='text-align: center; margin-bottom: 30px;'>{p['enunciado']}</h3>", unsafe_allow_html=True)
 
+    # 1. Definimos el espacio central
     _, col_central, _ = st.columns([0.05, 0.9, 0.05])
     
     with col_central:
         for letra in ["A", "B", "C"]:
-            # Texto base de la opción
             texto_opcion = f"{letra}) {p[f'opcion_{letra.lower()}']}"
             
-            # Lógica de Iconos POST-RESPUESTA
-            if st.session_state.respuesta_dada:
-                if letra == p['correcta']:
-                    texto_opcion += "  ✅"  # Añadimos el tic a la correcta
-                elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
-                    texto_opcion += "  ❌"  # Añadimos la cruz si es la que falló
+            # 2. Creamos dos columnas internas: una para el botón y otra para el icono
+            # El botón ocupa el 85% y el icono el 15%
+            col_btn_resp, col_icon = st.columns([0.85, 0.15])
             
-            # Dibujamos el botón
-            # Se deshabilita solo cuando ya hay una respuesta dada
-            if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
-                st.session_state.respuesta_dada = letra
-                if letra == p['correcta']:
-                    st.session_state.aciertos += 1
-                else:
-                    st.session_state.fallos += 1
-                st.rerun()
+            with col_btn_resp:
+                # Dibujamos el botón (limpio, sin iconos dentro)
+                if st.button(texto_opcion, key=f"btn_{letra}_{idx}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
+                    st.session_state.respuesta_dada = letra
+                    if letra == p['correcta']:
+                        st.session_state.aciertos += 1
+                    else:
+                        st.session_state.fallos += 1
+                    st.rerun()
+
+            with col_icon:
+                # 3. Mostramos el icono fuera solo tras responder
+                if st.session_state.respuesta_dada:
+                    if letra == p['correcta']:
+                        # Icono ✅ centrado y grande
+                        st.markdown('<div class="icon-style">✅</div>', unsafe_allow_html=True)
+                    elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
+                        # Icono ❌ centrado y grande
+                        st.markdown('<div class="icon-style">❌</div>', unsafe_allow_html=True)
 
 # --- MOSTRAR EXPLICACIÓN Y BOTÓN SIGUIENTE SOLO DESPUÉS DE RESPONDER ---
     if st.session_state.respuesta_dada:
