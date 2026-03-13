@@ -15,21 +15,33 @@ st.markdown("""
     <style>
     .stApp { background-color: #2c3e50; color: white; }
     
-    /* Estilo para los botones */
+    /* El botón: mínimo 2 líneas, crece si es necesario */
     div.stButton > button {
-        min-height: 60px !important;
+        min-height: 85px !important; 
+        height: auto !important; /* Permite que crezca */
         width: 100% !important;
         font-size: 18px !important;
         border-radius: 10px !important;
+        padding: 10px 15px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: normal !important; /* Fuerza el salto de línea del texto */
+        word-wrap: break-word !important;
     }
 
-    /* Estilo para los iconos laterales */
+    /* El contenedor del icono: debe estirarse igual que el botón */
+    .icon-container {
+        display: flex;
+        align-items: center; /* Mantiene el icono centrado verticalmente siempre */
+        justify-content: center;
+        min-height: 85px; 
+        height: 100%; /* Se acopla a la altura de la fila */
+    }
+
     .icon-style {
         font-size: 35px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 60px;
+        line-height: 1;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -123,10 +135,14 @@ elif st.session_state.examen_iniciado is True:
 
             with col_der:
                 if st.session_state.respuesta_dada:
-                    if letra == p['correcta']:
-                        st.markdown('<div class="icon-style">✅</div>', unsafe_allow_html=True)
-                    elif letra == st.session_state.respuesta_dada and letra != p['correcta']:
-                        st.markdown('<div class="icon-style">❌</div>', unsafe_allow_html=True)
+                    # Envolvemos el icono en un div que ocupa todo el alto
+                    icon = "✅" if letra == p['correcta'] else "❌"
+                    if letra == p['correcta'] or letra == st.session_state.respuesta_dada:
+                        st.markdown(f"""
+                            <div class="icon-container">
+                                <span class="icon-style">{icon}</span>
+                            </div>
+                        """, unsafe_allow_html=True)
 
     if st.session_state.respuesta_dada:
         st.markdown(f"""
