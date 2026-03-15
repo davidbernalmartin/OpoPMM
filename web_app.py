@@ -91,35 +91,29 @@ if not st.session_state.examen_iniciado:
             if st.button("🇬🇧 EXAMEN INGLÉS", use_container_width=True):
                 iniciar_examen([1], st.session_state.cantidad_preguntas)
                 st.rerun()
-            
             st.write("") # Espaciado entre botones
-            
             if st.button("📚 TEST POR TEMAS (Específicos)", use_container_width=True):
                 st.session_state.pantalla = "seleccion_temas"
                 st.rerun()
-            
             st.write("")
-            
             if st.button("🔥 SIMULACRO GENERAL", use_container_width=True):
                 res_temas = supabase.table("temas").select("id").neq("id", 1).execute()
                 todos_ids = [t['id'] for t in res_temas.data]
                 iniciar_examen(todos_ids, st.session_state.cantidad_preguntas)
                 st.rerun()
-
+            st.write("")
             if st.button("📂 BIBLIOTECA DE LEYES (PDF)", use_container_width=True):
                 st.session_state.pantalla = "biblioteca"
                 st.rerun()
 
     # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
-        if st.button("⬅️ Volver al Menú Principal"):
+        if st.button("⬅️ Volver"):
             st.session_state.pantalla = "menu"
             st.rerun()
             
         st.markdown("### Selecciona el Tema:")
-        
-        # Aquí los temas sí los mantenemos en cuadrícula (grid) porque 40 botones 
-        # uno encima del otro obligarían a hacer un scroll eterno.
+
         res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute().data
         
         cols_temas = st.columns(2)
@@ -131,15 +125,12 @@ if not st.session_state.examen_iniciado:
                     
     # --- MODO 3: BIBLIOTECA DE LEYES ---
     elif st.session_state.pantalla == "biblioteca":
-        if st.button("⬅️ Volver al Menú Principal"):
+        st.markdown("### 📚 Legislación del Temario")
+        st.write("Consulta los textos oficiales consolidados:")
+
+        if st.button("⬅️ Volver"):
             st.session_state.pantalla = "menu"
             st.rerun()
-            
-        st.markdown("""
-            <div style="background-color: #34495e; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                <h2 style='margin:0; color: white; text-align: center;'>📚 LEGISLACIÓN OFICIAL</h2>
-            </div>
-        """, unsafe_allow_html=True)
 
         leyes = obtener_biblioteca_leyes()
         
