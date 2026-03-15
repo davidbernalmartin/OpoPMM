@@ -150,7 +150,7 @@ if not st.session_state.examen_iniciado:
                 with st.container(border=True):
                     col_txt, col_btn = st.columns([0.7, 0.3])
                     with col_txt:
-                        st.markdown(f"**{ley['nombre_ley']}**")
+                        st.markdown(f"**{ley['name']}**")
                     with col_btn:
                         # Botón que abre el PDF en pestaña nueva
                         st.link_button("📄 Ver PDF", ley['url_pdf'], use_container_width=True)
