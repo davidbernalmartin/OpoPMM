@@ -108,6 +108,15 @@ if not st.session_state.examen_iniciado:
 
     # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
+        # Inyectamos CSS para quitar el margen superior del contenedor del botón
+        st.markdown("""
+            <style>
+            [data-testid="stHorizontalBlock"] {
+                align-items: center !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        
         # Usamos una columna muy estrecha para el botón y el resto para el título
         col_volver, col_titulo = st.columns([0.2, 0.8])
         
@@ -137,6 +146,14 @@ if not st.session_state.examen_iniciado:
                     
     # --- MODO 3: BIBLIOTECA DE LEYES ---
     elif st.session_state.pantalla == "biblioteca":
+        # Inyectamos CSS para quitar el margen superior del contenedor del botón
+        st.markdown("""
+            <style>
+            [data-testid="stHorizontalBlock"] {
+                align-items: center !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
         col_volver, col_titulo = st.columns([0.2, 0.8])
         
         with col_volver:
