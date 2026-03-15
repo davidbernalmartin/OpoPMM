@@ -64,22 +64,23 @@ def obtener_biblioteca_leyes():
 
 # --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
-    st.markdown("""
-        <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
-            <h3 style='margin:0; color: white;'>TEST PMM</h3>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # --- SELECTOR DE CANTIDAD ---
-    # Lo centramos un poco para que no ocupe todo el ancho si no quieres
-    _, col_slider, _ = st.columns([0.1, 0.8, 0.1])
-    with col_slider:
-        st.session_state.cantidad_preguntas = st.select_slider(
-            "📊 ¿Cuántas preguntas realizar?",
-            options=[10, 20, 40, 60, 80, 100],
-            value=st.session_state.cantidad_preguntas
-        )
-    st.divider()
+    if st.session_state.pantalla != "biblioteca":
+        st.markdown("""
+            <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
+                <h3 style='margin:0; color: white;'>TEST PMM</h3>
+            </div>
+        """, unsafe_allow_html=True)
+    
+        # --- SELECTOR DE CANTIDAD ---
+        # Lo centramos un poco para que no ocupe todo el ancho si no quieres
+        _, col_slider, _ = st.columns([0.1, 0.8, 0.1])
+        with col_slider:
+            st.session_state.cantidad_preguntas = st.select_slider(
+                "📊 ¿Cuántas preguntas realizar?",
+                options=[10, 20, 40, 60, 80, 100],
+                value=st.session_state.cantidad_preguntas
+            )
+        st.divider()
 
     # --- MODO 1: MENÚ VERTICAL (Uno encima del otro) ---
     if st.session_state.pantalla == "menu":
