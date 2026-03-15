@@ -105,6 +105,10 @@ if not st.session_state.examen_iniciado:
                 iniciar_examen(todos_ids, st.session_state.cantidad_preguntas)
                 st.rerun()
 
+            if st.button("📂 BIBLIOTECA DE LEYES (PDF)", use_container_width=True):
+                st.session_state.pantalla = "biblioteca"
+                st.rerun()
+
     # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
         if st.button("⬅️ Volver al Menú Principal"):
