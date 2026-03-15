@@ -53,6 +53,15 @@ def iniciar_examen(temas_ids, cantidad):
     except Exception as e:
         st.error(f"Error al cargar preguntas: {e}")
 
+def obtener_biblioteca_leyes():
+    try:
+        # Traemos las leyes ordenadas por la columna 'orden'
+        res = supabase.table("biblioteca").select("*").order("orden").execute()
+        return res.data
+    except Exception as e:
+        st.error(f"Error al cargar la biblioteca: {e}")
+        return []
+
 # --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
     st.markdown("""
@@ -114,6 +123,33 @@ if not st.session_state.examen_iniciado:
                 if st.button(f"{t['nombre']}", key=f"btn_t_{t['id']}", use_container_width=True):
                     iniciar_examen([t['id']], st.session_state.cantidad_preguntas)
                     st.rerun()
+                    
+    # --- MODO 3: BIBLIOTECA DE LEYES ---
+    elif st.session_state.pantalla == "biblioteca":
+        if st.button("⬅️ Volver al Menú Principal"):
+            st.session_state.pantalla = "menu"
+            st.rerun()
+            
+        st.markdown("""
+            <div style="background-color: #34495e; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <h2 style='margin:0; color: white; text-align: center;'>📚 LEGISLACIÓN OFICIAL</h2>
+            </div>
+        """, unsafe_allow_html=True)
+
+        leyes = obtener_biblioteca_leyes()
+        
+        if not leyes:
+            st.warning("Aún no hay leyes registradas en la biblioteca.")
+        else:
+            for ley in leyes:
+                # Usamos un contenedor para que cada ley parezca una tarjeta
+                with st.container(border=True):
+                    col_txt, col_btn = st.columns([0.7, 0.3])
+                    with col_txt:
+                        st.markdown(f"**{ley['nombre_ley']}**")
+                    with col_btn:
+                        # Botón que abre el PDF en pestaña nueva
+                        st.link_button("📄 Ver PDF", ley['url_pdf'], use_container_width=True)
 
 # --- PANTALLA 2: EL EXAMEN ---
 elif st.session_state.examen_iniciado is True:
