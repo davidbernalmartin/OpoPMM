@@ -108,18 +108,23 @@ if not st.session_state.examen_iniciado:
 
     # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
-        col_volver, col_titulo = st.columns([0.3, 0.7])
+        # Usamos una columna muy estrecha para el botón y el resto para el título
+        col_volver, col_titulo = st.columns([0.2, 0.8])
+        
         with col_volver:
-            if st.button("⬅️ Volver"):
+            st.write(" ") # Espacio para empujar el botón hacia abajo y centrarlo con el título
+            if st.button("⬅️ Volver", use_container_width=True):
                 st.session_state.pantalla = "menu"
                 st.rerun()
 
         with col_titulo:
             st.markdown("""
-                <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
-                    <h3 style='margin:0; color: white;'>"📚 TEST POR TEMAS (Específicos)"</h3>
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                    <h3 style='margin:0; color: white;'>📚 TEST POR TEMAS</h3>
                 </div>
             """, unsafe_allow_html=True)
+        
+        st.write("") # Separación antes de los temas
 
         res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute().data
         
@@ -132,18 +137,20 @@ if not st.session_state.examen_iniciado:
                     
     # --- MODO 3: BIBLIOTECA DE LEYES ---
     elif st.session_state.pantalla == "biblioteca":
-        col_volver, col_titulo = st.columns([0.3, 0.7])
-        with col_titulo:
-            st.markdown("""
-                <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
-                    <h3 style='margin:0; color: white;'>"📂 BIBLIOTECA DE LEYES (PDF)"</h3>
-                </div>
-            """, unsafe_allow_html=True)
-
+        col_volver, col_titulo = st.columns([0.2, 0.8])
+        
         with col_volver:
-            if st.button("⬅️ Volver"):
+            st.write(" ") # Alineación vertical manual
+            if st.button("⬅️ Volver", use_container_width=True):
                 st.session_state.pantalla = "menu"
                 st.rerun()
+
+        with col_titulo:
+            st.markdown("""
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                    <h3 style='margin:0; color: white;'>📂 BIBLIOTECA DE LEYES</h3>
+                </div>
+            """, unsafe_allow_html=True)
 
         leyes = obtener_biblioteca_leyes()
         
