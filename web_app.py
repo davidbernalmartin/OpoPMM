@@ -64,7 +64,7 @@ def obtener_biblioteca_leyes():
 
 # --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
-    if st.session_state.pantalla != "biblioteca":
+    if st.session_state.pantalla == "menu":
         st.markdown("""
             <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
                 <h3 style='margin:0; color: white;'>TEST PMM</h3>
@@ -108,11 +108,18 @@ if not st.session_state.examen_iniciado:
 
     # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
-        if st.button("⬅️ Volver"):
-            st.session_state.pantalla = "menu"
-            st.rerun()
-            
-        st.markdown("### Selecciona el Tema:")
+        col_volver, col_titulo = st.columns([0.3, 0.7])
+        with col_volver:
+            if st.button("⬅️ Volver"):
+                st.session_state.pantalla = "menu"
+                st.rerun()
+
+        with col_titulo:
+            st.markdown("""
+                <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
+                    <h3 style='margin:0; color: white;'>"📚 TEST POR TEMAS (Específicos)"</h3>
+                </div>
+            """, unsafe_allow_html=True)
 
         res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute().data
         
@@ -125,12 +132,18 @@ if not st.session_state.examen_iniciado:
                     
     # --- MODO 3: BIBLIOTECA DE LEYES ---
     elif st.session_state.pantalla == "biblioteca":
-        st.markdown("### 📚 Legislación del Temario")
-        st.write("Consulta los textos oficiales consolidados:")
+        col_volver, col_titulo = st.columns([0.3, 0.7])
+        with col_titulo:
+            st.markdown("""
+                <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
+                    <h3 style='margin:0; color: white;'>"📂 BIBLIOTECA DE LEYES (PDF)"</h3>
+                </div>
+            """, unsafe_allow_html=True)
 
-        if st.button("⬅️ Volver"):
-            st.session_state.pantalla = "menu"
-            st.rerun()
+        with col_volver:
+            if st.button("⬅️ Volver"):
+                st.session_state.pantalla = "menu"
+                st.rerun()
 
         leyes = obtener_biblioteca_leyes()
         
