@@ -119,7 +119,7 @@ if not st.session_state.examen_iniciado:
 
         with col_titulo:
             st.markdown("""
-                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center;">
                     <h3 style='margin:0; color: white;'>📚 TEST POR TEMAS</h3>
                 </div>
             """, unsafe_allow_html=True)
@@ -147,7 +147,7 @@ if not st.session_state.examen_iniciado:
 
         with col_titulo:
             st.markdown("""
-                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center;">
                     <h3 style='margin:0; color: white;'>📂 BIBLIOTECA DE LEYES</h3>
                 </div>
             """, unsafe_allow_html=True)
