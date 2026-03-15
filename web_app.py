@@ -256,17 +256,47 @@ elif st.session_state.examen_iniciado is True:
 # --- PANTALLA 3: RESUMEN FINAL ---
 elif st.session_state.examen_iniciado == "FINALIZADO":
     st.balloons()
-    st.markdown("<h1 style='text-align: center;'>Resultado</h1>", unsafe_allow_html=True)
-    total = len(st.session_state.preguntas)
-    netos = max(0, st.session_state.aciertos - (st.session_state.fallos * 0.33))
-    nota = (netos / total * 10) if total > 0 else 0
     
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Aciertos", st.session_state.aciertos)
-    col2.metric("Fallos", st.session_state.fallos)
-    col3.metric("Nota", f"{nota:.2f}")
+    st.markdown("""
+        <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
+            <h2 style='margin:0; color: white;'>📊 RESULTADOS DEL TEST</h2>
+        </div>
+    """, unsafe_allow_html=True)
 
-    if st.button("Volver al Inicio", use_container_width=True):
+    total = len(st.session_state.preguntas)
+    aciertos = st.session_state.aciertos
+    fallos = st.session_state.fallos
+    
+    # --- CÁLCULOS ---
+    # Preguntas Netas: Aciertos - (Fallos * 0.33)
+    netas = max(0, aciertos - (fallos * 0.33))
+    # Nota sobre 10
+    nota = (netas / total * 10) if total > 0 else 0
+    
+    # --- VISUALIZACIÓN EN 4 COLUMNAS ---
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("✅ ACIERTOS", aciertos)
+    with col2:
+        st.metric("❌ FALLOS", fallos)
+    with col3:
+        # Este es el dato que faltaba en la fila principal
+        st.metric("⚖️ NETAS", f"{netas:.2f}")
+    with col4:
+        st.metric("📝 NOTA", f"{nota:.2f}/10")
+
+    st.divider()
+
+    # Mensaje motivador según la nota
+    if nota >= 5:
+        st.success(f"¡Buen trabajo! Has superado el test con un {nota:.2f}")
+    else:
+        st.error(f"Nota: {nota:.2f}. ¡Toca repasar un poco más!")
+
+    st.write("")
+
+    if st.button("🔄 Volver al Inicio", use_container_width=True, type="primary"):
         st.session_state.examen_iniciado = False
         st.session_state.pantalla = "menu"
         st.rerun()
