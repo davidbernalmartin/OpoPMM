@@ -18,6 +18,23 @@
     text-transform: uppercase;
 }
 
+/* Tarjetas de resultados */
+.metric-card {
+    background-color: #34495e;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #465d75;
+}
+
+.metric-aciertos { border-top: 5px solid #2ecc71; color: #2ecc71; }
+.metric-fallos { border-top: 5px solid #e74c3c; color: #e74c3c; }
+.metric-nota { border-top: 5px solid #3498db; color: #3498db; }
+.metric-netas { border-top: 5px solid #f1c40f; color: #f1c40f; }
+
+.metric-label { font-size: 14px; color: #bdc3c7; margin-bottom: 5px; text-transform: uppercase; }
+.metric-value { font-size: 32px; font-weight: bold; }
+
 div.stButton > button {
     min-height: 70px !important; 
     font-size: 18px !important;
