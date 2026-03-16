@@ -87,8 +87,8 @@ if st.session_state.examen_iniciado is False:
     col_boton, col_titulo, col_perfil = st.columns([0.2,0.8, 0.2])
     with col_boton:
         st.write("")
-        if st.button("📊 Estdisticas", use_container_width=True):
-            st.toast("Módulo de usuario próximamente...", icon="🔑")
+        if st.button(" ", use_container_width=True):
+            st.toast("Módulo de usuario próximamente...", icon="🤷🏼‍♂️")
     with col_perfil:
         st.write("") # Alineación visual
         if st.button("👤 Mi Perfil", use_container_width=True):
