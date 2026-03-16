@@ -1,0 +1,40 @@
+/* No pongas etiquetas <style> aquí, solo el CSS puro */
+.stApp { 
+    background-color: #2c3e50; 
+    color: white; 
+}
+
+[data-testid="stHorizontalBlock"] { 
+    align-items: center !important; 
+}
+
+.titulo-pantalla {
+    text-align: center; 
+    margin: 0; 
+    letter-spacing: 2px;
+    color: white; 
+    font-weight: 700; 
+    font-size: 26px; 
+    text-transform: uppercase;
+}
+
+div.stButton > button {
+    min-height: 70px !important; 
+    font-size: 18px !important;
+    border-radius: 12px !important; 
+    transition: 0.3s;
+    background-color: #34495e; 
+    color: white; 
+    border: 1px solid #465d75;
+}
+
+div.stButton > button:hover { 
+    border-color: #3498db; 
+    color: #3498db; 
+}
+
+/* Estilo para las métricas de resultados */
+[data-testid="stMetricValue"] { 
+    font-size: 30px !important; 
+    color: #3498db !important; 
+}
