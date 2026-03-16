@@ -75,11 +75,12 @@ if not st.session_state.examen_iniciado:
     
         col_perfil, col_titulo = st.columns([0.2, 0.8])
         with col_perfil:
+            st.write(" ") # Espacio para empujar el botón hacia abajo y centrarlo con el título
             if st.button("👤 Mi Perfil", use_container_width=True):
                 st.toast("Acceso a estadísticas próximamente...", icon="🔑")
         with col_titulo:
             st.markdown("""
-                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center;">
                     <h3 style='margin:0; color: white;'>OPOTESTS PMM</h3>
                 </div>
             """, unsafe_allow_html=True)
