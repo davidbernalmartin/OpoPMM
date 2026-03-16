@@ -112,7 +112,6 @@ if st.session_state.examen_iniciado is True:
 
 # CASO B: RESULTADOS
 elif st.session_state.examen_iniciado == "FINALIZADO":
-    st.balloons()
     col_img_1, col_img_2, col_img_3 = st.columns([1, 1, 1])
     with col_img_2:
         # Cargamos la imagen desde la carpeta assets de tu repo
@@ -162,6 +161,7 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
             cambiar_vista(pantalla="menu", sub="inicio", reset_examen=True)
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+    st.balloons()
 
 # CASO C: REVISIÓN
 elif st.session_state.examen_iniciado == "MODO_REVISION":
