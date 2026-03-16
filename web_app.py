@@ -65,11 +65,42 @@ def obtener_biblioteca_leyes():
 # --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
     if st.session_state.pantalla == "menu":
-        st.markdown("""
-            <div style="background-color: #34495e; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; border-bottom: 5px solid #3498db;">
-                <h3 style='margin:0; color: white;'>TEST PMM</h3>
-            </div>
-        """, unsafe_allow_html=True)
+        # --- CABECERA ESTILO BIBLIOTECA ---
+        self.frame_cabecera = ctk.CTkFrame(self.root, fg_color="transparent")
+        self.frame_cabecera.pack(pady=20, padx=20, fill="x")
+
+        # Usamos columnas (grid) para alinear el botón a la izquierda y el título al centro
+        self.frame_cabecera.columnconfigure(0, weight=1)
+        self.frame_cabecera.columnconfigure(1, weight=10) # El título tiene más peso
+        self.frame_cabecera.columnconfigure(2, weight=1) # Espaciador para centrar el título
+
+        # Botón Salir (Estilo "Volver" pero en rojo/oscuro)
+        self.btn_salir = ctk.CTkButton(
+            self.frame_cabecera, 
+            text="✖ Salir", 
+            width=100, 
+            height=40,
+            fg_color="#c0392b", 
+            hover_color="#a93226",
+            command=self.root.quit # O self.root.destroy
+        )
+        self.btn_salir.grid(row=0, column=0, sticky="w")
+
+        # Título estilo "Caja Azul"
+        self.lbl_titulo_caja = ctk.CTkLabel(
+            self.frame_cabecera,
+            text="OPOTESTS PMM",
+            font=("Arial", 24, "bold"),
+            fg_color="#34495e",
+            height=60,
+            corner_radius=15,
+            text_color="white"
+        )
+        self.lbl_titulo_caja.grid(row=0, column=1, sticky="ew", padx=20)
+        
+        # Un pequeño truco visual: el borde inferior azul
+        self.linea_azul = ctk.CTkFrame(self.root, height=5, fg_color="#3498db")
+        self.linea_azul.pack(fill="x", padx=40, pady=(0, 20))
     
         # --- SELECTOR DE CANTIDAD ---
         # Lo centramos un poco para que no ocupe todo el ancho si no quieres
