@@ -211,10 +211,6 @@ if st.session_state.examen_iniciado is False:
 
     # --- PANTALLA: BIBLIOTECA ---
     elif st.session_state.pantalla == "biblioteca":
-        if st.button("⬅ Volver al Menú Principal"):
-            st.session_state.pantalla = "menu"
-            st.rerun()
-        
         st.markdown('<div class="seccion-titulo"><h3 style="margin:0; color: white;">📂 BIBLIOTECA DE LEYES</h3></div>', unsafe_allow_html=True)
         leyes = obtener_biblioteca_leyes()
         if leyes:
