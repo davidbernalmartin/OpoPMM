@@ -121,21 +121,21 @@ if st.session_state.examen_iniciado is False:
     with col_titulo:
         # Definimos el nombre de la pantalla actual
         if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
-            nombre_pantalla = "🚔 OPOTESTS PMM" # En el inicio mantenemos el nombre de la app
+            nombre_pantalla = "🚔   OPOTESTS PMM   🚔" # En el inicio mantenemos el nombre de la app
         elif st.session_state.pantalla == "biblioteca":
-            nombre_pantalla = "📖 BIBLIOTECA"
+            nombre_pantalla = "📖   BIBLIOTECA   📖"
         elif st.session_state.sub_pantalla == "teoria_opciones":
-            nombre_pantalla = "📚 MODO TEORÍA"
+            nombre_pantalla = "📚   MODO TEORÍA   📚"
         elif st.session_state.sub_pantalla == "seleccion_tema":
-            nombre_pantalla = "📂 SELECCION TEMAS"
+            nombre_pantalla = "📂   SELECCION TEMAS   📂"
         elif st.session_state.sub_pantalla == "config_examen_tema":
-            nombre_pantalla = "⚙️ CONFIGURAR TEST"
+            nombre_pantalla = "⚙️   CONFIGURAR TEST   ⚙️"
         elif st.session_state.sub_pantalla == "config_simulacro":
-            nombre_pantalla = "⏱️ SIMULACRO"
+            nombre_pantalla = "⏱️   SIMULACRO   ⏱️"
         elif st.session_state.sub_pantalla == "config_ingles":
-            nombre_pantalla = "🇬🇧 INGLÉS"
+            nombre_pantalla = "🇬🇧   INGLÉS   🇬🇧"
         else:
-            nombre_pantalla = "OPOTESTS PMM"
+            nombre_pantalla = "🚔   OPOTESTS PMM   🚔"
 
         st.markdown(f'<div class="titulo-pantalla">{nombre_pantalla}</div>', unsafe_allow_html=True)
 
