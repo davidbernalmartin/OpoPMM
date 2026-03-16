@@ -82,36 +82,35 @@ def obtener_biblioteca_leyes():
 
 # SI EL EXAMEN NO HA EMPEZADO, MOSTRAR MENÚS
 if st.session_state.examen_iniciado is False:
-    # --- CABECERA COMÚN OPTIMIZADA ---
-    # Inyectamos CSS específico para centrar verticalmente los elementos de las columnas
+    # --- CABECERA REFINADA ---
     st.markdown("""
         <style>
-        /* Fuerza la alineación vertical central en todas las columnas de la cabecera */
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
-        /* Ajuste fino para que el contenedor del título no tenga márgenes extra */
-        .seccion-titulo h3 {
-            line-height: 1.2;
+        /* Reducimos el padding del título para que no sea tan alto */
+        .seccion-titulo {
+            background-color: #34495e; 
+            padding: 10px; /* Bajamos de 15 a 10 */
+            border-radius: 12px; 
+            text-align: center; 
+            border-bottom: 4px solid #3498db;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # Definimos las columnas (Botón izquierda, Título centro, Botón derecha)
-    col_izq, col_titulo, col_der = st.columns([0.2, 0.8, 0.2])
+    # Proporción más ajustada: 10% - 80% - 10%
+    col_izq, col_titulo, col_der = st.columns([0.1, 0.8, 0.1])
 
     with col_izq:
-        # Botón invisible o de utilidad a la izquierda para equilibrar
         if st.button("❓", use_container_width=True, key="btn_ayuda_top"):
-            st.toast("OPOTESTS PMM - Sistema de preparación", icon="👮‍♂️")
+            st.toast("Ayuda y soporte", icon="👮‍♂️")
 
     with col_titulo:
-        # El título central
-        st.markdown('<div class="seccion-titulo"><h3 style="margin:0; color: white;">OPOTESTS PMM</h3></div>', unsafe_allow_html=True)
+        st.markdown('<div class="seccion-titulo"><h3 style="margin:0; color: white; letter-spacing: 1px;">OPOTESTS PMM</h3></div>', unsafe_allow_html=True)
 
     with col_der:
-        # El botón de perfil a la derecha
-        if st.button("👤 Perfil", use_container_width=True, key="btn_perfil_top"):
+        if st.button("👤", use_container_width=True, key="btn_perfil_top"): # He quitado el texto "Perfil" para que sea un icono circular/cuadrado limpio
             st.toast("Módulo de usuario próximamente...", icon="🔑")
 
     st.divider()
