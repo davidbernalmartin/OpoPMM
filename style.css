@@ -9,6 +9,7 @@
 }
 
 .titulo-pantalla {
+    font-family: 'Archivo Black', sans-serif;
     text-align: center; 
     margin: 0; 
     letter-spacing: 2px;
@@ -17,12 +18,12 @@
     font-size: 40px; 
     text-transform: uppercase;
     text-shadow: 
-        1px 1px 0px #ccc,
-        2px 2px 0px #bbb,
-        3px 3px 0px #aaa,
-        4px 4px 0px #999,
-        5px 5px 0px #888,
-        6px 6px 10px rgba(0,0,0,0.4);
+        1px 1px 0px #dcdcdc,
+        2px 2px 0px #c8c8c8,
+        3px 3px 0px #b4b4b4,
+        4px 4px 0px #a0a0a0,
+        5px 5px 0px #8c8c8c,
+        6px 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Tarjetas de resultados */
