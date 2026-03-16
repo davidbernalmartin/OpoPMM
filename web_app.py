@@ -71,7 +71,7 @@ def render_cabecera():
     with col_titulo:
         titulos = {
             "biblioteca": "BIBLIOTECA", "teoria_opciones": "MODO TEORÍA",
-            "seleccion_tema": "TEMARIOS", "config_examen_tema": "AJUSTES TEST",
+            "seleccion_tema": "TEMAS", "config_examen_tema": "AJUSTES TEST",
             "config_simulacro": "AJUSTES TEST", "config_ingles": "AJUSTES TEST"
         }
         nombre = titulos.get(st.session_state.sub_pantalla, titulos.get(st.session_state.pantalla, "OPOTESTS PMM"))
@@ -232,9 +232,19 @@ elif st.session_state.pantalla == "menu":
     elif st.session_state.sub_pantalla == "seleccion_tema":
         res_t = supabase.table("temas").select("*").neq("id", 1).order("id").execute()
         if res_t.data:
-            cols = st.columns(2)
-            for i, t in enumerate(res_t.data):
-                with cols[i % 2]:
+            temas = res_t.data
+            total_temas = len(temas)
+            mitad = (total_temas + 1) // 2            
+            col1, col2 = st.columns(2)
+            with col1:
+                for t in temas[:mitad]:
+                    if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
+                        st.session_state.tema_elegido_id = t['id']
+                        st.session_state.tema_elegido_nombre = t['nombre']
+                        cambiar_vista(sub="config_examen_tema")
+                        st.rerun()
+            with col2:
+                for t in temas[mitad:]:
                     if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
                         st.session_state.tema_elegido_id = t['id']
                         st.session_state.tema_elegido_nombre = t['nombre']
