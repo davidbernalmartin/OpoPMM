@@ -82,19 +82,37 @@ def obtener_biblioteca_leyes():
 
 # SI EL EXAMEN NO HA EMPEZADO, MOSTRAR MENÚS
 if st.session_state.examen_iniciado is False:
+    # --- CABECERA COMÚN OPTIMIZADA ---
+    # Inyectamos CSS específico para centrar verticalmente los elementos de las columnas
+    st.markdown("""
+        <style>
+        /* Fuerza la alineación vertical central en todas las columnas de la cabecera */
+        [data-testid="stHorizontalBlock"] {
+            align-items: center !important;
+        }
+        /* Ajuste fino para que el contenedor del título no tenga márgenes extra */
+        .seccion-titulo h3 {
+            line-height: 1.2;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    # CABECERA COMÚN
-    col_boton, col_titulo, col_perfil = st.columns([0.2,0.8, 0.2])
-    with col_boton:
-        st.write("")
-        if st.button(" ", use_container_width=True):
-            st.toast("Módulo de usuario próximamente...", icon="🤷🏼‍♂️")
-    with col_perfil:
-        st.write("") # Alineación visual
-        if st.button("👤 Mi Perfil", use_container_width=True):
-            st.toast("Módulo de usuario próximamente...", icon="🔑")
+    # Definimos las columnas (Botón izquierda, Título centro, Botón derecha)
+    col_izq, col_titulo, col_der = st.columns([0.2, 0.8, 0.2])
+
+    with col_izq:
+        # Botón invisible o de utilidad a la izquierda para equilibrar
+        if st.button("❓", use_container_width=True, key="btn_ayuda_top"):
+            st.toast("OPOTESTS PMM - Sistema de preparación", icon="👮‍♂️")
+
     with col_titulo:
+        # El título central
         st.markdown('<div class="seccion-titulo"><h3 style="margin:0; color: white;">OPOTESTS PMM</h3></div>', unsafe_allow_html=True)
+
+    with col_der:
+        # El botón de perfil a la derecha
+        if st.button("👤 Perfil", use_container_width=True, key="btn_perfil_top"):
+            st.toast("Módulo de usuario próximamente...", icon="🔑")
 
     st.divider()
 
