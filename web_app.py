@@ -36,7 +36,6 @@ if "examen_iniciado" not in st.session_state:
     })
 
 def cambiar_vista(pantalla=None, sub=None, reset_examen=False):
-    """Centraliza los cambios de pantalla"""
     if pantalla: st.session_state.pantalla = pantalla
     if sub: st.session_state.sub_pantalla = sub
     if reset_examen:
@@ -44,7 +43,6 @@ def cambiar_vista(pantalla=None, sub=None, reset_examen=False):
     st.rerun()
 
 def volver_atras():
-    """Lógica inteligente del botón ⬅️"""
     if st.session_state.pantalla != "menu":
         cambiar_vista("menu", "inicio")
     elif st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
@@ -64,17 +62,15 @@ def iniciar_examen(temas_ids, cantidad):
         })
         st.rerun()
 
-# --- 5. COMPONENTES VISUALES (VIEWS) ---
+# --- 5. COMPONENTES VISUALES ---
 def render_cabecera():
     if st.session_state.examen_iniciado is not False: return
-    
     col_izq, col_titulo, col_der = st.columns([0.15, 0.7, 0.15])
     with col_izq:
         if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
             st.button("❓", use_container_width=True)
         else:
             st.button("⬅️", use_container_width=True, on_click=volver_atras)
-    
     with col_titulo:
         titulos = {
             "biblioteca": "BIBLIOTECA", "teoria_opciones": "MODO TEORÍA",
@@ -83,39 +79,14 @@ def render_cabecera():
         }
         nombre = titulos.get(st.session_state.sub_pantalla, titulos.get(st.session_state.pantalla, "OPOTESTS PMM"))
         st.markdown(f'<div class="titulo-pantalla">{nombre}</div>', unsafe_allow_html=True)
-    
-    with col_der:
-        st.button("👤", use_container_width=True)
+    with col_der: st.button("👤", use_container_width=True)
     st.divider()
 
-def render_menu_inicio():
-    c1, c2 = st.columns(2)
-    if c1.button("📚 TEORÍA", use_container_width=True): cambiar_vista(sub="teoria_opciones")
-    if c2.button("🇬🇧 INGLÉS", use_container_width=True): 
-        st.session_state.tema_elegido_nombre = "Inglés"
-        cambiar_vista(sub="config_ingles")
-    
-    st.write("")
-    c3, c4 = st.columns(2)
-    if c3.button("📖 BIBLIOTECA", use_container_width=True): cambiar_vista("biblioteca")
-    if c4.button("📊 ESTADÍSTICAS", use_container_width=True): st.toast("Próximamente")
-
-def render_seleccion_tema():
-    res_t = supabase.table("temas").select("*").neq("id", 1).order("id").execute()
-    if res_t.data:
-        cols = st.columns(2)
-        for i, t in enumerate(res_t.data):
-            with cols[i % 2]:
-                if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
-                    st.session_state.tema_elegido_id = t['id']
-                    st.session_state.tema_elegido_nombre = t['nombre']
-                    cambiar_vista(sub="config_examen_tema")
-
-# --- 6. CUERPO PRINCIPAL ---
+# --- 6. FLUJO PRINCIPAL ---
 render_cabecera()
 
+# CASO A: EXAMEN EN CURSO
 if st.session_state.examen_iniciado is True:
-    # --- MODO EXAMEN ---
     idx, total = st.session_state.indice, len(st.session_state.preguntas)
     p = st.session_state.preguntas[idx]
     
@@ -145,8 +116,8 @@ if st.session_state.examen_iniciado is True:
             else: st.session_state.examen_iniciado = "FINALIZADO"
             st.rerun()
 
+# CASO B: RESULTADOS
 elif st.session_state.examen_iniciado == "FINALIZADO":
-    # --- PANTALLA RESULTADOS ---
     st.balloons()
     ac, fa = st.session_state.aciertos, st.session_state.fallos
     netas = max(0, ac - (fa * 0.33))
@@ -160,29 +131,76 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
         c4.metric("NETAS", f"{netas:.2f}")
 
     col1, col2 = st.columns(2)
-    if col1.button("🔍 REVISAR", use_container_width=True): 
-        st.session_state.examen_iniciado = "MODO_REVISION"
-        st.session_state.indice = 0
-        st.rerun()
-    if col2.button("🔄 INICIO", use_container_width=True, type="primary"): cambiar_vista("menu", "inicio", True)
+    with col1:
+        if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", use_container_width=True): 
+            st.session_state.examen_iniciado = "MODO_REVISION"
+            st.session_state.indice = 0
+            st.rerun()
+    with col2:
+        if st.button("🔄 FINALIZAR Y VOLVER AL INICIO", use_container_width=True, type="primary"): 
+            cambiar_vista(pantalla="menu", sub="inicio", reset_examen=True)
 
+# CASO C: REVISIÓN
 elif st.session_state.examen_iniciado == "MODO_REVISION":
-    # --- MODO REVISION (Lógica igual a la anterior pero en su bloque) ---
     idx = st.session_state.indice
     p = st.session_state.preguntas[idx]
-    st.markdown(f"### Revisando {idx+1}/{len(st.session_state.preguntas)}")
-    # ... (Resto de lógica de revisión) ...
-    if st.button("Volver a Resultados"): st.session_state.examen_iniciado = "FINALIZADO"; st.rerun()
+    user_res = p.get('respuesta_usuario', None)
 
+    st.markdown(f"### Revisando Pregunta {idx+1} de {len(st.session_state.preguntas)}")
+    st.info(f"**{p['enunciado']}**")
+
+    for l in ["A", "B", "C"]:
+        txt = p[f'opcion_{l.lower()}']
+        if l == p['correcta']: st.success(f"{l}) {txt} (Correcta)")
+        elif l == user_res: st.error(f"{l}) {txt} (Tu respuesta)")
+        else: st.write(f"{l}) {txt}")
+
+    st.markdown(f'<div style="background-color:#3e5871;padding:15px;border-radius:10px;border-left:5px solid #3498db;margin-top:20px;">{p.get("explicacion", "")}</div>', unsafe_allow_html=True)
+
+    c_p, c_n, c_e = st.columns([0.3, 0.3, 0.4])
+    with c_p:
+        if st.button("⬅️ Anterior", disabled=(idx == 0), use_container_width=True):
+            st.session_state.indice -= 1
+            st.rerun()
+    with c_n:
+        if st.button("Siguiente ➡️", disabled=(idx == len(st.session_state.preguntas)-1), use_container_width=True):
+            st.session_state.indice += 1
+            st.rerun()
+    with c_e:
+        if st.button("Volver a Resultados", type="primary", use_container_width=True):
+            st.session_state.examen_iniciado = "FINALIZADO"
+            st.rerun()
+
+# CASO D: MENÚS Y OTROS
 elif st.session_state.pantalla == "menu":
-    if st.session_state.sub_pantalla == "inicio": render_menu_inicio()
+    if st.session_state.sub_pantalla == "inicio":
+        c1, c2 = st.columns(2)
+        if c1.button("📚 TEORÍA", use_container_width=True): cambiar_vista(sub="teoria_opciones")
+        if c2.button("🇬🇧 INGLÉS", use_container_width=True): 
+            st.session_state.tema_elegido_nombre = "Inglés"
+            cambiar_vista(sub="config_ingles")
+        st.write(""); c3, c4 = st.columns(2)
+        if c3.button("📖 BIBLIOTECA", use_container_width=True): cambiar_vista(pantalla="biblioteca")
+        if c4.button("📊 ESTADÍSTICAS", use_container_width=True): st.toast("Próximamente")
+    
     elif st.session_state.sub_pantalla == "teoria_opciones":
         c1, c2 = st.columns(2)
         if c1.button("📂 POR TEMAS", use_container_width=True): cambiar_vista(sub="seleccion_tema")
         if c2.button("⏱️ SIMULACRO", use_container_width=True): 
             st.session_state.tema_elegido_nombre = "Simulacro"
             cambiar_vista(sub="config_simulacro")
-    elif st.session_state.sub_pantalla == "seleccion_tema": render_seleccion_tema()
+
+    elif st.session_state.sub_pantalla == "seleccion_tema":
+        res_t = supabase.table("temas").select("*").neq("id", 1).order("id").execute()
+        if res_t.data:
+            cols = st.columns(2)
+            for i, t in enumerate(res_t.data):
+                with cols[i % 2]:
+                    if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
+                        st.session_state.tema_elegido_id = t['id']
+                        st.session_state.tema_elegido_nombre = t['nombre']
+                        cambiar_vista(sub="config_examen_tema")
+
     elif st.session_state.sub_pantalla in ["config_ingles", "config_simulacro", "config_examen_tema"]:
         st.write(f"Configurando: **{st.session_state.tema_elegido_nombre}**")
         num = st.select_slider("Preguntas:", options=[5, 10, 20, 50], value=10)
