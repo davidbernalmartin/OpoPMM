@@ -82,11 +82,11 @@ if not st.session_state.examen_iniciado:
             # o podemos poner un botón de "Info" o "User" en el futuro.
             # Por ahora, para que sea igual visualmente:
             if st.button("🚪 Salir", use_container_width=True):
-                st.info("Para salir, simplemente cierra la pestaña del navegador.")
+                if messagebox.askokcancel("Salir", "¿Deseas cerrar la aplicación?"):self.root.destroy()
         
         with col_titulo:
             st.markdown("""
-                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center;">
                     <h3 style='margin:0; color: white;'>OPOTESTS PMM</h3>
                 </div>
             """, unsafe_allow_html=True)
