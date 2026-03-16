@@ -65,42 +65,33 @@ def obtener_biblioteca_leyes():
 # --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
     if st.session_state.pantalla == "menu":
-        # --- CABECERA ESTILO BIBLIOTECA ---
-        self.frame_cabecera = ctk.CTkFrame(self.root, fg_color="transparent")
-        self.frame_cabecera.pack(pady=20, padx=20, fill="x")
+        # --- PANTALLA 1: MENÚ PRINCIPAL ---
+        st.markdown("""
+            <style>
+            [data-testid="stHorizontalBlock"] {
+                align-items: center !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
-        # Usamos columnas (grid) para alinear el botón a la izquierda y el título al centro
-        self.frame_cabecera.columnconfigure(0, weight=1)
-        self.frame_cabecera.columnconfigure(1, weight=10) # El título tiene más peso
-        self.frame_cabecera.columnconfigure(2, weight=1) # Espaciador para centrar el título
-
-        # Botón Salir (Estilo "Volver" pero en rojo/oscuro)
-        self.btn_salir = ctk.CTkButton(
-            self.frame_cabecera, 
-            text="✖ Salir", 
-            width=100, 
-            height=40,
-            fg_color="#c0392b", 
-            hover_color="#a93226",
-            command=self.root.quit # O self.root.destroy
-        )
-        self.btn_salir.grid(row=0, column=0, sticky="w")
-
-        # Título estilo "Caja Azul"
-        self.lbl_titulo_caja = ctk.CTkLabel(
-            self.frame_cabecera,
-            text="OPOTESTS PMM",
-            font=("Arial", 24, "bold"),
-            fg_color="#34495e",
-            height=60,
-            corner_radius=15,
-            text_color="white"
-        )
-        self.lbl_titulo_caja.grid(row=0, column=1, sticky="ew", padx=20)
+        # Creamos la fila de la cabecera
+        col_salir, col_titulo = st.columns([0.2, 0.8])
         
-        # Un pequeño truco visual: el borde inferior azul
-        self.linea_azul = ctk.CTkFrame(self.root, height=5, fg_color="#3498db")
-        self.linea_azul.pack(fill="x", padx=40, pady=(0, 20))
+        with col_salir:
+            # En la web, el botón "Salir" puede simplemente recargar la página 
+            # o podemos poner un botón de "Info" o "User" en el futuro.
+            # Por ahora, para que sea igual visualmente:
+            if st.button("🚪 Salir", use_container_width=True):
+                st.info("Para salir, simplemente cierra la pestaña del navegador.")
+        
+        with col_titulo:
+            st.markdown("""
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                    <h3 style='margin:0; color: white;'>OPOTESTS PMM</h3>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        st.write("") # Espaciado
     
         # --- SELECTOR DE CANTIDAD ---
         # Lo centramos un poco para que no ocupe todo el ancho si no quieres
