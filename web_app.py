@@ -94,7 +94,6 @@ if st.session_state.examen_iniciado is False:
             padding: 10px; /* Bajamos de 15 a 10 */
             border-radius: 12px; 
             text-align: center; 
-            border-bottom: 4px solid #3498db;
         }
         </style>
     """, unsafe_allow_html=True)
