@@ -114,16 +114,39 @@ if st.session_state.examen_iniciado is True:
 elif st.session_state.examen_iniciado == "FINALIZADO":
     st.balloons()
     ac, fa = st.session_state.aciertos, st.session_state.fallos
+    total = len(st.session_state.preguntas)
     netas = max(0, ac - (fa * 0.33))
-    nota = (netas / len(st.session_state.preguntas) * 10)
+    nota = (netas / total * 10) if total > 0 else 0
     
-    with st.container(border=True):
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("ACIERTOS", ac)
-        c2.metric("FALLOS", fa)
-        c3.metric("NOTA", f"{nota:.2f}")
-        c4.metric("NETAS", f"{netas:.2f}")
+    # Contenedor de métricas personalizadas
+    c1, c2, c3, c4 = st.columns(4)
+    
+    with c1:
+        st.markdown(f'''<div class="metric-card metric-aciertos">
+            <div class="metric-label">Aciertos</div>
+            <div class="metric-value">{ac}</div>
+        </div>''', unsafe_allow_html=True)
+        
+    with c2:
+        st.markdown(f'''<div class="metric-card metric-fallos">
+            <div class="metric-label">Fallos</div>
+            <div class="metric-value">{fa}</div>
+        </div>''', unsafe_allow_html=True)
+        
+    with c3:
+        st.markdown(f'''<div class="metric-card metric-nota">
+            <div class="metric-label">Nota Final</div>
+            <div class="metric-value">{nota:.2f}</div>
+        </div>''', unsafe_allow_html=True)
+        
+    with c4:
+        st.markdown(f'''<div class="metric-card metric-netas">
+            <div class="metric-label">Netas</div>
+            <div class="metric-value">{netas:.2f}</div>
+        </div>''', unsafe_allow_html=True)
 
+    # Botones de acción con el aire que definimos antes
+    st.markdown('<div class="espacio-botones">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", use_container_width=True): 
@@ -134,6 +157,7 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
         if st.button("🔄 FINALIZAR Y VOLVER AL INICIO", use_container_width=True, type="primary"): 
             cambiar_vista(pantalla="menu", sub="inicio", reset_examen=True)
             st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # CASO C: REVISIÓN
 elif st.session_state.examen_iniciado == "MODO_REVISION":
