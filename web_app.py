@@ -115,7 +115,7 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
     col_img_1, col_img_2, col_img_3 = st.columns([1, 1, 1])
     with col_img_2:
         # Cargamos la imagen desde la carpeta assets de tu repo
-        st.image("assets/trophy.png", use_container_width=True)
+        st.image("assets/trophy.png", width=150)
     ac, fa = st.session_state.aciertos, st.session_state.fallos
     total = len(st.session_state.preguntas)
     netas = max(0, ac - (fa * 0.33))
