@@ -78,11 +78,11 @@ if not st.session_state.examen_iniciado:
         col_salir, col_titulo = st.columns([0.2, 0.8])
         
         with col_salir:
+            st.write(" ")
             # En la web, el botón "Salir" puede simplemente recargar la página 
             # o podemos poner un botón de "Info" o "User" en el futuro.
             # Por ahora, para que sea igual visualmente:
             if st.button("🚪 Salir", use_container_width=True):
-                if messagebox.askokcancel("Salir", "¿Deseas cerrar la aplicación?"):self.root.destroy()
         
         with col_titulo:
             st.markdown("""
