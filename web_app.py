@@ -209,11 +209,14 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
     with c_rev:
         if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", use_container_width=True):
             st.session_state.examen_iniciado = "MODO_REVISION"
-            st.session_state.indice = 0 # Empezamos desde la primera
+            st.session_state.indice = 0 
             st.rerun()
     with c_ini:
         if st.button("🔄 VOLVER AL INICIO", use_container_width=True, type="primary"):
+            # AQUÍ ESTABA EL ERROR: Hay que resetear sub_pantalla también
             st.session_state.examen_iniciado = False
+            st.session_state.pantalla = "menu"
+            st.session_state.sub_pantalla = "inicio"
             st.rerun()
 
 # --- 10. MODO REVISIÓN NAVEGABLE ---
@@ -224,10 +227,8 @@ elif st.session_state.examen_iniciado == "MODO_REVISION":
 
     st.markdown(f"### Revisando Pregunta {idx+1} de {len(st.session_state.preguntas)}")
     
-    # Mostrar el enunciado
     st.info(f"**{p['enunciado']}**")
 
-    # Mostrar las opciones con colores fijos
     for l in ["A", "B", "C"]:
         txt = p[f'opcion_{l.lower()}']
         if l == p['correcta']:
@@ -237,7 +238,15 @@ elif st.session_state.examen_iniciado == "MODO_REVISION":
         else:
             st.write(f"{l}) {txt}")
 
-    st.markdown(f"<div style='background-color: #3e5871; padding: 10px; border-radius: 5px;'>{p.get('explicacion', '')}</div>", unsafe_allow_html=True)
+    # Corregido para que interprete HTML en la revisión también
+    st.markdown(f"""
+        <div style="background-color: #3e5871; padding: 15px; border-radius: 10px; border-left: 5px solid #3498db; margin-top: 20px;">
+            <b style="color: #3498db;">💡 EXPLICACIÓN:</b><br>
+            <div style="color: white; margin-top: 10px;">
+                {p.get('explicacion', 'No hay explicación detallada.')}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     st.write("")
     col_prev, col_next, col_exit = st.columns([0.3, 0.3, 0.4])
@@ -252,5 +261,5 @@ elif st.session_state.examen_iniciado == "MODO_REVISION":
             st.rerun()
     with col_exit:
         if st.button("Finalizar Revisión", type="primary", use_container_width=True):
-            st.session_state.examen_iniciado = False
+            st.session_state.examen_iniciado = "FINALIZADO"
             st.rerun()
