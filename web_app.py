@@ -79,143 +79,57 @@ def obtener_biblioteca_leyes():
         return []
 
 # --- 6. INTERFAZ DE USUARIO ---
-
-# SI EL EXAMEN NO HA EMPEZADO, MOSTRAR MENÚS
-if st.session_state.examen_iniciado is False:
-    # --- CABECERA DINÁMICA DE TÍTULO ÚNICO ---
-    st.markdown("""
-        <style>
-        [data-testid="stHorizontalBlock"] { align-items: center !important; }
-        .titulo-pantalla {
-            text-align: center;
-            margin: 0 !important;
-            letter-spacing: 2px;
-            color: white;
-            font-weight: 700;
-            font-size: 26px;
-            text-transform: uppercase;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    col_izq, col_titulo, col_der = st.columns([0.15, 0.7, 0.15]) # Ajustamos un poco los pesos
-
-    # 1. Lógica del botón izquierdo (Dinámico: ? o Volver)
-    with col_izq:
-        if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
-            if st.button("❓", use_container_width=True, key="hdr_ayuda"):
-                st.toast("Bienvenido a OpoTests PMM", icon="👮‍♂️")
-        else:
-            if st.button("⬅️", use_container_width=True, key="hdr_volver"):
-                # Lógica de navegación hacia atrás
-                if st.session_state.pantalla != "menu":
-                    st.session_state.pantalla = "menu"
-                    st.session_state.sub_pantalla = "inicio"
-                elif st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
-                    st.session_state.sub_pantalla = "inicio"
-                elif st.session_state.sub_pantalla in ["seleccion_tema", "config_examen_tema"]:
-                    st.session_state.sub_pantalla = "teoria_opciones"
-                st.rerun()
-
-    # 2. Lógica del Título Central Dinámico
-    with col_titulo:
-        # Definimos el nombre de la pantalla actual
-        if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
-            nombre_pantalla = "🚔   OPOTESTS PMM   🚔" # En el inicio mantenemos el nombre de la app
-        elif st.session_state.pantalla == "biblioteca":
-            nombre_pantalla = "📖   BIBLIOTECA   📖"
-        elif st.session_state.sub_pantalla == "teoria_opciones":
-            nombre_pantalla = "📚   MODO TEORÍA   📚"
-        elif st.session_state.sub_pantalla == "seleccion_tema":
-            nombre_pantalla = "📂   SELECCION TEMAS   📂"
-        elif st.session_state.sub_pantalla == "config_examen_tema":
-            nombre_pantalla = "⚙️   CONFIGURAR TEST   ⚙️"
-        elif st.session_state.sub_pantalla == "config_simulacro":
-            nombre_pantalla = "⏱️   SIMULACRO   ⏱️"
-        elif st.session_state.sub_pantalla == "config_ingles":
-            nombre_pantalla = "🇬🇧   INGLÉS   🇬🇧"
-        else:
-            nombre_pantalla = "🚔   OPOTESTS PMM   🚔"
-
-        st.markdown(f'<div class="titulo-pantalla">{nombre_pantalla}</div>', unsafe_allow_html=True)
-
-    # 3. Botón de Perfil
-    with col_der:
-        if st.button("👤", use_container_width=True, key="hdr_perfil"):
-            st.toast("Estadísticas de usuario próximamente")
-
-    st.divider()
-
-    # --- PANTALLA: MENÚ PRINCIPAL ---
+if st.session_state.examen_iniciado is False:    
     if st.session_state.pantalla == "menu":
-        # NIVEL 1: HOME
         if st.session_state.sub_pantalla == "inicio":
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("📚 TEORÍA", use_container_width=True):
-                    st.session_state.sub_pantalla = "teoria_opciones"
-                    st.rerun()
-            with col2:
-                if st.button("🇬🇧 INGLÉS", use_container_width=True):
-                    st.session_state.tema_elegido_nombre = "Examen de Inglés"
-                    st.session_state.sub_pantalla = "config_ingles"
-                    st.rerun()
+            c1, c2 = st.columns(2)
+            c1.button("📚 TEORÍA", use_container_width=True, on_click=lambda: setattr(st.session_state, 'sub_pantalla', 'teoria_opciones'))
+            c2.button("🇬🇧 INGLÉS", use_container_width=True, on_click=lambda: (setattr(st.session_state, 'sub_pantalla', 'config_ingles'), setattr(st.session_state, 'tema_elegido_nombre', 'Inglés')))
             
-            st.divider()
-            col3, col4 = st.columns(2)
-            with col3:
-                if st.button("📖 BIBLIOTECA", use_container_width=True):
-                    st.session_state.pantalla = "biblioteca"
-                    st.rerun()
-            with col4:
-                if st.button("📊 ESTADÍSTICAS", use_container_width=True):
-                    st.toast("Sección en construcción")
+            st.write("")
+            c3, c4 = st.columns(2)
+            c3.button("📖 BIBLIOTECA", use_container_width=True, on_click=lambda: setattr(st.session_state, 'pantalla', 'biblioteca'))
+            c4.button("📊 ESTADÍSTICAS", use_container_width=True)
 
-        # NIVEL 2: OPCIONES DE TEORÍA
         elif st.session_state.sub_pantalla == "teoria_opciones":
             c1, c2 = st.columns(2)
-            with c1:
-                if st.button("📂 POR TEMAS", use_container_width=True):
-                    st.session_state.sub_pantalla = "seleccion_tema"
-                    st.rerun()
-            with c2:
-                if st.button("⏱️ SIMULACRO GENERAL", use_container_width=True):
-                    st.session_state.tema_elegido_nombre = "Simulacro de Examen"
-                    st.session_state.sub_pantalla = "config_simulacro"
-                    st.rerun()
+            if c1.button("📂 POR TEMAS", use_container_width=True):
+                st.session_state.sub_pantalla = "seleccion_tema"
+                st.rerun()
+            if c2.button("⏱️ SIMULACRO", use_container_width=True):
+                st.session_state.tema_elegido_nombre = "Simulacro"
+                st.session_state.sub_pantalla = "config_simulacro"
+                st.rerun()
 
-        # NIVEL 3: SELECCIÓN DE TEMA ESPECÍFICO
         elif st.session_state.sub_pantalla == "seleccion_tema":
             try:
-                res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute().data
-                cols = st.columns(2)
-                for i, t in enumerate(res_temas):
-                    with cols[i % 2]:
-                        if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
-                            st.session_state.tema_elegido_id = t['id']
-                            st.session_state.tema_elegido_nombre = t['nombre']
-                            st.session_state.sub_pantalla = "config_examen_tema"
-                            st.rerun()
-            except:
-                st.error("No se pudieron cargar los temas.")
+                # Corregido: Obtenemos los temas de Supabase
+                res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute()
+                if res_temas.data:
+                    cols = st.columns(2)
+                    for i, t in enumerate(res_temas.data):
+                        with cols[i % 2]:
+                            if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
+                                st.session_state.tema_elegido_id = t['id']
+                                st.session_state.tema_elegido_nombre = t['nombre']
+                                st.session_state.sub_pantalla = "config_examen_tema"
+                                st.rerun()
+                else:
+                    st.error("No hay temas disponibles en la base de datos.")
+            except Exception as e:
+                st.error(f"Error de conexión: {e}")
 
-        # NIVEL FINAL: CONFIGURAR CANTIDAD DE PREGUNTAS
-        elif st.session_state.sub_pantalla in ["config_ingles", "config_simulacro", "config_examen_tema"]:            
-            with st.container(border=True):
-                num = st.select_slider("Selecciona el número de preguntas:", options=[5, 10, 20, 50, 100], value=20)
-                
-                if st.button("🚀 COMENZAR EXAMEN", type="primary", use_container_width=True):
-                    # Determinar qué IDs cargar
-                    if st.session_state.sub_pantalla == "config_ingles":
-                        ids = [1] # Inglés suele ser ID 1
-                    elif st.session_state.sub_pantalla == "config_simulacro":
-                        res_all = supabase.table("temas").select("id").neq("id", 1).execute().data
-                        ids = [r['id'] for r in res_all]
-                    else:
-                        ids = [st.session_state.tema_elegido_id]
-                    
-                    iniciar_examen(ids, num)
-                    st.rerun()
+        elif st.session_state.sub_pantalla in ["config_ingles", "config_simulacro", "config_examen_tema"]:
+            st.markdown(f"**Preguntas para: {st.session_state.tema_elegido_nombre}**")
+            num = st.select_slider("Cantidad:", options=[5, 10, 20, 50], value=10)
+            if st.button("Comenzar", type="primary", use_container_width=True):
+                if st.session_state.sub_pantalla == "config_ingles": ids = [1]
+                elif st.session_state.sub_pantalla == "config_simulacro":
+                    res_all = supabase.table("temas").select("id").neq("id", 1).execute().data
+                    ids = [r['id'] for r in res_all]
+                else: ids = [st.session_state.tema_elegido_id]
+                iniciar_examen(ids, num)
+                st.rerun()
 
     # --- PANTALLA: BIBLIOTECA ---
     elif st.session_state.pantalla == "biblioteca":
