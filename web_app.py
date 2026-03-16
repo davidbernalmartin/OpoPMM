@@ -91,42 +91,48 @@ if not st.session_state.examen_iniciado:
                 </div>
             """, unsafe_allow_html=True)
         
-        st.write("") # Espaciado
+        st.write("") # Espaciado  
+        col1, col2 = st.columns(2)
+        # --- BLOQUE INGLÉS ---
+        with col1:
+            st.subheader("🇬🇧 Idiomas")
+            with st.popover("📝 Realizar Test de Inglés", use_container_width=True):
+                st.write("Configura tu examen de Inglés")
+                num = st.select_slider("Número de preguntas:", options=[10, 20, 50, 100], key="n_ing")
+                if st.button("Comenzar Inglés", type="primary"):
+                    # Lógica para cargar preguntas de inglés y lanzar
+                    lanzar_examen(tipo="ingles", cantidad=num)
     
-        # --- SELECTOR DE CANTIDAD ---
-        # Lo centramos un poco para que no ocupe todo el ancho si no quieres
-        _, col_slider, _ = st.columns([0.1, 0.8, 0.1])
-        with col_slider:
-            st.session_state.cantidad_preguntas = st.select_slider(
-                "📊 ¿Cuántas preguntas realizar?",
-                options=[10, 20, 40, 60, 80, 100],
-                value=st.session_state.cantidad_preguntas
-            )
-        st.divider()
-
-    # --- MODO 1: MENÚ VERTICAL (Uno encima del otro) ---
-    if st.session_state.pantalla == "menu":
-        # Usamos una sola columna central para que los botones no sean infinitamente anchos
-        _, col_menu, _ = st.columns([0.2, 0.6, 0.2])
-        
-        with col_menu:
-            if st.button("🇬🇧 EXAMEN INGLÉS", use_container_width=True):
-                iniciar_examen([1], st.session_state.cantidad_preguntas)
-                st.rerun()
-            st.write("") # Espaciado entre botones
-            if st.button("📚 TEST POR TEMAS (Específicos)", use_container_width=True):
-                st.session_state.pantalla = "seleccion_temas"
-                st.rerun()
-            st.write("")
-            if st.button("🔥 SIMULACRO GENERAL", use_container_width=True):
-                res_temas = supabase.table("temas").select("id").neq("id", 1).execute()
-                todos_ids = [t['id'] for t in res_temas.data]
-                iniciar_examen(todos_ids, st.session_state.cantidad_preguntas)
-                st.rerun()
-            st.write("")
-            if st.button("📂 BIBLIOTECA DE LEYES (PDF)", use_container_width=True):
+        # --- BLOQUE TEORÍA ---
+        with col2:
+            st.subheader("📚 Teoría")
+            
+            # Opción Simulacro
+            with st.popover("⏱️ Simulacro General", use_container_width=True):
+                st.write("Preguntas aleatorias de todos los temas")
+                num_sim = st.select_slider("Número de preguntas:", options=[20, 50, 100], key="n_sim")
+                if st.button("Lanzar Simulacro", type="primary"):
+                    lanzar_examen(tipo="simulacro", cantidad=num_sim)
+            
+            # Opción Test por Temas
+            with st.popover("📂 Test por Temas", use_container_width=True):
+                st.write("Selecciona el tema a evaluar")
+                # Aquí mostramos la lista de temas de tu base de datos
+                tema_elegido = st.selectbox("Elegir Tema:", ["Tema 1", "Tema 2", "..."])
+                num_tem = st.select_slider("Cantidad:", options=[5, 10, 20, 50], key="n_tem")
+                if st.button("Lanzar Test de Tema"):
+                    lanzar_examen(tipo="tema", cantidad=num_tem, filtro=tema_elegido)
+    
+        # --- SEGUNDA FILA (Biblioteca y Perfil) ---
+        st.write("")
+        col3, col4 = st.columns(2)
+        with col3:
+            if st.button("📖 Biblioteca de Leyes", use_container_width=True):
                 st.session_state.pantalla = "biblioteca"
                 st.rerun()
+        with col4:
+            if st.button("📊 Mis Estadísticas", use_container_width=True):
+                st.toast("Gráficas disponibles tras el primer examen guardado")
 
     # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
