@@ -107,7 +107,23 @@ if st.session_state.examen_iniciado is False:
     col_izq, col_titulo, col_der = st.columns([0.1, 0.8, 0.1])
 
     with col_izq:
-        st.button("❓", use_container_width=True, key="hdr_ayuda")
+        # LÓGICA DINÁMICA DEL BOTÓN IZQUIERDO
+        if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
+            # Si estamos en el inicio, mostramos el "?"
+            if st.button("❓", use_container_width=True, key="hdr_ayuda"):
+                st.toast("OpoTests PMM - Guía de uso", icon="👮‍♂️")
+        else:
+            # En cualquier otra pantalla o sub-pantalla, mostramos "Volver"
+            if st.button("⬅️", use_container_width=True, key="hdr_volver"):
+                # Lógica de retroceso
+                if st.session_state.pantalla != "menu":
+                    st.session_state.pantalla = "menu"
+                    st.session_state.sub_pantalla = "inicio"
+                elif st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
+                    st.session_state.sub_pantalla = "inicio"
+                elif st.session_state.sub_pantalla in ["seleccion_tema", "config_examen_tema"]:
+                    st.session_state.sub_pantalla = "teoria_opciones"
+                st.rerun()
 
     with col_titulo:
         # Título sin fondo, solo texto
@@ -120,17 +136,6 @@ if st.session_state.examen_iniciado is False:
 
     # --- PANTALLA: MENÚ PRINCIPAL ---
     if st.session_state.pantalla == "menu":
-        
-        # Botón para retroceder en los niveles del menú
-        if st.session_state.sub_pantalla != "inicio":
-            with col_izq:
-                if st.button("⬅ Volver"):
-                    if st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
-                        st.session_state.sub_pantalla = "inicio"
-                    elif st.session_state.sub_pantalla in ["seleccion_tema", "config_examen_tema"]:
-                        st.session_state.sub_pantalla = "teoria_opciones"
-                    st.rerun()
-
         # NIVEL 1: HOME
         if st.session_state.sub_pantalla == "inicio":
             col1, col2 = st.columns(2)
