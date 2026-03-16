@@ -3,47 +3,49 @@ from supabase import create_client
 import random
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="OpoTests PMM - Web", page_icon="👮‍♂️", layout="wide")
+st.set_page_config(page_title="OpoTests PMM", page_icon="👮‍♂️", layout="wide")
 
 # --- 2. CONEXIÓN A SUPABASE ---
-# Asegúrate de tener estas keys en tu archivo .streamlit/secrets.toml
 URL = st.secrets["SUPABASE_URL"]
 KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(URL, KEY)
 
-# --- 3. ESTILOS CSS PERSONALIZADOS ---
+# --- 3. ESTILOS CSS ---
 st.markdown("""
     <style>
-    /* Fondo y colores base */
     .stApp { background-color: #2c3e50; color: white; }
+    [data-testid="stHorizontalBlock"] { align-items: center !important; }
+    
+    .titulo-pantalla {
+        text-align: center;
+        margin: 0 !important;
+        letter-spacing: 2px;
+        color: white;
+        font-weight: 700;
+        font-size: 26px;
+        text-transform: uppercase;
+    }
 
-    /* Estilo uniforme para todos los botones */
     div.stButton > button {
         min-height: 70px !important;
         font-size: 18px !important;
         border-radius: 12px !important;
-        white-space: normal !important;
         transition: 0.3s;
+        background-color: #34495e;
+        color: white;
+        border: 1px solid #465d75;
     }
-
-    /* Cabeceras de sección azul oscuro */
-    .seccion-titulo {
-        background-color: #34495e; 
-        padding: 15px; 
-        border-radius: 15px; 
-        text-align: center; 
-    }
-
-    /* Estilo para las métricas de resultados */
-    [data-testid="stMetricValue"] { font-size: 30px !important; }
+    
+    div.stButton > button:hover { border-color: #3498db; color: #3498db; }
+    [data-testid="stMetricValue"] { font-size: 30px !important; color: #3498db !important; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 4. LÓGICA DE ESTADO (SESSION STATE) ---
+# --- 4. SESSION STATE ---
 if "examen_iniciado" not in st.session_state:
-    st.session_state.examen_iniciado = False  # False, True, o "FINALIZADO"
-    st.session_state.pantalla = "menu"        # "menu", "biblioteca", "examen"
-    st.session_state.sub_pantalla = "inicio"  # "inicio", "teoria_opciones", "seleccion_tema", "config"
+    st.session_state.examen_iniciado = False
+    st.session_state.pantalla = "menu"
+    st.session_state.sub_pantalla = "inicio"
     st.session_state.preguntas = []
     st.session_state.indice = 0
     st.session_state.aciertos = 0
@@ -51,161 +53,122 @@ if "examen_iniciado" not in st.session_state:
     st.session_state.respuesta_dada = None
     st.session_state.tema_elegido_id = None
     st.session_state.tema_elegido_nombre = ""
-    st.session_state.num_preguntas = 20
 
-# --- 5. FUNCIONES DE DATOS ---
+# --- 5. FUNCIONES ---
 def iniciar_examen(temas_ids, cantidad):
-    try:
-        # Consulta a Supabase filtrando por los temas seleccionados
-        res = supabase.table("preguntas").select("*").in_("tema_id", temas_ids).execute()
-        if res.data:
-            lista = res.data
-            random.shuffle(lista)
-            st.session_state.preguntas = lista[:cantidad]
-            st.session_state.examen_iniciado = True
-            st.session_state.indice = 0
-            st.session_state.aciertos = 0
-            st.session_state.fallos = 0
-            st.session_state.respuesta_dada = None
+    res = supabase.table("preguntas").select("*").in_("tema_id", temas_ids).execute()
+    if res.data:
+        lista = res.data
+        random.shuffle(lista)
+        st.session_state.preguntas = lista[:cantidad]
+        st.session_state.examen_iniciado = True
+        st.session_state.indice = 0
+        st.session_state.aciertos = 0
+        st.session_state.fallos = 0
+        st.session_state.respuesta_dada = None
+
+# --- 6. CABECERA ---
+if st.session_state.examen_iniciado is False:
+    col_izq, col_titulo, col_der = st.columns([0.15, 0.7, 0.15])
+    with col_izq:
+        if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
+            st.button("❓", use_container_width=True, key="h_ayuda")
         else:
-            st.warning("No se encontraron preguntas para esta selección.")
-    except Exception as e:
-        st.error(f"Error al conectar con la base de datos: {e}")
+            if st.button("⬅️", use_container_width=True, key="h_volver"):
+                if st.session_state.pantalla != "menu":
+                    st.session_state.pantalla = "menu"
+                    st.session_state.sub_pantalla = "inicio"
+                elif st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
+                    st.session_state.sub_pantalla = "inicio"
+                elif st.session_state.sub_pantalla in ["seleccion_tema", "config_examen_tema"]:
+                    st.session_state.sub_pantalla = "teoria_opciones"
+                st.rerun()
+    with col_titulo:
+        n_pan = "OPOTESTS PMM"
+        if st.session_state.pantalla == "biblioteca": n_pan = "BIBLIOTECA"
+        elif st.session_state.sub_pantalla == "teoria_opciones": n_pan = "MODO TEORÍA"
+        elif st.session_state.sub_pantalla == "seleccion_tema": n_pan = "TEMARIOS"
+        elif st.session_state.sub_pantalla in ["config_examen_tema", "config_simulacro", "config_ingles"]: n_pan = "AJUSTES TEST"
+        st.markdown(f'<div class="titulo-pantalla">{n_pan}</div>', unsafe_allow_html=True)
+    with col_der:
+        st.button("👤", use_container_width=True, key="h_perfil")
+    st.divider()
 
-def obtener_biblioteca_leyes():
-    try:
-        return supabase.table("biblioteca").select("*").order("orden").execute().data
-    except:
-        return []
-
-# --- 6. INTERFAZ DE USUARIO ---
-if st.session_state.examen_iniciado is False:    
+# --- 7. FLUJO DE PANTALLAS ---
+if st.session_state.examen_iniciado is False:
     if st.session_state.pantalla == "menu":
         if st.session_state.sub_pantalla == "inicio":
             c1, c2 = st.columns(2)
-            c1.button("📚 TEORÍA", use_container_width=True, on_click=lambda: setattr(st.session_state, 'sub_pantalla', 'teoria_opciones'))
-            c2.button("🇬🇧 INGLÉS", use_container_width=True, on_click=lambda: (setattr(st.session_state, 'sub_pantalla', 'config_ingles'), setattr(st.session_state, 'tema_elegido_nombre', 'Inglés')))
-            
-            st.write("")
-            c3, c4 = st.columns(2)
-            c3.button("📖 BIBLIOTECA", use_container_width=True, on_click=lambda: setattr(st.session_state, 'pantalla', 'biblioteca'))
-            c4.button("📊 ESTADÍSTICAS", use_container_width=True)
+            if c1.button("📚 TEORÍA", use_container_width=True):
+                st.session_state.sub_pantalla = "teoria_opciones"; st.rerun()
+            if c2.button("🇬🇧 INGLÉS", use_container_width=True):
+                st.session_state.tema_elegido_nombre = "Inglés"; st.session_state.sub_pantalla = "config_ingles"; st.rerun()
+            st.write(""); c3, c4 = st.columns(2)
+            if c3.button("📖 BIBLIOTECA", use_container_width=True):
+                st.session_state.pantalla = "biblioteca"; st.rerun()
+            if c4.button("📊 ESTADÍSTICAS", use_container_width=True): st.toast("Próximamente")
 
         elif st.session_state.sub_pantalla == "teoria_opciones":
             c1, c2 = st.columns(2)
             if c1.button("📂 POR TEMAS", use_container_width=True):
-                st.session_state.sub_pantalla = "seleccion_tema"
-                st.rerun()
+                st.session_state.sub_pantalla = "seleccion_tema"; st.rerun()
             if c2.button("⏱️ SIMULACRO", use_container_width=True):
-                st.session_state.tema_elegido_nombre = "Simulacro"
-                st.session_state.sub_pantalla = "config_simulacro"
-                st.rerun()
+                st.session_state.tema_elegido_nombre = "Simulacro"; st.session_state.sub_pantalla = "config_simulacro"; st.rerun()
 
         elif st.session_state.sub_pantalla == "seleccion_tema":
-            try:
-                # Corregido: Obtenemos los temas de Supabase
-                res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute()
-                if res_temas.data:
-                    cols = st.columns(2)
-                    for i, t in enumerate(res_temas.data):
-                        with cols[i % 2]:
-                            if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
-                                st.session_state.tema_elegido_id = t['id']
-                                st.session_state.tema_elegido_nombre = t['nombre']
-                                st.session_state.sub_pantalla = "config_examen_tema"
-                                st.rerun()
-                else:
-                    st.error("No hay temas disponibles en la base de datos.")
-            except Exception as e:
-                st.error(f"Error de conexión: {e}")
+            res_t = supabase.table("temas").select("*").neq("id", 1).order("id").execute()
+            if res_t.data:
+                cols = st.columns(2)
+                for i, t in enumerate(res_t.data):
+                    with cols[i % 2]:
+                        if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
+                            st.session_state.tema_elegido_id = t['id']; st.session_state.tema_elegido_nombre = t['nombre']
+                            st.session_state.sub_pantalla = "config_examen_tema"; st.rerun()
 
         elif st.session_state.sub_pantalla in ["config_ingles", "config_simulacro", "config_examen_tema"]:
-            st.markdown(f"**Preguntas para: {st.session_state.tema_elegido_nombre}**")
-            num = st.select_slider("Cantidad:", options=[5, 10, 20, 50], value=10)
-            if st.button("Comenzar", type="primary", use_container_width=True):
+            st.write(f"Configurando: **{st.session_state.tema_elegido_nombre}**")
+            num = st.select_slider("Preguntas:", options=[5, 10, 20, 50], value=10)
+            if st.button("🚀 COMENZAR", type="primary", use_container_width=True):
                 if st.session_state.sub_pantalla == "config_ingles": ids = [1]
                 elif st.session_state.sub_pantalla == "config_simulacro":
-                    res_all = supabase.table("temas").select("id").neq("id", 1).execute().data
-                    ids = [r['id'] for r in res_all]
+                    ids = [r['id'] for r in supabase.table("temas").select("id").neq("id", 1).execute().data]
                 else: ids = [st.session_state.tema_elegido_id]
-                iniciar_examen(ids, num)
-                st.rerun()
+                iniciar_examen(ids, num); st.rerun()
 
-    # --- PANTALLA: BIBLIOTECA ---
     elif st.session_state.pantalla == "biblioteca":
-        leyes = obtener_biblioteca_leyes()
-        if leyes:
-            for ley in leyes:
-                with st.container(border=True):
-                    c_txt, c_btn = st.columns([0.7, 0.3])
-                    c_txt.markdown(f"**{ley['name']}**")
-                    c_btn.link_button("📄 Ver PDF", ley['url_pdf'], use_container_width=True)
-        else:
-            st.info("No hay documentos en la biblioteca actualmente.")
+        for ley in supabase.table("biblioteca").select("*").order("orden").execute().data:
+            with st.container(border=True):
+                ct, cb = st.columns([0.7, 0.3])
+                ct.write(f"**{ley['name']}**")
+                cb.link_button("📄 PDF", ley['url_pdf'], use_container_width=True)
 
-# --- SI EL EXAMEN ESTÁ EN CURSO ---
+# --- 8. EXAMEN ---
 elif st.session_state.examen_iniciado is True:
     idx = st.session_state.indice
     p = st.session_state.preguntas[idx]
-    total = len(st.session_state.preguntas)
-
-    # Stats fijas arriba
-    st.markdown(f"""
-        <div style="background-color: #34495e; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 25px;">
-            <b>Pregunta {idx+1}/{total}</b> | ✅ {st.session_state.aciertos} | ❌ {st.session_state.fallos}
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Enunciado
-    st.markdown(f"<div style='text-align: center; margin-bottom: 35px;'><b style='font-size: 24px;'>{p['enunciado']}</b></div>", unsafe_allow_html=True)
-
-    # Respuestas
-    _, col_central, _ = st.columns([0.1, 0.8, 0.1])
-    with col_central:
-        for letra in ["A", "B", "C"]:
-            op_text = p[f'opcion_{letra.lower()}']
-            icon = ""
-            if st.session_state.respuesta_dada:
-                if letra == p['correcta']: icon = " ✅ "
-                elif letra == st.session_state.respuesta_dada: icon = " ❌ "
-            
-            if st.button(f"{icon}{letra}) {op_text}", key=f"pre_{idx}_{letra}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
-                st.session_state.respuesta_dada = letra
-                if letra == p['correcta']: st.session_state.aciertos += 1
-                else: st.session_state.fallos += 1
-                st.rerun()
-
-    # Feedback y Siguiente
+    st.markdown(f"P: {idx+1}/{len(st.session_state.preguntas)} | ✅ {st.session_state.aciertos} | ❌ {st.session_state.fallos}")
+    st.markdown(f"#### {p['enunciado']}")
+    for l in ["A", "B", "C"]:
+        txt = p[f'opcion_{l.lower()}']
+        if st.session_state.respuesta_dada:
+            if l == p['correcta']: txt = f"✅ {txt}"
+            elif l == st.session_state.respuesta_dada: txt = f"❌ {txt}"
+        if st.button(f"{l}) {txt}", key=f"p_{idx}_{l}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
+            st.session_state.respuesta_dada = l
+            if l == p['correcta']: st.session_state.aciertos += 1
+            else: st.session_state.fallos += 1
+            st.rerun()
     if st.session_state.respuesta_dada:
-        st.info(f"💡 EXPLICACIÓN: {p['explicacion'] if p.get('explicacion') else 'Sin explicación detallada.'}")
-        if st.button("Siguiente Pregunta ➔", type="primary", use_container_width=True):
-            if st.session_state.indice < total - 1:
-                st.session_state.indice += 1
-                st.session_state.respuesta_dada = None
-            else:
-                st.session_state.examen_iniciado = "FINALIZADO"
+        st.info(p.get('explicacion', ''))
+        if st.button("Siguiente ➔", use_container_width=True):
+            if idx < len(st.session_state.preguntas) - 1:
+                st.session_state.indice += 1; st.session_state.respuesta_dada = None
+            else: st.session_state.examen_iniciado = "FINALIZADO"
             st.rerun()
 
-# --- SI EL EXAMEN HA TERMINADO ---
+# --- 9. FINAL ---
 elif st.session_state.examen_iniciado == "FINALIZADO":
-    st.balloons()
-    st.markdown('<div class="seccion-titulo"><h2 style="margin:0; color: white;">📊 RESULTADOS FINALES</h2></div>', unsafe_allow_html=True)
-    
-    total = len(st.session_state.preguntas)
-    aciertos = st.session_state.aciertos
-    fallos = st.session_state.fallos
-    netas = max(0, aciertos - (fallos * 0.33))
-    nota = (netas / total * 10) if total > 0 else 0
-
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("✅ ACIERTOS", aciertos)
-    c2.metric("❌ FALLOS", fallos)
-    c3.metric("⚖️ NETAS", f"{netas:.2f}")
-    c4.metric("📝 NOTA", f"{nota:.2f}/10")
-
-    st.write("")
-    if st.button("🔄 Volver al Inicio", use_container_width=True, type="primary"):
-        st.session_state.examen_iniciado = False
-        st.session_state.pantalla = "menu"
-        st.session_state.sub_pantalla = "inicio"
-        st.rerun()
+    st.balloons(); st.markdown("### RESULTADOS")
+    st.metric("Nota", f"{(st.session_state.aciertos - st.session_state.fallos*0.33):.2f}")
+    if st.button("Volver"):
+        st.session_state.examen_iniciado = False; st.session_state.pantalla = "menu"; st.session_state.sub_pantalla = "inicio"; st.rerun()
