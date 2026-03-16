@@ -82,35 +82,39 @@ def obtener_biblioteca_leyes():
 
 # SI EL EXAMEN NO HA EMPEZADO, MOSTRAR MENÚS
 if st.session_state.examen_iniciado is False:
-    # --- CABECERA REFINADA ---
+    # --- CABECERA TRANSPARENTE Y ALINEADA ---
     st.markdown("""
         <style>
+        /* Centrado vertical de los elementos en la fila */
         [data-testid="stHorizontalBlock"] {
             align-items: center !important;
         }
-        /* Reducimos el padding del título para que no sea tan alto */
-        .seccion-titulo {
-            background-color: #34495e; 
-            padding: 10px; /* Bajamos de 15 a 10 */
-            border-radius: 12px; 
-            text-align: center; 
+        
+        /* Ajuste para que el texto del título no tenga márgenes raros */
+        .titulo-limpio {
+            text-align: center;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1.5;
+            letter-spacing: 2px;
+            color: white;
+            font-weight: bold;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # Proporción más ajustada: 10% - 80% - 10%
+    # Mantenemos la proporción para que los botones laterales sean compactos
     col_izq, col_titulo, col_der = st.columns([0.1, 0.8, 0.1])
 
     with col_izq:
-        if st.button("❓", use_container_width=True, key="btn_ayuda_top"):
-            st.toast("Ayuda y soporte", icon="👮‍♂️")
+        st.button("❓", use_container_width=True, key="hdr_ayuda")
 
     with col_titulo:
-        st.markdown('<div class="seccion-titulo"><h3 style="margin:0; color: white; letter-spacing: 1px;">OPOTESTS PMM</h3></div>', unsafe_allow_html=True)
+        # Título sin fondo, solo texto
+        st.markdown('<h2 class="titulo-limpio">OPOTESTS PMM</h2>', unsafe_allow_html=True)
 
     with col_der:
-        if st.button("👤", use_container_width=True, key="btn_perfil_top"): # He quitado el texto "Perfil" para que sea un icono circular/cuadrado limpio
-            st.toast("Módulo de usuario próximamente...", icon="🔑")
+        st.button("👤", use_container_width=True, key="hdr_perfil")
 
     st.divider()
 
