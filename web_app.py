@@ -32,7 +32,6 @@ st.markdown("""
         padding: 15px; 
         border-radius: 15px; 
         text-align: center; 
-        margin-bottom: 25px;
     }
 
     /* Estilo para las métricas de resultados */
@@ -85,7 +84,7 @@ def obtener_biblioteca_leyes():
 if st.session_state.examen_iniciado is False:
 
     # CABECERA COMÚN
-    col_perfil, col_titulo = st.columns([0.2, 0.8])
+    col_titulo, col_perfil = st.columns([0.8, 0.2])
     with col_perfil:
         st.write("") # Alineación visual
         if st.button("👤 Mi Perfil", use_container_width=True):
