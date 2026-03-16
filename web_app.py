@@ -181,65 +181,51 @@ elif st.session_state.examen_iniciado is True:
 # --- 9. FINAL (RESULTADOS) ---
 elif st.session_state.examen_iniciado == "FINALIZADO":
     st.balloons()
-    
-    # Título de la sección (ya manejado por la cabecera dinámica si quieres, 
-    # pero aquí le damos un refuerzo visual)
     st.markdown("<h2 style='text-align: center; color: white;'>RESUMEN DE TU EXAMEN</h2>", unsafe_allow_html=True)
     
     total = len(st.session_state.preguntas)
     ac = st.session_state.aciertos
     fa = st.session_state.fallos
-    # Cálculo de nota típica (Restando 1/3 por fallo si son 3 opciones)
     netas = max(0, ac - (fa * 0.33))
     nota = (netas / total * 10) if total > 0 else 0
 
-    # Contenedor de métricas
     with st.container(border=True):
         c1, c2, c3, c4 = st.columns(4)
-        
         with c1:
-            st.markdown(f"""
-                <div style="text-align: center;">
-                    <p style="margin-bottom: 0; font-size: 16px;">ACIERTOS</p>
-                    <h2 style="color: #2ecc71; margin-top: 0;">{ac}</h2>
-                </div>
-            """, unsafe_allow_html=True)
-            
+            st.markdown(f'<div style="text-align: center;"><p style="margin:0;">ACIERTOS</p><h2 style="color: #2ecc71;">{ac}</h2></div>', unsafe_allow_html=True)
         with c2:
-            st.markdown(f"""
-                <div style="text-align: center;">
-                    <p style="margin-bottom: 0; font-size: 16px;">FALLOS</p>
-                    <h2 style="color: #e74c3c; margin-top: 0;">{fa}</h2>
-                </div>
-            """, unsafe_allow_html=True)
-            
+            st.markdown(f'<div style="text-align: center;"><p style="margin:0;">FALLOS</p><h2 style="color: #e74c3c;">{fa}</h2></div>', unsafe_allow_html=True)
         with c3:
-            # Color dinámico para la nota
             color_nota = "#2ecc71" if nota >= 5 else "#e74c3c"
-            st.markdown(f"""
-                <div style="text-align: center;">
-                    <p style="margin-bottom: 0; font-size: 16px;">NOTA FINAL</p>
-                    <h2 style="color: {color_nota}; margin-top: 0;">{nota:.2f}</h2>
-                </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(f'<div style="text-align: center;"><p style="margin:0;">NOTA FINAL</p><h2 style="color: {color_nota};">{nota:.2f}</h2></div>', unsafe_allow_html=True)
         with c4:
-            st.markdown(f"""
-                <div style="text-align: center;">
-                    <p style="margin-bottom: 0; font-size: 16px;">NETAS</p>
-                    <h2 style="color: #2ecc71; margin-top: 0;">{netas}</h2>
-                </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div style="text-align: center;"><p style="margin:0;">NETAS</p><h2 style="color: #3498db;">{netas:.2f}</h2></div>', unsafe_allow_html=True)
 
-    # Mensaje de motivación
-    if nota >= 5:
-        st.success(f"¡Buen trabajo! Has superado el test con un {nota:.2f}. Sigue así.")
-    else:
-        st.error(f"Esta vez no ha podido ser ({nota:.2f}). Repasa la teoría y vuelve a intentarlo.")
+    # --- NUEVA SECCIÓN: REVISIÓN DETALLADA ---
+    with st.expander("🔍 REVISAR TODAS LAS PREGUNTAS DEL TEST"):
+        for i, p in enumerate(st.session_state.preguntas):
+            # Determinamos si fue acierto o fallo para el diseño de la caja
+            # Necesitamos haber guardado la respuesta del usuario en algún sitio. 
+            # Si no la guardamos en el objeto p, asumiremos un diseño estándar.
+            
+            st.markdown(f"**Pregunta {i+1}:** {p['enunciado']}")
+            
+            col_a, col_b, col_c = st.columns(3)
+            for j, letra in enumerate(["A", "B", "C"]):
+                texto_opcion = p[f'opcion_{letra.lower()}']
+                es_correcta = (letra == p['correcta'])
+                
+                with [col_a, col_b, col_c][j]:
+                    if es_correcta:
+                        st.success(f"{letra}) {texto_opcion}")
+                    else:
+                        st.info(f"{letra}) {texto_opcion}")
+            
+            if p.get('explicacion'):
+                st.markdown(f"**💡 Explicación:** {p['explicacion']}", unsafe_allow_html=True)
+            st.divider()
 
     st.write("")
-    
-    # Botón de retorno grande y claro
     if st.button("🔄 FINALIZAR Y VOLVER AL INICIO", use_container_width=True, type="primary"):
         st.session_state.examen_iniciado = False
         st.session_state.pantalla = "menu"
