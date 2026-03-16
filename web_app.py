@@ -153,8 +153,11 @@ elif st.session_state.examen_iniciado is True:
         if st.session_state.respuesta_dada:
             if l == p['correcta']: txt = f"✅ {txt}"
             elif l == st.session_state.respuesta_dada: txt = f"❌ {txt}"
+        
         if st.button(f"{l}) {txt}", key=f"p_{idx}_{l}", use_container_width=True, disabled=st.session_state.respuesta_dada is not None):
             st.session_state.respuesta_dada = l
+            # GUARDAMOS LA RESPUESTA EN LA PREGUNTA
+            st.session_state.preguntas[idx]['respuesta_usuario'] = l 
             if l == p['correcta']: st.session_state.aciertos += 1
             else: st.session_state.fallos += 1
             st.rerun()
@@ -201,33 +204,53 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
         with c4:
             st.markdown(f'<div style="text-align: center;"><p style="margin:0;">NETAS</p><h2 style="color: #3498db;">{netas:.2f}</h2></div>', unsafe_allow_html=True)
 
-    # --- NUEVA SECCIÓN: REVISIÓN DETALLADA ---
-    with st.expander("🔍 REVISAR TODAS LAS PREGUNTAS DEL TEST"):
-        for i, p in enumerate(st.session_state.preguntas):
-            # Determinamos si fue acierto o fallo para el diseño de la caja
-            # Necesitamos haber guardado la respuesta del usuario en algún sitio. 
-            # Si no la guardamos en el objeto p, asumiremos un diseño estándar.
-            
-            st.markdown(f"**Pregunta {i+1}:** {p['enunciado']}")
-            
-            col_a, col_b, col_c = st.columns(3)
-            for j, letra in enumerate(["A", "B", "C"]):
-                texto_opcion = p[f'opcion_{letra.lower()}']
-                es_correcta = (letra == p['correcta'])
-                
-                with [col_a, col_b, col_c][j]:
-                    if es_correcta:
-                        st.success(f"{letra}) {texto_opcion}")
-                    else:
-                        st.info(f"{letra}) {texto_opcion}")
-            
-            if p.get('explicacion'):
-                st.markdown(f"**💡 Explicación:** {p['explicacion']}", unsafe_allow_html=True)
-            st.divider()
+    st.write("")
+    c_rev, c_ini = st.columns(2)
+    with c_rev:
+        if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", use_container_width=True):
+            st.session_state.examen_iniciado = "MODO_REVISION"
+            st.session_state.indice = 0 # Empezamos desde la primera
+            st.rerun()
+    with c_ini:
+        if st.button("🔄 VOLVER AL INICIO", use_container_width=True, type="primary"):
+            st.session_state.examen_iniciado = False
+            st.rerun()
+
+# --- 10. MODO REVISIÓN NAVEGABLE ---
+elif st.session_state.examen_iniciado == "MODO_REVISION":
+    idx = st.session_state.indice
+    p = st.session_state.preguntas[idx]
+    user_res = p.get('respuesta_usuario', None)
+
+    st.markdown(f"### Revisando Pregunta {idx+1} de {len(st.session_state.preguntas)}")
+    
+    # Mostrar el enunciado
+    st.info(f"**{p['enunciado']}**")
+
+    # Mostrar las opciones con colores fijos
+    for l in ["A", "B", "C"]:
+        txt = p[f'opcion_{l.lower()}']
+        if l == p['correcta']:
+            st.success(f"{l}) {txt} (Correcta)")
+        elif l == user_res:
+            st.error(f"{l}) {txt} (Tu respuesta)")
+        else:
+            st.write(f"{l}) {txt}")
+
+    st.markdown(f"<div style='background-color: #3e5871; padding: 10px; border-radius: 5px;'>{p.get('explicacion', '')}</div>", unsafe_allow_html=True)
 
     st.write("")
-    if st.button("🔄 FINALIZAR Y VOLVER AL INICIO", use_container_width=True, type="primary"):
-        st.session_state.examen_iniciado = False
-        st.session_state.pantalla = "menu"
-        st.session_state.sub_pantalla = "inicio"
-        st.rerun()
+    col_prev, col_next, col_exit = st.columns([0.3, 0.3, 0.4])
+    
+    with col_prev:
+        if st.button("⬅️ Anterior", disabled=(idx == 0), use_container_width=True):
+            st.session_state.indice -= 1
+            st.rerun()
+    with col_next:
+        if st.button("Siguiente ➡️", disabled=(idx == len(st.session_state.preguntas)-1), use_container_width=True):
+            st.session_state.indice += 1
+            st.rerun()
+    with col_exit:
+        if st.button("Finalizar Revisión", type="primary", use_container_width=True):
+            st.session_state.examen_iniciado = "FINALIZADO"
+            st.rerun()
