@@ -13,6 +13,30 @@ button, input, label, .stButton>button {
     font-family: 'Ranchers', cursive !important;
 }
 
+/* Color del botón cuando está SELECCIONADO (Primary) */
+button[data-testid="baseButton-primary"] {
+    background-color: #f1c40f !important; /* Amarillo oro */
+    color: #000 !important;
+    border: 2px solid #000 !important;
+    box-shadow: 4px 4px 0px #000 !important;
+    transform: translateY(-2px);
+}
+
+/* Color del botón cuando NO está seleccionado (Secondary) */
+button[data-testid="baseButton-secondary"] {
+    background-color: #2c3e50 !important;
+    color: #ecf0f1 !important;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* El botón de Lanzar Examen (puedes darle un estilo único) */
+div.stButton > button:contains("LANZAR") {
+    background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
+    color: white !important;
+    font-size: 24px !important;
+    height: 70px !important;
+}
+
 .stApp { 
     background-color: #2c3e50; 
     color: white; 
