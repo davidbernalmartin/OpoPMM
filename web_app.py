@@ -9,6 +9,11 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Ranchers&display=swap');
     </style>
     """, unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Ranchers&family=Comic+Neue:wght@400;700&display=swap');
+    </style>
+    """, unsafe_allow_html=True)
 
 URL = st.secrets["SUPABASE_URL"]
 KEY = st.secrets["SUPABASE_KEY"]
