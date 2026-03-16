@@ -16,6 +16,13 @@
     font-weight: 700; 
     font-size: 40px; 
     text-transform: uppercase;
+    text-shadow: 
+        1px 1px 0px #ccc,
+        2px 2px 0px #bbb,
+        3px 3px 0px #aaa,
+        4px 4px 0px #999,
+        5px 5px 0px #888,
+        6px 6px 10px rgba(0,0,0,0.4);
 }
 
 /* Tarjetas de resultados */
