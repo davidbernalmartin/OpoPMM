@@ -45,6 +45,7 @@ def volver_atras():
     elif st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
         cambiar_vista(sub="inicio")
     elif st.session_state.sub_pantalla in ["seleccion_tema", "config_examen_tema"]:
+        st.session_state.temas_seleccionados = []
         cambiar_vista(sub="teoria_opciones")
 
 # --- 4. FUNCIONES DE DATOS ---
@@ -277,6 +278,8 @@ elif st.session_state.pantalla == "menu":
                 else:
                     ids = [st.session_state.tema_elegido_id]
             iniciar_examen(ids, num)
+            st.session_state.temas_seleccionados = []
+            st.rerun()
 
 elif st.session_state.pantalla == "biblioteca":
     for ley in supabase.table("biblioteca").select("*").order("orden").execute().data:
