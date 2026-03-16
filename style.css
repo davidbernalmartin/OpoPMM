@@ -33,6 +33,12 @@ div.stButton > button:hover {
     color: #3498db; 
 }
 
+/* Espaciado superior para botones de navegación (Siguiente, Anterior, etc.) */
+.espacio-botones {
+    margin-top: 2.5rem !important;
+    margin-bottom: 1rem;
+}
+
 /* Estilo para las métricas de resultados */
 [data-testid="stMetricValue"] { 
     font-size: 30px !important; 
