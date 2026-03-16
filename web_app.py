@@ -65,6 +65,26 @@ def obtener_biblioteca_leyes():
 if not st.session_state.examen_iniciado:
 # --- PANTALLA 1: MENÚ PRINCIPAL (Estructura de Navegación) ---
     if st.session_state.pantalla == "menu":
+                # 1. Cabecera Homogénea (la que definimos antes)
+        st.markdown("""
+            <style>
+            [data-testid="stHorizontalBlock"] { align-items: center !important; }
+            .stButton>button { border-radius: 10px; height: 60px; font-weight: bold; }
+            </style>
+        """, unsafe_allow_html=True)
+    
+        col_perfil, col_titulo = st.columns([0.2, 0.8])
+        with col_perfil:
+            if st.button("👤 Mi Perfil", use_container_width=True):
+                st.toast("Acceso a estadísticas próximamente...", icon="🔑")
+        with col_titulo:
+            st.markdown("""
+                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
+                    <h3 style='margin:0; color: white;'>OPOTESTS PMM</h3>
+                </div>
+            """, unsafe_allow_html=True)
+    
+        st.write("") # Espaciado
         
         # Inicializamos la sub-pantalla si no existe
         if "sub_pantalla" not in st.session_state:
