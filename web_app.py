@@ -62,84 +62,83 @@ def obtener_biblioteca_leyes():
         st.error(f"Error al cargar la biblioteca: {e}")
         return []
 
-# --- PANTALLA 1: MENÚ PRINCIPAL Y SELECCIÓN ---
 if not st.session_state.examen_iniciado:
-    # --- PANTALLA 1: MENÚ PRINCIPAL (Dashboard) ---
+# --- PANTALLA 1: MENÚ PRINCIPAL (Estructura de Navegación) ---
     if st.session_state.pantalla == "menu":
-        # 1. Cabecera Homogénea (la que definimos antes)
-        st.markdown("""
-            <style>
-            [data-testid="stHorizontalBlock"] { align-items: center !important; }
-            .stButton>button { border-radius: 10px; height: 60px; font-weight: bold; }
-            </style>
-        """, unsafe_allow_html=True)
+        
+        # Inicializamos la sub-pantalla si no existe
+        if "sub_pantalla" not in st.session_state:
+            st.session_state.sub_pantalla = "inicio"
     
-        col_perfil, col_titulo = st.columns([0.2, 0.8])
-        with col_perfil:
-            if st.button("👤 Mi Perfil", use_container_width=True):
-                st.toast("Acceso a estadísticas próximamente...", icon="🔑")
-        with col_titulo:
-            st.markdown("""
-                <div style="background-color: #34495e; padding: 15px; border-radius: 15px; text-align: center; border-bottom: 5px solid #3498db;">
-                    <h3 style='margin:0; color: white;'>OPOTESTS PMM</h3>
-                </div>
-            """, unsafe_allow_html=True)
-    
-        st.write("") # Espaciado
-    
-        # 2. CUADRO DE MANDO (DASHBOARD)
-        # Fila 1: TEST DE INGLÉS Y SIMULACRO
-        col_izq, col_der = st.columns(2)
-    
-        with col_izq:
-            st.markdown("### 🇬🇧 Idiomas")
-            with st.popover("📝 Realizar Test de Inglés", use_container_width=True):
-                st.markdown("#### Configurar Inglés")
-                num_ing = st.select_slider("¿Cuántas preguntas?", options=[10, 20, 50, 100], key="n_ing")
-                if st.button("🚀 Comenzar Examen de Inglés", type="primary", use_container_width=True):
-                    # Aquí llamarás a tu función de carga filtrando por tema 'Inglés'
-                    st.session_state.num_preguntas = num_ing
-                    st.session_state.pantalla = "examen"
-                    st.rerun()
-    
-        with col_der:
-            st.markdown("### ⏱️ Simulacros")
-            with st.popover("🔥 Generar Simulacro General", use_container_width=True):
-                st.markdown("#### Configurar Simulacro")
-                st.caption("Se seleccionarán preguntas aleatorias de todos los temas de teoría.")
-                num_sim = st.select_slider("¿Cuántas preguntas?", options=[20, 50, 100], key="n_sim")
-                if st.button("🚀 Lanzar Simulacro", type="primary", use_container_width=True):
-                    st.session_state.num_preguntas = num_sim
-                    st.session_state.pantalla = "examen"
-                    st.rerun()
-    
-        st.write("") # Espaciado entre filas
-    
-        # Fila 2: TEST POR TEMAS Y BIBLIOTECA
-        col_izq2, col_der2 = st.columns(2)
-    
-        with col_izq2:
-            st.markdown("### 📂 Teoría por Temas")
-            with st.popover("📚 Seleccionar Tema Específico", use_container_width=True):
-                st.markdown("#### Elige tu tema")
-                # Aquí deberías usar la lista de temas que traes de Supabase
-                tema_selec = st.selectbox("Tema a evaluar:", ["Tema 1", "Tema 2", "Tema 3"]) 
-                num_tem = st.select_slider("Nº preguntas:", options=[5, 10, 20, 50], key="n_tem")
-                if st.button("🚀 Empezar Test de Tema", type="primary", use_container_width=True):
-                    st.session_state.num_preguntas = num_tem
-                    # Lógica para filtrar por tema_selec
-                    st.session_state.pantalla = "examen"
-                    st.rerun()
-    
-        with col_der2:
-            st.markdown("### 📖 Consulta")
-            if st.button("📚 Ir a la Biblioteca", use_container_width=True):
-                st.session_state.pantalla = "biblioteca"
+        # --- BOTÓN VOLVER (Solo aparece si no estamos en el inicio del menú) ---
+        if st.session_state.sub_pantalla != "inicio":
+            if st.button("⬅ Volver al Menú Principal"):
+                st.session_state.sub_pantalla = "inicio"
                 st.rerun()
     
-        # Pie de página o estadísticas rápidas
-        st.divider()
-        st.info("💡 Consejo: Los fallos restan 0.33. ¡No arriesgues si no estás seguro!")
+        # --- SUB-PANTALLA: INICIO (DASHBOARD) ---
+        if st.session_state.sub_pantalla == "inicio":
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("📚 TEORÍA", use_container_width=True):
+                    st.session_state.sub_pantalla = "teoria_opciones"
+                    st.rerun()
+            with col2:
+                if st.button("🇬🇧 INGLÉS", use_container_width=True):
+                    # Para inglés, como es directo, podemos ir al pop-over aquí mismo
+                    st.session_state.sub_pantalla = "config_ingles"
+                    st.rerun()
+            
+            st.write("---")
+            col3, col4 = st.columns(2)
+            with col3:
+                if st.button("📖 BIBLIOTECA", use_container_width=True):
+                    st.session_state.pantalla = "biblioteca"
+                    st.rerun()
+            with col4:
+                if st.button("👤 MI PERFIL", use_container_width=True):
+                    st.toast("Próximamente...")
+    
+        # --- SUB-PANTALLA: OPCIONES DE TEORÍA ---
+        elif st.session_state.sub_pantalla == "teoria_opciones":
+            st.markdown("### 📚 Opciones de Teoría")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("📂 POR TEMAS", use_container_width=True):
+                    st.session_state.sub_pantalla = "seleccion_tema"
+                    st.rerun()
+            with col_b:
+                if st.button("⏱️ SIMULACRO", use_container_width=True):
+                    st.session_state.sub_pantalla = "config_simulacro"
+                    st.rerun()
+    
+        # --- SUB-PANTALLA: SELECCIÓN DE TEMA ---
+        elif st.session_state.sub_pantalla == "seleccion_tema":
+            st.markdown("### 📂 Selecciona el Tema")
+            # Aquí traes tus temas de la BBDD
+            temas = ["Tema 1: La Constitución", "Tema 2: El Municipio", "Tema 3: Función Pública"]
+            
+            for tema in temas:
+                if st.button(tema, use_container_width=True):
+                    st.session_state.tema_elegido = tema
+                    st.session_state.sub_pantalla = "config_examen_tema"
+                    st.rerun()
+    
+        # --- SUB-PANTALLAS DE CONFIGURACIÓN FINAL (Pop-up de preguntas) ---
+        elif st.session_state.sub_pantalla in ["config_simulacro", "config_examen_tema", "config_ingles"]:
+            st.markdown(f"### ⚙️ Configuración del Test")
+            
+            if st.session_state.sub_pantalla == "config_examen_tema":
+                st.info(f"Tema seleccionado: **{st.session_state.tema_elegido}**")
+    
+            num = st.select_slider("¿Cuántas preguntas quieres realizar?", options=[5, 10, 20, 50, 100])
+            
+            if st.button("🚀 COMENZAR EXAMEN", type="primary", use_container_width=True):
+                st.session_state.num_preguntas = num
+                st.session_state.pantalla = "examen"
+                # Importante: resetear la sub-pantalla para cuando termine el examen
+                st.session_state.sub_pantalla = "inicio"
+                st.rerun()
 
     # --- MODO 2: PANEL DE BOTONES DE TEMAS ---
     elif st.session_state.pantalla == "seleccion_temas":
