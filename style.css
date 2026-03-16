@@ -5,11 +5,15 @@
 /* Aplicar a TODA la app y elementos de Streamlit */
 html, body, .stApp, [data-testid="stHeader"], .main, stMarkdown, p, span, div {
     font-family: 'Luckiest Guy', cursive !important;
+    letter-spacing: 2px;
+    font-weight: 500;
 }
 
 /* Forzar en los botones y entradas de texto */
 button, input, label, .stButton>button {
     font-family: 'Luckiest Guy', cursive !important;
+    letter-spacing: 2px;
+    font-weight: 500;
 }
 
 .stApp { 
