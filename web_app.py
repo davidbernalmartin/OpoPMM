@@ -79,7 +79,10 @@ if not st.session_state.examen_iniciado:
         
         with col_salir:
             st.write(" ")
-            if st.button("🚪 Salir", use_container_width=True):st.rerun();
+            if st.button("👤 Mi Perfil", use_container_width=True):
+                # Por ahora solo mostramos un mensaje informativo
+                # En el futuro, esto cambiará st.session_state.pantalla = "login"
+                st.toast("Funcionalidad de acceso próximamente...", icon="🔑")
         
         with col_titulo:
             st.markdown("""
