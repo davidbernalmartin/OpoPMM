@@ -10,22 +10,15 @@ KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(URL, KEY)
 
 # --- 2. ESTILOS CSS ---
-st.markdown("""
-    <style>
-    .stApp { background-color: #2c3e50; color: white; }
-    [data-testid="stHorizontalBlock"] { align-items: center !important; }
-    .titulo-pantalla {
-        text-align: center; margin: 0; letter-spacing: 2px;
-        color: white; font-weight: 700; font-size: 26px; text-transform: uppercase;
-    }
-    div.stButton > button {
-        min-height: 70px !important; font-size: 18px !important;
-        border-radius: 12px !important; transition: 0.3s;
-        background-color: #34495e; color: white; border: 1px solid #465d75;
-    }
-    div.stButton > button:hover { border-color: #3498db; color: #3498db; }
-    </style>
-""", unsafe_allow_html=True)
+def local_css(file_name):
+    try:
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        # Esto evita que la app pete si el archivo no está (opcional)
+        st.error(f"No se encontró el archivo {file_name}")
+
+local_css("style.css")
 
 # --- 3. LÓGICA DE NAVEGACIÓN Y ESTADO ---
 if "examen_iniciado" not in st.session_state:
