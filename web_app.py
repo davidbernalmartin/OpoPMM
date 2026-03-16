@@ -147,6 +147,12 @@ elif st.session_state.examen_iniciado is True:
     idx = st.session_state.indice
     p = st.session_state.preguntas[idx]
     st.markdown(f"P: {idx+1}/{len(st.session_state.preguntas)} | ✅ {st.session_state.aciertos} | ❌ {st.session_state.fallos}")
+    # --- BARRA DE PROGRESO ---
+    # Calculamos el porcentaje (de 0.0 a 1.0)
+    progreso = (idx + 1) / total_preguntas
+    st.progress(progreso)
+    st.write("") # Un pequeño respiro de espacio
+    
     st.markdown(f"#### {p['enunciado']}")
     for l in ["A", "B", "C"]:
         txt = p[f'opcion_{l.lower()}']
