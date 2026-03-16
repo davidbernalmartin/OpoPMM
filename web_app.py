@@ -82,40 +82,32 @@ def obtener_biblioteca_leyes():
 
 # SI EL EXAMEN NO HA EMPEZADO, MOSTRAR MENÚS
 if st.session_state.examen_iniciado is False:
-    # --- CABECERA TRANSPARENTE Y ALINEADA ---
+    # --- CABECERA DINÁMICA DE TÍTULO ÚNICO ---
     st.markdown("""
         <style>
-        /* Centrado vertical de los elementos en la fila */
-        [data-testid="stHorizontalBlock"] {
-            align-items: center !important;
-        }
-        
-        /* Ajuste para que el texto del título no tenga márgenes raros */
-        .titulo-limpio {
+        [data-testid="stHorizontalBlock"] { align-items: center !important; }
+        .titulo-pantalla {
             text-align: center;
             margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1.5;
             letter-spacing: 2px;
             color: white;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 26px;
+            text-transform: uppercase;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # Mantenemos la proporción para que los botones laterales sean compactos
-    col_izq, col_titulo, col_der = st.columns([0.1, 0.8, 0.1])
+    col_izq, col_titulo, col_der = st.columns([0.15, 0.7, 0.15]) # Ajustamos un poco los pesos
 
+    # 1. Lógica del botón izquierdo (Dinámico: ? o Volver)
     with col_izq:
-        # LÓGICA DINÁMICA DEL BOTÓN IZQUIERDO
         if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
-            # Si estamos en el inicio, mostramos el "?"
             if st.button("❓", use_container_width=True, key="hdr_ayuda"):
-                st.toast("OpoTests PMM - Guía de uso", icon="👮‍♂️")
+                st.toast("Bienvenido a OpoTests PMM", icon="👮‍♂️")
         else:
-            # En cualquier otra pantalla o sub-pantalla, mostramos "Volver"
             if st.button("⬅️", use_container_width=True, key="hdr_volver"):
-                # Lógica de retroceso
+                # Lógica de navegación hacia atrás
                 if st.session_state.pantalla != "menu":
                     st.session_state.pantalla = "menu"
                     st.session_state.sub_pantalla = "inicio"
@@ -125,12 +117,32 @@ if st.session_state.examen_iniciado is False:
                     st.session_state.sub_pantalla = "teoria_opciones"
                 st.rerun()
 
+    # 2. Lógica del Título Central Dinámico
     with col_titulo:
-        # Título sin fondo, solo texto
-        st.markdown('<h2 class="titulo-limpio">OPOTESTS PMM</h2>', unsafe_allow_html=True)
+        # Definimos el nombre de la pantalla actual
+        if st.session_state.pantalla == "menu" and st.session_state.sub_pantalla == "inicio":
+            nombre_pantalla = "🚔 OPOTESTS PMM" # En el inicio mantenemos el nombre de la app
+        elif st.session_state.pantalla == "biblioteca":
+            nombre_pantalla = "📖 BIBLIOTECA"
+        elif st.session_state.sub_pantalla == "teoria_opciones":
+            nombre_pantalla = "📚 MODO TEORÍA"
+        elif st.session_state.sub_pantalla == "seleccion_tema":
+            nombre_pantalla = "📂 SELECCION TEMAS"
+        elif st.session_state.sub_pantalla == "config_examen_tema":
+            nombre_pantalla = "⚙️ CONFIGURAR TEST"
+        elif st.session_state.sub_pantalla == "config_simulacro":
+            nombre_pantalla = "⏱️ SIMULACRO"
+        elif st.session_state.sub_pantalla == "config_ingles":
+            nombre_pantalla = "🇬🇧 INGLÉS"
+        else:
+            nombre_pantalla = "OPOTESTS PMM"
 
+        st.markdown(f'<div class="titulo-pantalla">{nombre_pantalla}</div>', unsafe_allow_html=True)
+
+    # 3. Botón de Perfil
     with col_der:
-        st.button("👤", use_container_width=True, key="hdr_perfil")
+        if st.button("👤", use_container_width=True, key="hdr_perfil"):
+            st.toast("Estadísticas de usuario próximamente")
 
     st.divider()
 
@@ -161,7 +173,6 @@ if st.session_state.examen_iniciado is False:
 
         # NIVEL 2: OPCIONES DE TEORÍA
         elif st.session_state.sub_pantalla == "teoria_opciones":
-            st.subheader("¿Qué tipo de test de teoría quieres hacer?")
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("📂 POR TEMAS", use_container_width=True):
@@ -175,7 +186,6 @@ if st.session_state.examen_iniciado is False:
 
         # NIVEL 3: SELECCIÓN DE TEMA ESPECÍFICO
         elif st.session_state.sub_pantalla == "seleccion_tema":
-            st.subheader("Elige un tema para examinarte")
             try:
                 res_temas = supabase.table("temas").select("id, nombre").neq("id", 1).order("id").execute().data
                 cols = st.columns(2)
@@ -190,9 +200,7 @@ if st.session_state.examen_iniciado is False:
                 st.error("No se pudieron cargar los temas.")
 
         # NIVEL FINAL: CONFIGURAR CANTIDAD DE PREGUNTAS
-        elif st.session_state.sub_pantalla in ["config_ingles", "config_simulacro", "config_examen_tema"]:
-            st.markdown(f"### Configuración: {st.session_state.tema_elegido_nombre}")
-            
+        elif st.session_state.sub_pantalla in ["config_ingles", "config_simulacro", "config_examen_tema"]:            
             with st.container(border=True):
                 num = st.select_slider("Selecciona el número de preguntas:", options=[5, 10, 20, 50, 100], value=20)
                 
@@ -211,7 +219,6 @@ if st.session_state.examen_iniciado is False:
 
     # --- PANTALLA: BIBLIOTECA ---
     elif st.session_state.pantalla == "biblioteca":
-        st.markdown('<div class="seccion-titulo"><h3 style="margin:0; color: white;">📂 BIBLIOTECA DE LEYES</h3></div>', unsafe_allow_html=True)
         leyes = obtener_biblioteca_leyes()
         if leyes:
             for ley in leyes:
