@@ -32,7 +32,6 @@ st.markdown("""
         padding: 15px; 
         border-radius: 15px; 
         text-align: center; 
-        border-bottom: 5px solid #3498db;
         margin-bottom: 25px;
     }
 
