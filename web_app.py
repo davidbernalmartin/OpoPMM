@@ -79,10 +79,7 @@ if not st.session_state.examen_iniciado:
         
         with col_salir:
             st.write(" ")
-            # En la web, el botón "Salir" puede simplemente recargar la página 
-            # o podemos poner un botón de "Info" o "User" en el futuro.
-            # Por ahora, para que sea igual visualmente:
-            if st.button("🚪 Salir", use_container_width=True):
+            if st.button("🚪 Salir", use_container_width=True):st.rerun();
         
         with col_titulo:
             st.markdown("""
