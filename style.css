@@ -1,4 +1,17 @@
 /* No pongas etiquetas <style> aquí, solo el CSS puro */
+/* Importación por si acaso fallara el st.markdown anterior */
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
+/* Aplicar a TODA la app y elementos de Streamlit */
+html, body, .stApp, [data-testid="stHeader"], .main, stMarkdown, p, span, div {
+    font-family: 'Luckiest Guy', cursive !important;
+}
+
+/* Forzar en los botones y entradas de texto */
+button, input, label, .stButton>button {
+    font-family: 'Luckiest Guy', cursive !important;
+}
+
 .stApp { 
     background-color: #2c3e50; 
     color: white; 
