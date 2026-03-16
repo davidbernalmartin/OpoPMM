@@ -4,11 +4,10 @@ import random
 
 # --- 1. CONFIGURACIÓN Y CONEXIÓN ---
 st.set_page_config(page_title="OpoTests PMM", page_icon="👮‍♂️", layout="wide")
-# Inyectar fuentes o scripts en el <head>
-st.html(f"""
-    <link rel='preconnect' href='https://fonts.googleapis.com'>
-    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
-    <link href='https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap' rel='stylesheet'>
+st.html("""
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
 """)
 
 URL = st.secrets["SUPABASE_URL"]
