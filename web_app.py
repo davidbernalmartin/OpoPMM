@@ -257,7 +257,8 @@ elif st.session_state.pantalla == "menu":
                 c1, c2, c3 = st.columns([1, 2, 1])
                 with c2:
                     if st.button(f"🚀 LANZAR EXAMEN ({len(st.session_state.temas_seleccionados)} TEMAS)", use_container_width=True):
-                        st.session_state.tema_elegido_nombre = f"{len(st.session_state.temas_seleccionados)} temas seleccionados"
+                        st.session_state.tema_elegido_id = st.session_state.temas_seleccionados
+                        st.session_state.tema_elegido_nombre = f"Mix de {len(st.session_state.temas_seleccionados)} Temas"
                         cambiar_vista(sub="config_examen_tema")
                         st.rerun()
             else:
@@ -270,7 +271,11 @@ elif st.session_state.pantalla == "menu":
             if st.session_state.sub_pantalla == "config_ingles": ids = [1]
             elif st.session_state.sub_pantalla == "config_simulacro":
                 ids = [r['id'] for r in supabase.table("temas").select("id").neq("id", 1).execute().data]
-            else: ids = [st.session_state.tema_elegido_id]
+            else: 
+                if isinstance(st.session_state.tema_elegido_id, list):
+                    ids = st.session_state.tema_elegido_id
+                else:
+                    ids = [st.session_state.tema_elegido_id]
             iniciar_examen(ids, num)
 
 elif st.session_state.pantalla == "biblioteca":
