@@ -71,6 +71,10 @@ div.stButton > button {
     background-color: #34495e; 
     color: white; 
     border: 1px solid #465d75;
+    height: 60px; /* Ajusta según veas necesario */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 div.stButton > button:hover { 
