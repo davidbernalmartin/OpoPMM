@@ -4,16 +4,13 @@
 
 /* Aplicar a TODA la app y elementos de Streamlit */
 html, body, .stApp, [data-testid="stHeader"], .main, stMarkdown, p, span, div {
-    font-family: 'Luckiest Guy', cursive !important;
-    letter-spacing: 2px;
-    font-weight: 100;
+    font-family: 'Ranchers', cursive !important;
+    letter-spacing: 1px;
 }
 
 /* Forzar en los botones y entradas de texto */
 button, input, label, .stButton>button {
-    font-family: 'Luckiest Guy', cursive !important;
-    letter-spacing: 2px;
-    font-weight: 100;
+    font-family: 'Ranchers', cursive !important;
 }
 
 .stApp { 
@@ -26,7 +23,7 @@ button, input, label, .stButton>button {
 }
 
 .titulo-pantalla {
-    font-family: 'Luckiest Guy', cursive !important;
+    font-family: 'Ranchers', cursive !important;
     text-align: center; 
     margin: 0; 
     color: white;
