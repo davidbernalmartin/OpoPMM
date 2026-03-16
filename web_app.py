@@ -6,7 +6,7 @@ import random
 st.set_page_config(page_title="OpoTests PMM", page_icon="👮‍♂️", layout="wide")
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Ranchers&display=swap');
     </style>
     """, unsafe_allow_html=True)
 
