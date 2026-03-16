@@ -161,8 +161,7 @@ elif st.session_state.examen_iniciado == "FINALIZADO":
             cambiar_vista(pantalla="menu", sub="inicio", reset_examen=True)
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-    #st.balloons()
-    st.snow()
+    if (nota == 10):st.balloons()
 
 # CASO C: REVISIÓN
 elif st.session_state.examen_iniciado == "MODO_REVISION":
