@@ -159,11 +159,23 @@ elif st.session_state.examen_iniciado is True:
             else: st.session_state.fallos += 1
             st.rerun()
     if st.session_state.respuesta_dada:
-        st.info(p.get('explicacion', ''))
-        if st.button("Siguiente ➔", use_container_width=True):
+        # Recuperamos la interpretación de HTML para las explicaciones
+        st.markdown(f"""
+            <div style="background-color: #3e5871; padding: 15px; border-radius: 10px; border-left: 5px solid #3498db; margin-top: 20px;">
+                <b style="color: #3498db;">💡 EXPLICACIÓN:</b><br>
+                <div style="color: white; margin-top: 10px;">
+                    {p.get('explicacion', 'No hay explicación detallada para esta pregunta.')}
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.write("") # Espacio visual
+        if st.button("Siguiente Pregunta ➔", type="primary", use_container_width=True):
             if idx < len(st.session_state.preguntas) - 1:
-                st.session_state.indice += 1; st.session_state.respuesta_dada = None
-            else: st.session_state.examen_iniciado = "FINALIZADO"
+                st.session_state.indice += 1
+                st.session_state.respuesta_dada = None
+            else:
+                st.session_state.examen_iniciado = "FINALIZADO"
             st.rerun()
 
 # --- 9. FINAL ---
