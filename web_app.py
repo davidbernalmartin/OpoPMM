@@ -101,12 +101,14 @@ if st.session_state.examen_iniciado is True:
 
     if st.session_state.respuesta_dada:
         st.markdown(f'<div style="background-color:#3e5871;padding:15px;border-radius:10px;border-left:5px solid #3498db;margin-top:20px;">{p.get("explicacion", "")}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="espacio-botones">', unsafe_allow_html=True)
         if st.button("Siguiente Pregunta ➔", type="primary", use_container_width=True):
             if idx < total - 1:
                 st.session_state.indice += 1
                 st.session_state.respuesta_dada = None
             else: st.session_state.examen_iniciado = "FINALIZADO"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # CASO B: RESULTADOS
 elif st.session_state.examen_iniciado == "FINALIZADO":
@@ -149,7 +151,9 @@ elif st.session_state.examen_iniciado == "MODO_REVISION":
         else: st.write(f"{l}) {txt}")
 
     st.markdown(f'<div style="background-color:#3e5871;padding:15px;border-radius:10px;border-left:5px solid #3498db;margin-top:20px;">{p.get("explicacion", "")}</div>', unsafe_allow_html=True)
-    
+
+    # Envolvemos el botón en un div con la clase de CSS
+    st.markdown('<div class="espacio-botones">', unsafe_allow_html=True)
     c_p, c_n, c_e = st.columns([0.3, 0.3, 0.4])
     with c_p:
         if st.button("⬅️ Anterior", disabled=(idx == 0), use_container_width=True):
@@ -163,7 +167,8 @@ elif st.session_state.examen_iniciado == "MODO_REVISION":
         if st.button("Volver a Resultados", type="primary", use_container_width=True):
             st.session_state.examen_iniciado = "FINALIZADO"
             st.rerun()
-
+    st.markdown('</div>', unsafe_allow_html=True)
+    
 # CASO D: MENÚS Y OTROS
 elif st.session_state.pantalla == "menu":
     if st.session_state.sub_pantalla == "inicio":
