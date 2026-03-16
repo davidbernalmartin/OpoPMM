@@ -58,6 +58,7 @@ def iniciar_examen(temas_ids, cantidad):
             "preguntas": lista[:cantidad], "examen_iniciado": True,
             "indice": 0, "aciertos": 0, "fallos": 0, "respuesta_dada": None
         })
+        st.session_state.temas_seleccionados = []
         st.rerun()
 
 # --- 5. COMPONENTES VISUALES ---
@@ -278,8 +279,6 @@ elif st.session_state.pantalla == "menu":
                 else:
                     ids = [st.session_state.tema_elegido_id]
             iniciar_examen(ids, num)
-            st.session_state.temas_seleccionados = []
-            st.rerun()
 
 elif st.session_state.pantalla == "biblioteca":
     for ley in supabase.table("biblioteca").select("*").order("orden").execute().data:
