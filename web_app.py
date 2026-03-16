@@ -123,12 +123,13 @@ if st.session_state.examen_iniciado is False:
         
         # Botón para retroceder en los niveles del menú
         if st.session_state.sub_pantalla != "inicio":
-            if st.button("⬅ Volver"):
-                if st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
-                    st.session_state.sub_pantalla = "inicio"
-                elif st.session_state.sub_pantalla in ["seleccion_tema", "config_examen_tema"]:
-                    st.session_state.sub_pantalla = "teoria_opciones"
-                st.rerun()
+            with col_izq:
+                if st.button("⬅ Volver"):
+                    if st.session_state.sub_pantalla in ["teoria_opciones", "config_ingles", "config_simulacro"]:
+                        st.session_state.sub_pantalla = "inicio"
+                    elif st.session_state.sub_pantalla in ["seleccion_tema", "config_examen_tema"]:
+                        st.session_state.sub_pantalla = "teoria_opciones"
+                    st.rerun()
 
         # NIVEL 1: HOME
         if st.session_state.sub_pantalla == "inicio":
