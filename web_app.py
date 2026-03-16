@@ -230,26 +230,38 @@ elif st.session_state.pantalla == "menu":
             st.rerun()
 
     elif st.session_state.sub_pantalla == "seleccion_tema":
+        if "temas_seleccionados" not in st.session_state:
+            st.session_state.temas_seleccionados = []
         res_t = supabase.table("temas").select("*").neq("id", 1).order("id").execute()
         if res_t.data:
             temas = res_t.data
             total_temas = len(temas)
-            mitad = (total_temas + 1) // 2            
+            mitad = (total_temas + 1) // 2        
             col1, col2 = st.columns(2)
-            with col1:
-                for t in temas[:mitad]:
-                    if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
-                        st.session_state.tema_elegido_id = t['id']
-                        st.session_state.tema_elegido_nombre = t['nombre']
+            def toggle_tema(tema_id):
+                if tema_id in st.session_state.temas_seleccionados:
+                    st.session_state.temas_seleccionados.remove(tema_id)
+                else:
+                    st.session_state.temas_seleccionados.append(tema_id)
+            for i, t in enumerate(temas):
+                objetivo_col = col1 if i < mitad else col2
+                with objetivo_col:
+                    esta_seleccionado = t['id'] in st.session_state.temas_seleccionados
+                    label = f"✅ {t['nombre']}" if esta_seleccionado else t['nombre']
+                    if st.button(label, key=f"t_{t['id']}", use_container_width=True, type="primary" if esta_seleccionado else "secondary"):
+                        toggle_tema(t['id'])
+                        st.rerun()
+    
+            st.divider()
+            if st.session_state.temas_seleccionados:
+                c1, c2, c3 = st.columns([1, 2, 1])
+                with c2:
+                    if st.button(f"🚀 LANZAR EXAMEN ({len(st.session_state.temas_seleccionados)} TEMAS)", use_container_width=True):
+                        st.session_state.tema_elegido_nombre = f"{len(st.session_state.temas_seleccionados)} temas seleccionados"
                         cambiar_vista(sub="config_examen_tema")
                         st.rerun()
-            with col2:
-                for t in temas[mitad:]:
-                    if st.button(t['nombre'], key=f"t_{t['id']}", use_container_width=True):
-                        st.session_state.tema_elegido_id = t['id']
-                        st.session_state.tema_elegido_nombre = t['nombre']
-                        cambiar_vista(sub="config_examen_tema")
-                        st.rerun()
+            else:
+                st.info("Selecciona al menos un tema para continuar")
 
     elif st.session_state.sub_pantalla in ["config_ingles", "config_simulacro", "config_examen_tema"]:
         st.write(f"Configurando: **{st.session_state.tema_elegido_nombre}**")
