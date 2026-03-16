@@ -252,5 +252,5 @@ elif st.session_state.examen_iniciado == "MODO_REVISION":
             st.rerun()
     with col_exit:
         if st.button("Finalizar Revisión", type="primary", use_container_width=True):
-            st.session_state.examen_iniciado = "FINALIZADO"
+            st.session_state.examen_iniciado = False
             st.rerun()
