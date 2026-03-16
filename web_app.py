@@ -96,6 +96,8 @@ if st.session_state.examen_iniciado is False:
     with col_titulo:
         st.markdown('<div class="seccion-titulo"><h3 style="margin:0; color: white;">OPOTESTS PMM</h3></div>', unsafe_allow_html=True)
 
+    st.write("")
+
     # --- PANTALLA: MENÚ PRINCIPAL ---
     if st.session_state.pantalla == "menu":
         
