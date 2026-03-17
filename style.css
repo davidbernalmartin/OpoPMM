@@ -7,17 +7,9 @@
     color: white; 
 }
 
-/* Contenedor de la tabla tipo "Grid" */
-.tabla-admin {
-    background-color: #1a2432;
-    border-radius: 8px;
-    padding: 10px;
-}
-
 /* Estilo para las etiquetas de los campos */
 .label-admin {
     color: #3b82f6; /* Azul claro */
-    font-weight: bold;
     font-size: 0.8rem;
     margin-bottom: 5px;
     text-transform: uppercase;
