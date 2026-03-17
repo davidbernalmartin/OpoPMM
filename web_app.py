@@ -698,13 +698,13 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         def boton_color(texto, color_hex, key):
             st.markdown(f"""
                 <style>
-                    div[data-testid="stButton"] > button[key=" {key}"] {{
+                    div[data-testid="stButton"] > button[key="{key}"] {{
                         background-color: {color_hex} !important;
                         color: white !important;
                         border: none !important;
                         border-radius: 5px;
                     }}
-                    div[data-testid="stButton"] > button[key=" {key}"]:hover {{
+                    div[data-testid="stButton"] > button[key="{key}"]:hover {{
                         background-color: {color_hex};
                         opacity: 0.8;
                         color: white !important;
