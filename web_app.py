@@ -694,33 +694,40 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         # Llamada a la función refactorizada
         f_enun, f_exp, f_a, f_b, f_c, f_corr, f_tema_sel = renderizar_formulario_edicion(p, nombres_temas, nombre_a_id)
 
-        # 3. BOTONERA
+        # 5. BOTONERA INFERIOR (Dentro del bloque 'if p:')
         st.write("###")
         b1, b2, b3, b4, b5 = st.columns(5)
         
         with b1:
-            if st.button("➕ NUEVA PREGUNTA", use_container_width=True):
+            if st.button("➕ NUEVA PREGUNTA", key=f"btn_nueva_{p['id']}", use_container_width=True):
                 st.session_state.p_seleccionada = None
                 st.rerun()
         
-        with b2: st.button("📄 PDF A CSV", use_container_width=True)
-        with b3: st.button("📤 IMPORTAR CSV", use_container_width=True)
+        with b2:
+            st.button("📄 PDF A CSV", key=f"btn_pdf_{p['id']}", use_container_width=True)
+        
+        with b3:
+            st.button("📥 IMPORTAR CSV", key=f"btn_importar_{p['id']}", use_container_width=True)
         
         with b4:
-            if st.button("💾 GUARDAR CAMBIOS", type="primary", use_container_width=True):
+            if st.button("💾 GUARDAR CAMBIOS", key=f"btn_guardar_{p['id']}", use_container_width=True):
                 upd = {
-                    "enunciado": f_enun, "explicacion": f_exp, 
-                    "opcion_a": f_a, "opcion_b": f_b, "opcion_c": f_c, 
-                    "correcta": f_corr, "tema_id": nombre_a_id[f_tema_sel]
+                    "enunciado": f_enun, 
+                    "explicacion": f_exp, 
+                    "opcion_a": f_a,
+                    "opcion_b": f_b, 
+                    "opcion_c": f_c, 
+                    "correcta": f_corr,
+                    "tema_id": nombre_a_id[f_tema_sel]
                 }
                 supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
                 st.session_state.p_seleccionada.update(upd)
                 st.session_state.p_seleccionada['tema_nombre'] = f_tema_sel
                 st.success("¡Pregunta actualizada!")
                 st.rerun()
-
+        
         with b5:
-            if st.button("🗑️ ELIMINAR", use_container_width=True):
+            if st.button("🗑️ ELIMINAR", key=f"btn_eliminar_{p['id']}", use_container_width=True):
                 supabase.table("preguntas").delete().eq("id", p['id']).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
