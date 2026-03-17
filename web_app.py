@@ -2,6 +2,60 @@ import streamlit as st
 from supabase import create_client
 import random
 
+def mostrar_examen(titulo, lista_preguntas):
+    st.markdown(f'<p class="titulo-pantalla">{titulo}</p>', unsafe_allow_html=True)
+
+    if st.session_state.examen_finalizado:
+        # --- PANTALLA DE RESULTADOS ---
+        st.success("✅ Examen completado")
+        aciertos = 0
+        for i, p in enumerate(lista_preguntas):
+            if st.session_state.respuestas_usuario.get(i) == p['correcta']:
+                aciertos += 1
+        
+        st.metric("PUNTUACIÓN", f"{aciertos} / {len(lista_preguntas)}")
+        
+        if st.button("FINALIZAR Y VOLVER", use_container_width=True):
+            st.session_state.sub_pantalla = "seleccion_tema"
+            st.session_state.preguntas_examen = [] # Limpiamos
+            st.session_state.examen_finalizado = False
+            st.rerun()
+    else:
+        # --- INTERFAZ DEL TEST ---
+        idx = st.session_state.indice_pregunta
+        p_actual = lista_preguntas[idx]
+
+        st.progress((idx + 1) / len(lista_preguntas), text=f"Pregunta {idx + 1} de {len(lista_preguntas)}")
+        st.markdown(f"#### {p_actual['enunciado']}")
+        
+        opciones = {"A": p_actual['opcion_a'], "B": p_actual['opcion_b'], "C": p_actual['opcion_c']}
+        res_previa = st.session_state.respuestas_usuario.get(idx)
+        idx_radio = ["A", "B", "C"].index(res_previa) if res_previa in ["A", "B", "C"] else None
+
+        seleccion = st.radio("Opciones:", ["A", "B", "C"], 
+                             format_func=lambda x: f"{x}) {opciones[x]}", 
+                             index=idx_radio, key=f"r_{idx}")
+
+        if seleccion:
+            st.session_state.respuestas_usuario[idx] = seleccion
+
+        st.write("---")
+        col1, col2 = st.columns(2)
+        with col1:
+            if idx > 0:
+                if st.button("⬅️ ANTERIOR", use_container_width=True):
+                    st.session_state.indice_pregunta -= 1
+                    st.rerun()
+        with col2:
+            if idx < len(lista_preguntas) - 1:
+                if st.button("SIGUIENTE ➡️", use_container_width=True):
+                    st.session_state.indice_pregunta += 1
+                    st.rerun()
+            else:
+                if st.button("🏁 CORREGIR", type="primary", use_container_width=True):
+                    st.session_state.examen_finalizado = True
+                    st.rerun()
+
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
     page_title="OpoPMM - Tu Plaza es Nuestra",
@@ -30,8 +84,8 @@ if "temas_seleccionados" not in st.session_state:
     st.session_state.temas_seleccionados = []
 if "examen_iniciado" not in st.session_state:
     st.session_state.examen_iniciado = "NO"
-if "preguntas_simulacro" not in st.session_state:
-    st.session_state.preguntas_simulacro = []
+if "preguntas_examen" not in st.session_state:
+    st.session_state.preguntas_examen = []
 if "indice_pregunta" not in st.session_state:
     st.session_state.indice_pregunta = 0
 if "respuestas_usuario" not in st.session_state:
@@ -265,94 +319,40 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
         cambiar_vista("menu_principal")
         st.rerun()
 
+# --- MODO 1: INGLÉS ---
+elif st.session_state.sub_pantalla == "test_ingles":
+    if not st.session_state.preguntas_examen:
+        res = supabase.table("preguntas").select("*").eq("tema_id", 1).execute()
+        st.session_state.preguntas_examen = res.data
+        st.session_state.indice_pregunta = 0
+        st.session_state.respuestas_usuario = {}
+        st.rerun()
+    
+    mostrar_examen("EXAMEN DE INGLÉS", st.session_state.preguntas_examen)
+
+# --- MODO 2: POR TEMAS ---
+elif st.session_state.sub_pantalla == "test_por_temas":
+    if not st.session_state.preguntas_examen:
+        # Aquí usarías los IDs que el usuario haya seleccionado previamente
+        ids_seleccionados = st.session_state.get("temas_seleccionados", [])
+        res = supabase.table("preguntas").select("*").in_("tema_id", ids_seleccionados).execute()
+        st.session_state.preguntas_examen = res.data
+        st.session_state.indice_pregunta = 0
+        st.rerun()
+    
+    mostrar_examen("EXAMEN POR TEMAS", st.session_state.preguntas_examen)
+
+# --- MODO 3: SIMULACRO ---
 elif st.session_state.sub_pantalla == "test_simulacro":
-    st.markdown('<p class="titulo-pantalla">SIMULACRO DE EXAMEN</p>', unsafe_allow_html=True)
-    # --- 1. LÓGICA DE CARGA INICIAL (Excluyendo ID=1) ---
-    if not st.session_state.preguntas_simulacro:
-        try:
-            # Filtramos para que NO traiga preguntas del tema_id = 1
-            res = supabase.table("preguntas").select("*").neq("tema_id", 1).execute()     
-            if res.data:
-                todas = res.data
-                random.shuffle(todas)
-                # Seleccionamos, por ejemplo, 20 preguntas para el simulacro
-                st.session_state.preguntas_simulacro = todas[:20]
-                st.session_state.indice_pregunta = 0
-                st.session_state.respuestas_usuario = {}
-                st.session_state.examen_finalizado = False
-                st.rerun()
-            else:
-                st.warning("No hay preguntas de leyes disponibles en la base de datos.")
-                if st.button("Volver"):
-                    cambiar_vista("seleccion_tema")
-                    st.rerun()
-        except Exception as e:
-            st.error(f"Error al conectar con la tabla preguntas: {e}")
-    # --- 2. COMPROBACIÓN DE ESTADO PARA MOSTRAR RESULTADOS O TEST ---
-    if st.session_state.examen_finalizado:
-        # --- PANTALLA DE RESULTADOS ---
-        st.success("✅ Examen completado")     
-        aciertos = 0
-        preguntas = st.session_state.preguntas_simulacro
-        for i, p in enumerate(preguntas):
-            if st.session_state.respuestas_usuario.get(i) == p['correcta']:
-                aciertos += 1    
-        st.metric("PUNTUACIÓN FINAL", f"{aciertos} / {len(preguntas)}")       
-        if st.button("FINALIZAR Y VOLVER", use_container_width=True):
-            # Limpiamos todo para el siguiente test
-            st.session_state.preguntas_simulacro = []
-            st.session_state.indice_pregunta = 0
-            st.session_state.examen_finalizado = False
-            cambiar_vista("seleccion_tema")
-            st.rerun()
-    else:
-        # --- INTERFAZ DEL TEST ACTIVO ---
-        preguntas = st.session_state.preguntas_simulacro
-        if preguntas:
-            idx = st.session_state.indice_pregunta
-            p_actual = preguntas[idx]
-            # Barra de progreso visual
-            progreso = (idx + 1) / len(preguntas)
-            st.progress(progreso, text=f"Pregunta {idx + 1} de {len(preguntas)}")
-            # Enunciado de la pregunta
-            st.markdown(f"#### {p_actual['enunciado']}")
-            # Diccionario de opciones
-            opciones_dict = {
-                "A": p_actual['opcion_a'],
-                "B": p_actual['opcion_b'],
-                "C": p_actual['opcion_c']
-            }
-            # Selector de respuesta
-            # Recuperamos lo que ya hubiera marcado si el usuario vuelve atrás
-            respuesta_previa = st.session_state.respuestas_usuario.get(idx) 
-            # Calculamos el índice para el radio button (None si no hay respuesta)
-            idx_radio = ["A", "B", "C"].index(respuesta_previa) if respuesta_previa in ["A", "B", "C"] else None
-            seleccion = st.radio(
-                "",
-                options=["A", "B", "C"],
-                format_func=lambda x: f"{x}) {opciones_dict[x]}",
-                index=idx_radio,
-                key=f"radio_{idx}"
-            )
-            # Guardamos la selección actual en el estado
-            if seleccion:
-                st.session_state.respuestas_usuario[idx] = seleccion
-            st.write("---")
-            col_izq, col_der = st.columns(2)
-            with col_izq:
-                if idx > 0:
-                    if st.button("⬅️ ANTERIOR", use_container_width=True):
-                        st.session_state.indice_pregunta -= 1
-                        st.rerun()
-            with col_der:
-                if idx < len(preguntas) - 1:
-                    if st.button("SIGUIENTE ➡️", use_container_width=True):
-                        st.session_state.indice_pregunta += 1
-                        st.rerun()
-                else:
-                    if st.button("🏁 CORREGIR EXAMEN", type="primary", use_container_width=True):
-                        st.session_state.examen_finalizado = True
-                        st.rerun()
+    if not st.session_state.preguntas_examen:
+        res = supabase.table("preguntas").select("*").neq("tema_id", 1).execute()
+        datos = res.data
+        random.shuffle(datos)
+        st.session_state.preguntas_examen = datos[:20] # 20 aleatorias de leyes
+        st.session_state.indice_pregunta = 0
+        st.rerun()
+    
+    mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
                         
 # --- PANTALLA: PANEL ADMIN ---
 elif st.session_state.sub_pantalla == "panel_admin":
