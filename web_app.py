@@ -606,75 +606,76 @@ elif st.session_state.sub_pantalla == "test_simulacro":
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">EDITOR DE PREGUNTAS</div>', unsafe_allow_html=True)
 
-    # 1. CARGAR TEMAS DISPONIBLES PARA FILTRAR
-    res_temas = supabase.table("preguntas").select("tema").execute()
-    temas = sorted(list(set([p['tema'] for p in res_temas.data]))) if res_temas.data else []
-    
-    tema_sel = st.selectbox("📁 Filtrar por Tema:", ["Todos"] + temas)
+    try:
+        # 1. CARGAMOS TODOS LOS TEMAS (de la tabla 'temas') para el desplegable
+        res_temas_lista = supabase.table("temas").select("id, nombre").execute()
+        temas_dict = {t['nombre']: t['id'] for t in res_temas_lista.data} if res_temas_lista.data else {}
+        nombres_temas = sorted(list(temas_dict.keys()))
 
-    # 2. CARGAR PREGUNTAS SEGÚN FILTRO
-    query = supabase.table("preguntas").select("*")
-    if tema_sel != "Todos":
-        query = query.eq("tema", tema_sel)
-    
-    res_preguntas = query.execute()
-    lista_p = res_preguntas.data if res_preguntas.data else []
+        tema_sel_nombre = st.selectbox("📁 Filtrar por Tema:", ["Todos"] + nombres_temas)
 
-    if not lista_p:
-        st.warning("No hay preguntas en este tema.")
-    else:
-        # Creamos un diccionario para el selector: "ID - Inicio del enunciado"
-        dict_preguntas = {f"{p['id']} - {p['enunciado'][:60]}...": p for p in lista_p}
-        seleccion = st.selectbox("🔍 Selecciona la pregunta a editar:", options=dict_preguntas.keys())
+        # 2. CARGAR PREGUNTAS
+        # Usamos el filtrado por tema_id si no se elige "Todos"
+        query = supabase.table("preguntas").select("*")
+        if tema_sel_nombre != "Todos":
+            query = query.eq("tema_id", temas_dict[tema_sel_nombre])
         
-        pregunta_actual = dict_preguntas[seleccion]
+        res_preguntas = query.execute()
+        lista_p = res_preguntas.data if res_preguntas.data else []
 
-        st.divider()
-        st.subheader(f"📝 Editando ID: {pregunta_actual['id']}")
+        if not lista_p:
+            st.info("No hay preguntas para este tema.")
+        else:
+            # Selector de pregunta por enunciado
+            dict_preguntas = {f"ID: {p['id']} - {str(p['enunciado'])[:50]}...": p for p in lista_p}
+            seleccion = st.selectbox("🔍 Selecciona para editar:", options=dict_preguntas.keys())
+            p_edit = dict_preguntas[seleccion]
 
-        # 3. FORMULARIO DE EDICIÓN
-        with st.form("form_edicion"):
-            col_tema, col_cor = st.columns([3, 1])
-            with col_tema:
-                nuevo_tema = st.text_input("Tema", value=pregunta_actual['tema'])
-            with col_cor:
-                nueva_correcta = st.selectbox("Correcta", ["A", "B", "C"], index=["A", "B", "C"].index(pregunta_actual['correcta']))
+            # --- FORMULARIO DE EDICIÓN ---
+            with st.form("editor_form"):
+                st.subheader(f"Editando Pregunta #{p_edit['id']}")
+                
+                c1, c2 = st.columns([3, 1])
+                with c1: 
+                    # Selector de tema dentro del formulario para poder cambiarlo
+                    indice_tema = nombres_temas.index(tema_sel_nombre) if tema_sel_nombre in nombres_temas else 0
+                    nuevo_tema_nombre = st.selectbox("Cambiar Tema", nombres_temas, index=indice_tema)
+                with c2: 
+                    t_corr = st.selectbox("Correcta", ["A", "B", "C"], index=["A", "B", "C"].index(p_edit['correcta']))
+                
+                t_enun = st.text_area("Enunciado", value=p_edit['enunciado'], height=150)
+                
+                colA, colB, colC = st.columns(3)
+                with colA: t_a = st.text_area("Opción A", value=p_edit['opcion_a'])
+                with colB: t_b = st.text_area("Opción B", value=p_edit['opcion_b'])
+                with colC: t_c = st.text_area("Opción C", value=p_edit['opcion_c'])
+                
+                t_exp = st.text_area("Explicación (HTML)", value=p_edit.get('explicacion', ''))
+                
+                col_sav, col_del = st.columns([4, 1])
+                with col_sav:
+                    btn_guardar = st.form_submit_button("💾 ACTUALIZAR PREGUNTA", use_container_width=True, type="primary")
+                with col_del:
+                    confirmar_borrado = st.checkbox("¿Borrar?")
 
-            nuevo_enunciado = st.text_area("Enunciado", value=pregunta_actual['enunciado'], height=100)
-            
-            c1, c2, c3 = st.columns(3)
-            with c1: nueva_a = st.text_area("Opción A", value=pregunta_actual['opcion_a'])
-            with c2: nueva_b = st.text_area("Opción B", value=pregunta_actual['opcion_b'])
-            with c3: nueva_c = st.text_area("Opción C", value=pregunta_actual['opcion_c'])
-            
-            nueva_exp = st.text_area("Explicación (Soporta HTML)", value=pregunta_actual.get('explicacion', ''))
+                if btn_guardar:
+                    if confirmar_borrado:
+                        supabase.table("preguntas").delete().eq("id", p_edit['id']).execute()
+                        st.success("Pregunta eliminada.")
+                        st.rerun()
+                    else:
+                        upd = {
+                            "tema_id": temas_dict[nuevo_tema_nombre], # Guardamos el ID, no el nombre
+                            "enunciado": t_enun,
+                            "opcion_a": t_a, "opcion_b": t_b, "opcion_c": t_c,
+                            "correcta": t_corr, "explicacion": t_exp
+                        }
+                        supabase.table("preguntas").update(upd).eq("id", p_edit['id']).execute()
+                        st.success("✅ ¡Actualizada correctamente!")
+                        st.rerun()
 
-            # Botones del formulario
-            col_btn_save, col_btn_del = st.columns([4, 1])
-            with col_btn_save:
-                guardar = st.form_submit_button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary")
-            with col_btn_del:
-                # El borrado lo manejamos con cuidado fuera o con un checkbox de confirmación
-                borrar = st.checkbox("¿Eliminar pregunta?")
-
-            if guardar:
-                if borrar:
-                    supabase.table("preguntas").delete().eq("id", pregunta_actual['id']).execute()
-                    st.success("Pregunta eliminada correctamente.")
-                    st.rerun()
-                else:
-                    update_data = {
-                        "tema": nuevo_tema,
-                        "enunciado": nuevo_enunciado,
-                        "opcion_a": nueva_a,
-                        "opcion_b": nueva_b,
-                        "opcion_c": nueva_c,
-                        "correcta": nueva_correcta,
-                        "explicacion": nueva_exp
-                    }
-                    supabase.table("preguntas").update(update_data).eq("id", pregunta_actual['id']).execute()
-                    st.success("✅ ¡Pregunta actualizada!")
-                    st.rerun()
+    except Exception as e:
+        st.error(f"Error en la estructura: {e}")
 
     if st.button("⬅️ VOLVER"):
         st.session_state.sub_pantalla = "menu_principal"
