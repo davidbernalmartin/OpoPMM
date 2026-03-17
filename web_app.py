@@ -25,12 +25,8 @@ def mostrar_examen(titulo, lista_preguntas):
         st.metric("PUNTUACIÓN", f"{aciertos} / {len(lista_preguntas)}")
         
         if st.button("FINALIZAR Y VOLVER", use_container_width=True):
-            # Limpieza total para el próximo examen
+            limpiar_estado_examen() # <--- Usamos tu función de limpieza que ya resetea todo
             st.session_state.sub_pantalla = "seleccion_tema"
-            st.session_state.preguntas_examen = []
-            st.session_state.respuestas_usuario = {}
-            st.session_state.indice_pregunta = 0
-            st.session_state.examen_finalizado = False
             st.rerun()
     else:
         # --- INTERFAZ DEL TEST ---
@@ -411,34 +407,20 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
 # --- MODO 1: INGLÉS ---
 elif st.session_state.sub_pantalla == "test_ingles":
     if not st.session_state.preguntas_examen:
-        # 1. Recuperamos el límite seleccionado en la pantalla de configuración
-        limite_elegido = st.session_state.get("cantidad_preguntas", 20)    
+        limite_elegido = st.session_state.get("cantidad_preguntas", 20)
         try:
-            # 2. Consultamos solo preguntas de Inglés (ID=1) con el límite real
-            res = supabase.table("preguntas")\
-                .select("*")\
-                .eq("tema_id", 1)\
-                .limit(limite_elegido)\
-                .execute()
+            # Traemos TODAS las de inglés
+            res = supabase.table("preguntas").select("*").eq("tema_id", 1).execute()
             
             if res.data:
-                datos = res.data
-                # 3. Barajamos para que el examen no sea siempre igual
-                random.shuffle(datos)
-                st.session_state.preguntas_examen = datos
+                todo_el_banco = res.data
+                random.shuffle(todo_el_banco) # Barajamos todo el mazo primero
+                st.session_state.preguntas_examen = todo_el_banco[:limite_elegido] # Cortamos
                 
-                # Reiniciamos el estado del motor de examen
                 st.session_state.indice_pregunta = 0
                 st.session_state.respuestas_usuario = {}
                 st.session_state.examen_finalizado = False
                 st.rerun()
-            else:
-                st.warning("No se han encontrado preguntas de Inglés.")
-                if st.button("Volver"):
-                    cambiar_vista("seleccion_tema")
-                    st.rerun()
-        except Exception as e:
-            st.error(f"Error al cargar el examen de inglés: {e}")
     
     # Llamamos al motor común
     mostrar_examen("EXAMEN DE INGLÉS", st.session_state.preguntas_examen)
@@ -446,41 +428,40 @@ elif st.session_state.sub_pantalla == "test_ingles":
 # --- MODO 2: POR TEMAS ---
 elif st.session_state.sub_pantalla == "test_por_temas":
     if not st.session_state.preguntas_examen:
-        # Aquí usarías los IDs que el usuario haya seleccionado previamente
         ids_seleccionados = st.session_state.get("temas_seleccionados", [])
-        res = supabase.table("preguntas").select("*").in_("tema_id", ids_seleccionados).execute()
-        st.session_state.preguntas_examen = res.data
-        st.session_state.indice_pregunta = 0
-        st.rerun()
+        limite_elegido = st.session_state.get("cantidad_preguntas", 20)
+        try:
+            # Traemos todo lo que NO sea inglés (ID != 1)
+            res = supabase.table("preguntas").select("*").in_("tema_id", ids_seleccionados).execute()
+            if res.data:
+                todo_el_banco = res.data
+                random.shuffle(todo_el_banco)
+                st.session_state.preguntas_examen = todo_el_banco[:limite_elegido]
+                
+                st.session_state.indice_pregunta = 0
+                st.session_state.respuestas_usuario = {}
+                st.session_state.examen_finalizado = False
+                st.rerun()
     
     mostrar_examen("EXAMEN POR TEMAS", st.session_state.preguntas_examen)
 
 # --- MODO 3: SIMULACRO ---
 elif st.session_state.sub_pantalla == "test_simulacro":
     if not st.session_state.preguntas_examen:
-        # 1. Obtenemos el límite que eligió el usuario (por defecto 20 si algo falla)
         limite_elegido = st.session_state.get("cantidad_preguntas", 20)
         try:
-            # 2. Pedimos a Supabase SOLO la cantidad que necesitamos
-            # Usamos .limit() para no traer 500 preguntas si solo queremos 10
-            res = supabase.table("preguntas")\
-                .select("*")\
-                .neq("tema_id", 1)\
-                .limit(limite_elegido)\
-                .execute()
+            # Traemos todo lo que NO sea inglés (ID != 1)
+            res = supabase.table("preguntas").select("*").neq("tema_id", 1).execute()
             
             if res.data:
-                datos = res.data
-                # 3. Mezclamos el orden para que no salgan siempre las mismas
-                random.shuffle(datos)
-                st.session_state.preguntas_examen = datos
+                todo_el_banco = res.data
+                random.shuffle(todo_el_banco)
+                st.session_state.preguntas_examen = todo_el_banco[:limite_elegido]
                 
-                # Reiniciamos contadores
                 st.session_state.indice_pregunta = 0
                 st.session_state.respuestas_usuario = {}
+                st.session_state.examen_finalizado = False
                 st.rerun()
-        except Exception as e:
-            st.error(f"Error al cargar el simulacro: {e}")
 
     # Llamamos al motor con las preguntas ya limitadas
     mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
