@@ -14,79 +14,103 @@ def limpiar_estado_examen():
 def mostrar_examen(titulo, lista_preguntas):
     st.markdown(f'<p class="titulo-pantalla">{titulo}</p>', unsafe_allow_html=True)
 
-    if st.session_state.examen_finalizado:
-        # --- LÓGICA DE CÁLCULO (Se mantiene igual) ---
-        total = len(lista_preguntas)
-        aciertos = 0
-        fallos = 0
-        sin_responder = 0
+    # 1. MODO REVISIÓN INDIVIDUAL (Pantalla Completa)
+    if st.session_state.get("ver_revision", False):
+        idx_rev = st.session_state.get("indice_revision", 0)
+        p = lista_preguntas[idx_rev]
+        resp_usuario = st.session_state.respuestas_usuario.get(idx_rev)
+        es_correcta = resp_usuario == p['correcta']
 
-        for i, p in enumerate(lista_preguntas):
-            resp_usuario = st.session_state.respuestas_usuario.get(i)
-            if resp_usuario is None:
-                sin_responder += 1
-            elif resp_usuario == p['correcta']:
-                aciertos += 1
+        st.progress((idx_rev + 1) / len(lista_preguntas), text=f"Revisando Pregunta {idx_rev + 1} de {len(lista_preguntas)}")
+        
+        # Badge de estado de la pregunta
+        if resp_usuario is None:
+            st.warning("⚠️ Esta pregunta se dejó EN BLANCO")
+        elif es_correcta:
+            st.success("✅ ¡Respuesta CORRECTA!")
+        else:
+            st.error(f"❌ Respuesta INCORRECTA (Marcaste la {resp_usuario})")
+
+        st.markdown(f"#### {p['enunciado']}")
+
+        # Opciones con formato visual de corrección
+        opciones = [("A", p['opcion_a']), ("B", p['opcion_b']), ("C", p['opcion_c'])]
+        for letra, texto in opciones:
+            estilo = "padding:10px; border-radius:10px; margin:5px 0; border-left: 5px solid "
+            if letra == p['correcta']:
+                # Opción correcta (Verde)
+                st.markdown(f'<div style="{estilo} #2ecc71; background-color: rgba(46, 204, 113, 0.1);"><b>{letra}) {texto}</b> (Correcta)</div>', unsafe_allow_html=True)
+            elif letra == resp_usuario and not es_correcta:
+                # Opción fallada por el usuario (Rojo)
+                st.markdown(f'<div style="{estilo} #e74c3c; background-color: rgba(231, 76, 60, 0.1);"><em>{letra}) {texto}</em> (Tu elección)</div>', unsafe_allow_html=True)
             else:
-                fallos += 1
+                # Opción neutra
+                st.write(f"{letra}) {texto}")
+
+        # Explicación detallada
+        st.info(f"**💡 EXPLICACIÓN:**\n\n{p.get('explicacion', 'No hay explicación detallada para esta pregunta.')}")
+
+        st.write("---")
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c1:
+            if idx_rev > 0:
+                if st.button("⬅️ ANTERIOR", key="rev_prev", use_container_width=True):
+                    st.session_state.indice_revision -= 1
+                    st.rerun()
+        with c2:
+            if st.button("VOLVER AL RESUMEN", use_container_width=True):
+                st.session_state.ver_revision = False
+                st.rerun()
+        with c3:
+            if idx_rev < len(lista_preguntas) - 1:
+                if st.button("SIGUIENTE ➡️", key="rev_next", use_container_width=True):
+                    st.session_state.indice_revision += 1
+                    st.rerun()
+
+    # 2. PANTALLA DE RESULTADOS (Resumen de Notas)
+    elif st.session_state.examen_finalizado:
+        total = len(lista_preguntas)
+        aciertos = sum(1 for i, p in enumerate(lista_preguntas) if st.session_state.respuestas_usuario.get(i) == p['correcta'])
+        fallos = sum(1 for i, p in enumerate(lista_preguntas) if st.session_state.respuestas_usuario.get(i) is not None and st.session_state.respuestas_usuario.get(i) != p['correcta'])
+        sin_responder = total - (aciertos + fallos)
 
         netas = aciertos - (fallos * 0.33)
-        # Nota sobre 10 (aseguramos que no baje de 0)
         nota_diez = (max(0, netas) / total) * 10 
 
-        # --- DISEÑO CENTRADO ---
-        # Título principal centrado
         st.markdown('<h2 style="text-align: center;">📊 RESULTADOS DEL EXAMEN</h2>', unsafe_allow_html=True)
         st.write("###")
 
-        # Fila 1: Aciertos, Fallos, Blanco (Centrados en sus columnas)
+        # Fila 1: Métricas centradas
         col1, col2, col3 = st.columns(3)
-        
         with col1:
-            st.markdown('<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🟢 Aciertos</p><h1 style="color: #2ecc71; margin-top:0;">' + str(aciertos) + '</h1></div>', unsafe_allow_html=True)
-        
+            st.markdown(f'<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🟢 Aciertos</p><h1 style="color: #2ecc71; margin-top:0;">{aciertos}</h1></div>', unsafe_allow_html=True)
         with col2:
-            st.markdown('<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🔴 Fallos</p><h1 style="color: #e74c3c; margin-top:0;">' + str(fallos) + '</h1></div>', unsafe_allow_html=True)
-        
+            st.markdown(f'<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🔴 Fallos</p><h1 style="color: #e74c3c; margin-top:0;">{fallos}</h1></div>', unsafe_allow_html=True)
         with col3:
-            st.markdown('<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">⚪ En blanco</p><h1 style="color: #bdc3c7; margin-top:0;">' + str(sin_responder) + '</h1></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">⚪ En blanco</p><h1 style="color: #bdc3c7; margin-top:0;">{sin_responder}</h1></div>', unsafe_allow_html=True)
 
         st.write("---")
 
-        # Fila 2: Netas y Nota (Tarjetas centradas)
+        # Fila 2: Tarjetas de Netas y Nota
         c_netas, c_nota = st.columns(2)
-        
         with c_netas:
-            st.markdown(
-                f"""<div style="background-color: #6D28D9; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #4C1D95;">
-                    <p style="margin:0; font-size: 1.3rem; color: #EDE9FE; font-weight: bold;">PREGUNTAS NETAS</p>
-                    <h1 style="margin:0; color: white; font-size: 3.5rem;">{netas:.2f}</h1>
-                </div>""", 
-                unsafe_allow_html=True
-            )
-
+            st.markdown(f"""<div style="background-color: #6D28D9; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #4C1D95;">
+                <p style="margin:0; font-size: 1.3rem; color: #EDE9FE; font-weight: bold;">PREGUNTAS NETAS</p>
+                <h1 style="margin:0; color: white; font-size: 3.5rem;">{netas:.2f}</h1>
+            </div>""", unsafe_allow_html=True)
         with c_nota:
-            # Color Azul Cian/Oscuro para la nota (muy legible sobre fondo claro/oscuro)
-            st.markdown(
-                f"""<div style="background-color: #0891B2; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #164E63;">
-                    <p style="margin:0; font-size: 1.3rem; color: #CFFAFE; font-weight: bold;">NOTA SOBRE 10</p>
-                    <h1 style="margin:0; color: white; font-size: 3.5rem;">{nota_diez:.2f}</h1>
-                </div>""", 
-                unsafe_allow_html=True
-            )
+            st.markdown(f"""<div style="background-color: #0891B2; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #164E63;">
+                <p style="margin:0; font-size: 1.3rem; color: #CFFAFE; font-weight: bold;">NOTA SOBRE 10</p>
+                <h1 style="margin:0; color: white; font-size: 3.5rem;">{nota_diez:.2f}</h1>
+            </div>""", unsafe_allow_html=True)
 
         st.write("###")
-        st.write("###")
-        
-       # --- BOTONES DE ACCIÓN ---
         col_rev, col_fin = st.columns(2)
-        
         with col_rev:
             if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", use_container_width=True):
                 st.session_state.ver_revision = True
-                st.session_state.indice_revision = 0 # Empezamos por la primera
+                st.session_state.indice_revision = 0
                 st.rerun()
-
         with col_fin:
             if st.button("🏁 FINALIZAR Y VOLVER", use_container_width=True, type="primary"):
                 st.session_state.ver_revision = False
@@ -94,123 +118,44 @@ def mostrar_examen(titulo, lista_preguntas):
                 st.session_state.sub_pantalla = "seleccion_tema"
                 st.rerun()
 
-        # --- MODO REVISIÓN INDIVIDUAL ---
-        if st.session_state.get("ver_revision", False):
-            st.divider()
-            
-            # Recuperamos el índice de revisión
-            idx_rev = st.session_state.get("indice_revision", 0)
-            p = lista_preguntas[idx_rev]
-            resp_usuario = st.session_state.respuestas_usuario.get(idx_rev)
-            es_correcta = resp_usuario == p['correcta']
-
-            # Encabezado de la revisión
-            st.markdown(f"<h4 style='text-align: center;'>Revisando Pregunta {idx_rev + 1} de {len(lista_preguntas)}</h4>", unsafe_allow_html=True)
-            
-            # Badge de estado
-            if resp_usuario is None:
-                st.warning("Esta pregunta se dejó **EN BLANCO**")
-            elif es_correcta:
-                st.success("¡Respuesta **CORRECTA**!")
-            else:
-                st.error(f"Respuesta **INCORRECTA**. Marcaste la {resp_usuario}")
-
-            # Cuerpo de la pregunta
-            st.info(f"**{p['enunciado']}**")
-
-            # Opciones con formato visual
-            opciones = [("A", p['opcion_a']), ("B", p['opcion_b']), ("C", p['opcion_c'])]
-            
-            for letra, texto in opciones:
-                if letra == p['correcta']:
-                    # La correcta siempre en verde
-                    st.markdown(f"✅ **{letra}) {texto}** (Respuesta Correcta)")
-                elif letra == resp_usuario and not es_correcta:
-                    # La fallada por el usuario en rojo
-                    st.markdown(f"❌ ~~{letra}) {texto}~~ (Tu elección)")
-                else:
-                    st.write(f"{letra}) {texto}")
-
-            # EXPLICACIÓN (El colofón)
-            with st.container():
-                st.write("---")
-                st.markdown("**💡 EXPLICACIÓN:**")
-                if p.get('explicacion'):
-                    st.write(p['explicacion'])
-                else:
-                    st.caption("No hay explicación detallada para esta pregunta.")
-
-            # Navegación de la revisión
-            st.write("###")
-            c1, c2, c3 = st.columns([1, 2, 1])
-            with c1:
-                if idx_rev > 0:
-                    if st.button("⬅️", key="rev_prev", use_container_width=True):
-                        st.session_state.indice_revision -= 1
-                        st.rerun()
-            with c2:
-                # Botón para cerrar la revisión y volver a ver las notas
-                if st.button("CERRAR REVISIÓN", use_container_width=True):
-                    st.session_state.ver_revision = False
-                    st.rerun()
-            with c3:
-                if idx_rev < len(lista_preguntas) - 1:
-                    if st.button("➡️", key="rev_next", use_container_width=True):
-                        st.session_state.indice_revision += 1
-                        st.rerun()
+    # 3. INTERFAZ DEL TEST (En curso)
     else:
-        # --- INTERFAZ DEL TEST ---
         idx = st.session_state.indice_pregunta
         p_actual = lista_preguntas[idx]
 
-        # Barra de progreso
         st.progress((idx + 1) / len(lista_preguntas), text=f"Pregunta {idx + 1} de {len(lista_preguntas)}")
-        
         st.markdown(f"#### {p_actual['enunciado']}")
         
-        # 1. Recuperamos la respuesta si ya existe en el estado
         opciones_letras = ["A", "B", "C"]
         respuesta_guardada = st.session_state.respuestas_usuario.get(idx)
-        
-        # 2. Calculamos el índice: Si hay respuesta, buscamos su posición (0, 1 o 2). Si no, None.
         indice_a_mostrar = opciones_letras.index(respuesta_guardada) if respuesta_guardada in opciones_letras else None
 
-        opciones_texto = {
-            "A": p_actual['opcion_a'], 
-            "B": p_actual['opcion_b'], 
-            "C": p_actual['opcion_c']
-        }
+        opciones_texto = {"A": p_actual['opcion_a'], "B": p_actual['opcion_b'], "C": p_actual['opcion_c']}
 
-        # El parámetro index=indice_a_mostrar es la clave de la "memoria"
         seleccion = st.radio(
             "Selecciona tu respuesta:",
             options=opciones_letras,
             format_func=lambda x: f"{x}) {opciones_texto[x]}",
             index=indice_a_mostrar,
-            key=f"radio_preg_{idx}" # Clave única por pregunta
+            key=f"radio_preg_{idx}"
         )
 
-        # Guardamos la selección inmediatamente en el estado
         if seleccion:
             st.session_state.respuestas_usuario[idx] = seleccion
 
         st.write("---")
         col1, col2 = st.columns(2)
-        
         with col1:
             if idx > 0:
                 if st.button("⬅️ ANTERIOR", use_container_width=True):
                     st.session_state.indice_pregunta -= 1
                     st.rerun()
-        
         with col2:
             if idx < len(lista_preguntas) - 1:
-                # El botón siguiente es normal
                 if st.button("SIGUIENTE ➡️", use_container_width=True):
                     st.session_state.indice_pregunta += 1
                     st.rerun()
             else:
-                # Botón final
                 if st.button("🏁 CORREGIR EXAMEN", type="primary", use_container_width=True):
                     st.session_state.examen_finalizado = True
                     st.rerun()
