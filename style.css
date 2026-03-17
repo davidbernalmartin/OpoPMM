@@ -113,3 +113,24 @@ div.stButton > button:contains("🚀") {
     margin-top: 2.5rem !important;
     margin-bottom: 1rem;
 }
+
+/* Estilo para los inputs de texto */
+.stTextInput input {
+    font-family: 'Comic Neue', cursive !important;
+    background-color: #34495e !important;
+    color: white !important;
+    border: 1px solid #465d75 !important;
+    border-radius: 8px !important;
+}
+
+/* Estilo para las pestañas (Tabs) */
+button[data-baseweb="tab"] {
+    font-family: 'Ranchers', cursive !important;
+    font-size: 18px !important;
+    color: #bdc3c7 !important;
+}
+
+button[aria-selected="true"] {
+    color: #f1c40f !important;
+    border-bottom-color: #f1c40f !important;
+}
