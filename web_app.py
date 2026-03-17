@@ -358,7 +358,7 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
         
         try:
             # Consultamos la tabla temas para listar los temas
-            res = supabase.table("temas").select("id, nombre").order("id").neq("id=1").execute()
+            res = supabase.table("temas").select("id, nombre").order("id").neq("id",1).execute()
             temas_db = res.data
             
             # Filtramos el ID 1 (Inglés) para que no salga en "Por Temas"
