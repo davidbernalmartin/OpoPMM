@@ -15,17 +15,63 @@ def mostrar_examen(titulo, lista_preguntas):
     st.markdown(f'<p class="titulo-pantalla">{titulo}</p>', unsafe_allow_html=True)
 
     if st.session_state.examen_finalizado:
-        # --- PANTALLA DE RESULTADOS ---
-        st.success("✅ Examen completado")
+        # --- LÓGICA DE CÁLCULO ---
+        total = len(lista_preguntas)
         aciertos = 0
+        fallos = 0
+        sin_responder = 0
+
         for i, p in enumerate(lista_preguntas):
-            if st.session_state.respuestas_usuario.get(i) == p['correcta']:
+            resp_usuario = st.session_state.respuestas_usuario.get(i)
+            if resp_usuario is None:
+                sin_responder += 1
+            elif resp_usuario == p['correcta']:
                 aciertos += 1
+            else:
+                fallos += 1
+
+        # Fórmulas de oposición
+        netas = aciertos - (fallos * 0.33)
+        nota_diez = (max(0, netas) / total) * 10  # max(0...) para no tener notas negativas
+
+        # --- DISEÑO DE PANTALLA ---
+        st.markdown("### 📊 Resultado del Examen")
         
-        st.metric("PUNTUACIÓN", f"{aciertos} / {len(lista_preguntas)}")
+        # Fila 1: Métricas básicas
+        col1, col2, col3 = st.columns(3)
+        col1.markdown(f"### 🟢 Aciertos\n## {aciertos}")
+        col2.markdown(f"### 🔴 Fallos\n## {fallos}")
+        col3.markdown(f"### ⚪ En blanco\n## {sin_responder}")
+
+        st.divider()
+
+        # Fila 2: Cálculos avanzados
+        c_netas, c_nota = st.columns(2)
         
-        if st.button("FINALIZAR Y VOLVER", use_container_width=True):
-            limpiar_estado_examen() # <--- Usamos tu función de limpieza que ya resetea todo
+        with c_netas:
+            st.markdown(
+                f"""<div style="background-color: #6D28D9; padding: 20px; border-radius: 10px; text-align: center;">
+                    <p style="margin:0; font-size: 1.2rem; color: white;">Preguntas Netas</p>
+                    <h2 style="margin:0; color: white;">{netas:.2f}</h2>
+                </div>""", 
+                unsafe_allow_html=True
+            )
+
+        with c_nota:
+            # Color Dorado/Amarillo para la nota final
+            st.markdown(
+                f"""<div style="background-color: #FBBF24; padding: 20px; border-radius: 10px; text-align: center;">
+                    <p style="margin:0; font-size: 1.2rem; color: #1E293B;">Nota sobre 10</p>
+                    <h2 style="margin:0; color: #1E293B;">{nota_diez:.2f} / 10</h2>
+                </div>""", 
+                unsafe_allow_html=True
+            )
+
+        st.write("###")
+        
+        # Botón de salida usando tu función de limpieza
+        if st.button("🏁 FINALIZAR Y VOLVER AL MENÚ", use_container_width=True, type="primary"):
+            limpiar_estado_examen()
             st.session_state.sub_pantalla = "seleccion_tema"
             st.rerun()
     else:
