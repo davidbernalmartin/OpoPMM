@@ -277,7 +277,7 @@ if st.session_state.user:
             st.write("")
             st.markdown('<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>', unsafe_allow_html=True)
             if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):
-                cambiar_vista("panel_admin")
+                cambiar_vista("admin_preguntas")
                 st.rerun()
 
         # 6. Cerrar Sesión (al final)
