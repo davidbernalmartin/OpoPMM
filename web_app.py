@@ -15,7 +15,7 @@ def mostrar_examen(titulo, lista_preguntas):
     st.markdown(f'<p class="titulo-pantalla">{titulo}</p>', unsafe_allow_html=True)
 
     if st.session_state.examen_finalizado:
-        # --- LÓGICA DE CÁLCULO ---
+        # --- LÓGICA DE CÁLCULO (Se mantiene igual) ---
         total = len(lista_preguntas)
         aciertos = 0
         fallos = 0
@@ -30,46 +30,55 @@ def mostrar_examen(titulo, lista_preguntas):
             else:
                 fallos += 1
 
-        # Fórmulas de oposición
         netas = aciertos - (fallos * 0.33)
-        nota_diez = (max(0, netas) / total) * 10  # max(0...) para no tener notas negativas
+        # Nota sobre 10 (aseguramos que no baje de 0)
+        nota_diez = (max(0, netas) / total) * 10 
 
-        # --- DISEÑO DE PANTALLA ---
-        st.markdown("### 📊 Resultado del Examen")
-        
-        # Fila 1: Métricas básicas
+        # --- DISEÑO CENTRADO ---
+        # Título principal centrado
+        st.markdown('<h2 style="text-align: center;">📊 RESULTADOS DEL EXAMEN</h2>', unsafe_allow_html=True)
+        st.write("###")
+
+        # Fila 1: Aciertos, Fallos, Blanco (Centrados en sus columnas)
         col1, col2, col3 = st.columns(3)
-        col1.markdown(f"### 🟢 Aciertos\n## {aciertos}")
-        col2.markdown(f"### 🔴 Fallos\n## {fallos}")
-        col3.markdown(f"### ⚪ En blanco\n## {sin_responder}")
+        
+        with col1:
+            st.markdown('<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🟢 Aciertos</p><h1 style="color: #2ecc71; margin-top:0;">' + str(aciertos) + '</h1></div>', unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown('<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🔴 Fallos</p><h1 style="color: #e74c3c; margin-top:0;">' + str(fallos) + '</h1></div>', unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown('<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">⚪ En blanco</p><h1 style="color: #bdc3c7; margin-top:0;">' + str(sin_responder) + '</h1></div>', unsafe_allow_html=True)
 
-        st.divider()
+        st.write("---")
 
-        # Fila 2: Cálculos avanzados
+        # Fila 2: Netas y Nota (Tarjetas centradas)
         c_netas, c_nota = st.columns(2)
         
         with c_netas:
             st.markdown(
-                f"""<div style="background-color: #6D28D9; padding: 20px; border-radius: 10px; text-align: center;">
-                    <p style="margin:0; font-size: 1.2rem; color: white;">Preguntas Netas</p>
-                    <h2 style="margin:0; color: white;">{netas:.2f}</h2>
+                f"""<div style="background-color: #6D28D9; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #4C1D95;">
+                    <p style="margin:0; font-size: 1.3rem; color: #EDE9FE; font-weight: bold;">PREGUNTAS NETAS</p>
+                    <h1 style="margin:0; color: white; font-size: 3.5rem;">{netas:.2f}</h1>
                 </div>""", 
                 unsafe_allow_html=True
             )
 
         with c_nota:
-            # Color Dorado/Amarillo para la nota final
+            # Color Azul Cian/Oscuro para la nota (muy legible sobre fondo claro/oscuro)
             st.markdown(
-                f"""<div style="background-color: #FBBF24; padding: 20px; border-radius: 10px; text-align: center;">
-                    <p style="margin:0; font-size: 1.2rem; color: #1E293B;">Nota sobre 10</p>
-                    <h2 style="margin:0; color: #1E293B;">{nota_diez:.2f} / 10</h2>
+                f"""<div style="background-color: #0891B2; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #164E63;">
+                    <p style="margin:0; font-size: 1.3rem; color: #CFFAFE; font-weight: bold;">NOTA SOBRE 10</p>
+                    <h1 style="margin:0; color: white; font-size: 3.5rem;">{nota_diez:.2f}</h1>
                 </div>""", 
                 unsafe_allow_html=True
             )
 
         st.write("###")
+        st.write("###")
         
-        # Botón de salida usando tu función de limpieza
+        # Botón de finalizar centrado (por defecto use_container_width lo expande, queda bien)
         if st.button("🏁 FINALIZAR Y VOLVER AL MENÚ", use_container_width=True, type="primary"):
             limpiar_estado_examen()
             st.session_state.sub_pantalla = "seleccion_tema"
