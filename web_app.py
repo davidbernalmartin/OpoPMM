@@ -603,7 +603,79 @@ elif st.session_state.sub_pantalla == "test_simulacro":
     if st.session_state.preguntas_examen:
         mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
                         
-# --- PANTALLA: PANEL ADMIN ---
-elif st.session_state.sub_pantalla == "panel_admin":
-    st.markdown(f'<div class="titulo-pantalla">GESTION PREGUNTAS</div>', unsafe_allow_html=True)
-    st.write("Panel exclusivo para añadir y editar el banco de preguntas.")
+elif st.session_state.sub_pantalla == "admin_preguntas":
+    st.markdown('<div class="titulo-pantalla">EDITOR DE PREGUNTAS</div>', unsafe_allow_html=True)
+
+    # 1. CARGAR TEMAS DISPONIBLES PARA FILTRAR
+    res_temas = supabase.table("preguntas").select("tema").execute()
+    temas = sorted(list(set([p['tema'] for p in res_temas.data]))) if res_temas.data else []
+    
+    tema_sel = st.selectbox("📁 Filtrar por Tema:", ["Todos"] + temas)
+
+    # 2. CARGAR PREGUNTAS SEGÚN FILTRO
+    query = supabase.table("preguntas").select("*")
+    if tema_sel != "Todos":
+        query = query.eq("tema", tema_sel)
+    
+    res_preguntas = query.execute()
+    lista_p = res_preguntas.data if res_preguntas.data else []
+
+    if not lista_p:
+        st.warning("No hay preguntas en este tema.")
+    else:
+        # Creamos un diccionario para el selector: "ID - Inicio del enunciado"
+        dict_preguntas = {f"{p['id']} - {p['enunciado'][:60]}...": p for p in lista_p}
+        seleccion = st.selectbox("🔍 Selecciona la pregunta a editar:", options=dict_preguntas.keys())
+        
+        pregunta_actual = dict_preguntas[seleccion]
+
+        st.divider()
+        st.subheader(f"📝 Editando ID: {pregunta_actual['id']}")
+
+        # 3. FORMULARIO DE EDICIÓN
+        with st.form("form_edicion"):
+            col_tema, col_cor = st.columns([3, 1])
+            with col_tema:
+                nuevo_tema = st.text_input("Tema", value=pregunta_actual['tema'])
+            with col_cor:
+                nueva_correcta = st.selectbox("Correcta", ["A", "B", "C"], index=["A", "B", "C"].index(pregunta_actual['correcta']))
+
+            nuevo_enunciado = st.text_area("Enunciado", value=pregunta_actual['enunciado'], height=100)
+            
+            c1, c2, c3 = st.columns(3)
+            with c1: nueva_a = st.text_area("Opción A", value=pregunta_actual['opcion_a'])
+            with c2: nueva_b = st.text_area("Opción B", value=pregunta_actual['opcion_b'])
+            with c3: nueva_c = st.text_area("Opción C", value=pregunta_actual['opcion_c'])
+            
+            nueva_exp = st.text_area("Explicación (Soporta HTML)", value=pregunta_actual.get('explicacion', ''))
+
+            # Botones del formulario
+            col_btn_save, col_btn_del = st.columns([4, 1])
+            with col_btn_save:
+                guardar = st.form_submit_button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary")
+            with col_btn_del:
+                # El borrado lo manejamos con cuidado fuera o con un checkbox de confirmación
+                borrar = st.checkbox("¿Eliminar pregunta?")
+
+            if guardar:
+                if borrar:
+                    supabase.table("preguntas").delete().eq("id", pregunta_actual['id']).execute()
+                    st.success("Pregunta eliminada correctamente.")
+                    st.rerun()
+                else:
+                    update_data = {
+                        "tema": nuevo_tema,
+                        "enunciado": nuevo_enunciado,
+                        "opcion_a": nueva_a,
+                        "opcion_b": nueva_b,
+                        "opcion_c": nueva_c,
+                        "correcta": nueva_correcta,
+                        "explicacion": nueva_exp
+                    }
+                    supabase.table("preguntas").update(update_data).eq("id", pregunta_actual['id']).execute()
+                    st.success("✅ ¡Pregunta actualizada!")
+                    st.rerun()
+
+    if st.button("⬅️ VOLVER"):
+        st.session_state.sub_pantalla = "menu_principal"
+        st.rerun()
