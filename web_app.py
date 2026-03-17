@@ -603,8 +603,6 @@ elif st.session_state.sub_pantalla == "test_simulacro":
     if st.session_state.preguntas_examen:
         mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
                         
-import pandas as pd
-
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN</div>', unsafe_allow_html=True)
 
