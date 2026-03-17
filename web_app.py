@@ -226,29 +226,36 @@ elif st.session_state.sub_pantalla == "biblioteca":
 
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
-    st.markdown('<p class="titulo-pantalla">TEMARIO</p>', unsafe_allow_html=True)
+    st.markdown('<p class="titulo-pantalla">MODO DE EXAMEN</p>', unsafe_allow_html=True)
     
-    # Consulta de temas (excluyendo Inglés si quieres tratarlo aparte)
-    res_t = supabase.table("temas").select("*").neq("id", 1).order("id").execute()
-    if res_t.data:
-        temas = res_t.data
-        mitad = (len(temas) + 1) // 2
-        col1, col2 = st.columns(2)
-        
-        for i, t in enumerate(temas):
-            with (col1 if i < mitad else col2):
-                sel = t['id'] in st.session_state.temas_seleccionados
-                label = f"✅ {t['nombre']}" if sel else t['nombre']
-                if st.button(label, key=f"t_{t['id']}", use_container_width=True, type="primary" if sel else "secondary"):
-                    if sel: st.session_state.temas_seleccionados.remove(t['id'])
-                    else: st.session_state.temas_seleccionados.append(t['id'])
-                    st.rerun()
+    # Abrimos el contenedor con la clase CSS personalizada
+    st.markdown('<div class="contenedor-test">', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
 
-    if st.session_state.temas_seleccionados:
-        st.divider()
-        if st.button(f"🚀 CONFIGURAR EXAMEN ({len(st.session_state.temas_seleccionados)} TEMAS)", use_container_width=True):
-            cambiar_vista("config_examen")
+    with col1:
+        if st.button("🇬🇧\n\nEXAMEN DE INGLÉS", use_container_width=True):
+            cambiar_vista("test_ingles")
             st.rerun()
+
+    with col2:
+        if st.button("📚\n\nEXAMEN POR TEMAS", use_container_width=True):
+            cambiar_vista("test_por_temas")
+            st.rerun()
+
+    with col3:
+        if st.button("⏱️\n\nSIMULACRO EXAMEN", use_container_width=True):
+            cambiar_vista("test_simulacro")
+            st.rerun()
+            
+    # Cerramos el contenedor
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.write("---")
+    # Este botón de volver NO se verá afectado por el estilo anterior
+    if st.button("⬅️ Volver al Centro de Control"):
+        cambiar_vista("menu_principal")
+        st.rerun()
 
 # --- PANTALLA: PANEL ADMIN ---
 elif st.session_state.sub_pantalla == "panel_admin":
