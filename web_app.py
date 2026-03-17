@@ -78,11 +78,86 @@ def mostrar_examen(titulo, lista_preguntas):
         st.write("###")
         st.write("###")
         
-        # Botón de finalizar centrado (por defecto use_container_width lo expande, queda bien)
-        if st.button("🏁 FINALIZAR Y VOLVER AL MENÚ", use_container_width=True, type="primary"):
-            limpiar_estado_examen()
-            st.session_state.sub_pantalla = "seleccion_tema"
-            st.rerun()
+       # --- BOTONES DE ACCIÓN ---
+        col_rev, col_fin = st.columns(2)
+        
+        with col_rev:
+            if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", use_container_width=True):
+                st.session_state.ver_revision = True
+                st.session_state.indice_revision = 0 # Empezamos por la primera
+                st.rerun()
+
+        with col_fin:
+            if st.button("🏁 FINALIZAR Y VOLVER", use_container_width=True, type="primary"):
+                st.session_state.ver_revision = False
+                limpiar_estado_examen()
+                st.session_state.sub_pantalla = "seleccion_tema"
+                st.rerun()
+
+        # --- MODO REVISIÓN INDIVIDUAL ---
+        if st.session_state.get("ver_revision", False):
+            st.divider()
+            
+            # Recuperamos el índice de revisión
+            idx_rev = st.session_state.get("indice_revision", 0)
+            p = lista_preguntas[idx_rev]
+            resp_usuario = st.session_state.respuestas_usuario.get(idx_rev)
+            es_correcta = resp_usuario == p['correcta']
+
+            # Encabezado de la revisión
+            st.markdown(f"<h4 style='text-align: center;'>Revisando Pregunta {idx_rev + 1} de {len(lista_preguntas)}</h4>", unsafe_allow_html=True)
+            
+            # Badge de estado
+            if resp_usuario is None:
+                st.warning("Esta pregunta se dejó **EN BLANCO**")
+            elif es_correcta:
+                st.success("¡Respuesta **CORRECTA**!")
+            else:
+                st.error(f"Respuesta **INCORRECTA**. Marcaste la {resp_usuario}")
+
+            # Cuerpo de la pregunta
+            st.info(f"**{p['enunciado']}**")
+
+            # Opciones con formato visual
+            opciones = [("A", p['opcion_a']), ("B", p['opcion_b']), ("C", p['opcion_c'])]
+            
+            for letra, texto in opciones:
+                if letra == p['correcta']:
+                    # La correcta siempre en verde
+                    st.markdown(f"✅ **{letra}) {texto}** (Respuesta Correcta)")
+                elif letra == resp_usuario and not es_correcta:
+                    # La fallada por el usuario en rojo
+                    st.markdown(f"❌ ~~{letra}) {texto}~~ (Tu elección)")
+                else:
+                    st.write(f"{letra}) {texto}")
+
+            # EXPLICACIÓN (El colofón)
+            with st.container():
+                st.write("---")
+                st.markdown("**💡 EXPLICACIÓN:**")
+                if p.get('explicacion'):
+                    st.write(p['explicacion'])
+                else:
+                    st.caption("No hay explicación detallada para esta pregunta.")
+
+            # Navegación de la revisión
+            st.write("###")
+            c1, c2, c3 = st.columns([1, 2, 1])
+            with c1:
+                if idx_rev > 0:
+                    if st.button("⬅️", key="rev_prev", use_container_width=True):
+                        st.session_state.indice_revision -= 1
+                        st.rerun()
+            with c2:
+                # Botón para cerrar la revisión y volver a ver las notas
+                if st.button("CERRAR REVISIÓN", use_container_width=True):
+                    st.session_state.ver_revision = False
+                    st.rerun()
+            with c3:
+                if idx_rev < len(lista_preguntas) - 1:
+                    if st.button("➡️", key="rev_next", use_container_width=True):
+                        st.session_state.indice_revision += 1
+                        st.rerun()
     else:
         # --- INTERFAZ DEL TEST ---
         idx = st.session_state.indice_pregunta
