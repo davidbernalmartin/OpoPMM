@@ -694,49 +694,32 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         # Llamada a la función refactorizada
         f_enun, f_exp, f_a, f_b, f_c, f_corr, f_tema_sel = renderizar_formulario_edicion(p, nombres_temas, nombre_a_id)
 
-       # --- Función auxiliar para botones con color ---
-        def boton_color(texto, color_hex, key):
-            st.markdown(f"""
-                <style>
-                    div[data-testid="stButton"] > button[key="{key}"] {{
-                        background-color: {color_hex} !important;
-                        color: white !important;
-                        border: none !important;
-                        border-radius: 5px;
-                    }}
-                    div[data-testid="stButton"] > button[key="{key}"]:hover {{
-                        background-color: {color_hex};
-                        opacity: 0.8;
-                        color: white !important;
-                    }}
-                </style>
-            """, unsafe_allow_html=True)
-            return st.button(texto, key=key, use_container_width=True)
-        
         # --- 5. BOTONERA INFERIOR ---
         st.write("###")
         b1, b2, b3, b4, b5 = st.columns(5)
         
         with b1:
-            if boton_color("➕ NUEVA PREGUNTA", "#e67e22", f"btn_new_{p['id']}"):
+            if st.button("➕ NUEVA", use_container_width=True, key="btn_nueva"):
                 st.session_state.p_seleccionada = None
                 st.rerun()
         
         with b2:
-            if boton_color("📄 PDF A CSV", "#9b59b6", f"btn_pdf_{p['id']}"):
-                pass # Tu lógica aquí
+            st.button("📄 PDF A CSV", use_container_width=True, key="btn_pdf")
         
         with b3:
-            if boton_color("📤 IMPORTAR CSV", "#3498db", f"btn_imp_{p['id']}"):
-                pass # Tu lógica aquí
+            st.button("📤 IMPORTAR", use_container_width=True, key="btn_import")
         
         with b4:
-            # Color verde esmeralda para Guardar
-            if boton_color("💾 GUARDAR CAMBIOS", "#2ecc71", f"btn_save_{p['id']}"):
+            # Este resaltará sobre los demás por ser el principal
+            if st.button("💾 GUARDAR", type="primary", use_container_width=True, key="btn_save"):
                 upd = {
-                    "enunciado": f_enun, "explicacion": f_exp, 
-                    "opcion_a": f_a, "opcion_b": f_b, "opcion_c": f_c, 
-                    "correcta": f_corr, "tema_id": nombre_a_id[f_tema_sel]
+                    "enunciado": f_enun, 
+                    "explicacion": f_exp, 
+                    "opcion_a": f_a,
+                    "opcion_b": f_b, 
+                    "opcion_c": f_c, 
+                    "correcta": f_corr,
+                    "tema_id": nombre_a_id[f_tema_sel]
                 }
                 supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
                 st.session_state.p_seleccionada.update(upd)
@@ -745,7 +728,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.rerun()
         
         with b5:
-            if boton_color("🗑️ ELIMINAR", "#e74c3c", f"btn_del_{p['id']}"):
+            if st.button("🗑️ ELIMINAR", use_container_width=True, key="btn_del"):
                 supabase.table("preguntas").delete().eq("id", p['id']).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
