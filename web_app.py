@@ -358,11 +358,11 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
         
         try:
             # Consultamos la tabla temas para listar los temas
-            res = supabase.table("temas").select("id, name, orden").order("orden").execute()
+            res = supabase.table("temas").select("id, nombre").order("id").neq("id=1").execute()
             temas_db = res.data
             
             # Filtramos el ID 1 (Inglés) para que no salga en "Por Temas"
-            opciones = {f"Tema {t['orden']}: {t['name']}": t['id'] for t in temas_db if t['id'] != 1}
+            opciones = {f"Tema {t['name']}": t['id'] for t in temas_db if t['id'] != 1}
             
             seleccion = st.multiselect("Selecciona una o varias leyes:", options=list(opciones.keys()))
             
