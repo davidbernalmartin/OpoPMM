@@ -421,9 +421,15 @@ elif st.session_state.sub_pantalla == "test_ingles":
                 st.session_state.respuestas_usuario = {}
                 st.session_state.examen_finalizado = False
                 st.rerun()
+        except Exception as e:
+            st.error(f"Error al conectar con la base de datos: {e}")
+            if st.button("Volver al menú"):
+                limpiar_estado_examen()
+                st.rerun()
     
-    # Llamamos al motor común
-    mostrar_examen("EXAMEN DE INGLÉS", st.session_state.preguntas_examen)
+    # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
+    if st.session_state.preguntas_examen:
+        mostrar_examen("EXAMEN DE INGLÉS", st.session_state.preguntas_examen)
 
 # --- MODO 2: POR TEMAS ---
 elif st.session_state.sub_pantalla == "test_por_temas":
@@ -442,8 +448,15 @@ elif st.session_state.sub_pantalla == "test_por_temas":
                 st.session_state.respuestas_usuario = {}
                 st.session_state.examen_finalizado = False
                 st.rerun()
+        except Exception as e:
+            st.error(f"Error al conectar con la base de datos: {e}")
+            if st.button("Volver al menú"):
+                limpiar_estado_examen()
+                st.rerun()
     
-    mostrar_examen("EXAMEN POR TEMAS", st.session_state.preguntas_examen)
+    # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
+    if st.session_state.preguntas_examen:
+        mostrar_examen("EXAMEN POR TEMAS", st.session_state.preguntas_examen)
 
 # --- MODO 3: SIMULACRO ---
 elif st.session_state.sub_pantalla == "test_simulacro":
@@ -462,9 +475,15 @@ elif st.session_state.sub_pantalla == "test_simulacro":
                 st.session_state.respuestas_usuario = {}
                 st.session_state.examen_finalizado = False
                 st.rerun()
-
-    # Llamamos al motor con las preguntas ya limitadas
-    mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
+        except Exception as e:
+            st.error(f"Error al conectar con la base de datos: {e}")
+            if st.button("Volver al menú"):
+                limpiar_estado_examen()
+                st.rerun()
+    
+    # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
+    if st.session_state.preguntas_examen:
+        mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
                         
 # --- PANTALLA: PANEL ADMIN ---
 elif st.session_state.sub_pantalla == "panel_admin":
