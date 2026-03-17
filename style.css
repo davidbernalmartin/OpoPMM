@@ -15,56 +15,6 @@
     text-transform: uppercase;
 }
 
-/* Limpiamos estilos por defecto y aplicamos colores por Key */
-div[data-testid="stButton"] button[kind="secondary"] {
-    border: none !important;
-}
-
-/* Aplicamos los colores usando el atributo aria-label (que coincide con el texto del botón) */
-div[data-testid="stButton"] button[aria-label*="NUEVA PREGUNTA"] {
-    background-color: #e67e22 !important;
-    color: white !important;
-}
-
-div[data-testid="stButton"] button[aria-label*="PDF A CSV"] {
-    background-color: #9b59b6 !important;
-    color: white !important;
-}
-
-div[data-testid="stButton"] button[aria-label*="IMPORTAR CSV"] {
-    background-color: #3498db !important;
-    color: white !important;
-}
-
-div[data-testid="stButton"] button[aria-label*="GUARDAR CAMBIOS"] {
-    background-color: #58bb73 !important;
-    color: white !important;
-}
-
-div[data-testid="stButton"] button[aria-label*="ELIMINAR"] {
-    background-color: #e74c3c !important;
-    color: white !important;
-}
-
-/* Efecto al pasar el ratón */
-div[data-testid="stButton"] button:hover {
-    filter: brightness(110%);
-    border: none !important;
-}
-
-/* Input y textareas oscuros */
-div[data-baseweb="textarea"] textarea, div[data-baseweb="input"] input {
-    background-color: #0f172a !important;
-    border: 1px solid #334155 !important;
-    color: white !important;
-}
-
-/* Botones con colores de la imagen */
-.stButton > button {
-    border-radius: 5px !important;
-    font-weight: bold !important;
-}
-
 .texto-explicacion-html {
     font-size: 1.05rem;
     line-height: 1.6;
