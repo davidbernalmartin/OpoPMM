@@ -22,14 +22,6 @@ def mostrar_examen(titulo, lista_preguntas):
         es_correcta = resp_usuario == p['correcta']
 
         st.progress((idx_rev + 1) / len(lista_preguntas), text=f"Revisando Pregunta {idx_rev + 1} de {len(lista_preguntas)}")
-        
-        # Badge de estado de la pregunta
-        if resp_usuario is None:
-            st.warning("⚠️ Esta pregunta se dejó EN BLANCO")
-        elif es_correcta:
-            st.success("✅ ¡Respuesta CORRECTA!")
-        else:
-            st.error(f"❌ Respuesta INCORRECTA (Marcaste la {resp_usuario})")
 
         st.markdown(f"#### {p['enunciado']}")
 
@@ -47,25 +39,24 @@ def mostrar_examen(titulo, lista_preguntas):
                 # Opción neutra
                 st.write(f"{letra}) {texto}")
 
-        # --- SECCIÓN DE EXPLICACIÓN (Modificada para HTML) ---
         st.write("---")
-        # Un contenedor con un estilo sutil para enmarcar la explicación
-        st.markdown(
-            """
-            <div style="background-color: rgba(0, 150, 255, 0.1); 
-                        padding: 20px; 
-                        border-radius: 10px; 
-                        border-left: 5px solid #0891B2;">
-                <p style="margin-top:0; font-weight: bold; color: #0891B2; font-size: 1.1rem;">
-                    💡 EXPLICACIÓN DETALLADA
-                </p>
+        explicacion_html = p.get('explicacion', '<p>No hay explicación detallada para esta pregunta.</p>')
+        explicacion_completa = f"""
+        <div style="background-color: rgba(0, 150, 255, 0.1); 
+                    padding: 20px; 
+                    border-radius: 10px; 
+                    border-left: 5px solid #0891B2;">
+            <p style="margin-top:0; margin-bottom: 10px; font-weight: bold; color: #0891B2; font-size: 1.1rem;">
+                💡 EXPLICACIÓN DETALLADA
+            </p>
+            <div style="font-size: 1rem; line-height: 1.6; color: #e0e0e0; margin-top: 15px;">
+                {explicacion_html}
             </div>
-            """, 
-            unsafe_allow_html=True
-        )
+        </div>
+        """
         
-        # Aquí es donde ocurre la magia del HTML
-        explicacion_html = p.get('explicacion', 'No hay explicación disponible.')
+        # 3. Llamamos a st.markdown UNA SOLA VEZ para que todo se procese junto
+        st.markdown(explicacion_completa, unsafe_allow_html=True)
         
         # Usamos un contenedor para que el texto no pegue con los bordes
         with st.container():
