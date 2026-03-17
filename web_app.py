@@ -607,32 +607,29 @@ elif st.session_state.sub_pantalla == "test_simulacro":
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN</div>', unsafe_allow_html=True)
 
-    # 1. CARGAMOS TEMAS (Diccionario para mapear ID -> Nombre y viceversa)
+    # 1. CARGAMOS TEMAS
     res_temas = supabase.table("temas").select("id, nombre").execute()
     temas_db = res_temas.data
     id_a_nombre = {t['id']: t['nombre'] for t in temas_db}
     nombre_a_id = {t['nombre']: t['id'] for t in temas_db}
+    nombres_temas = sorted(list(nombre_a_id.keys()))
 
     # 2. CARGAMOS PREGUNTAS
     res_p = supabase.table("preguntas").select("*").order("id", desc=True).execute()
     
     if res_p.data:
-        # Convertimos a DataFrame para manipularlo fácil
         df = pd.DataFrame(res_p.data)
+        # Mapeamos el nombre para la visualización
+        df['tema_nombre'] = df['tema_id'].map(id_a_nombre).fillna("Sin Tema")
         
-        # CREAMOS LA COLUMNA MÁGICA: Mapeamos el tema_id al nombre real
-        df['tema_nombre'] = df['tema_id'].map(id_a_nombre)
-        
-        # --- TABLA INTERACTIVA ---
         st.write("### 📋 Banco de Preguntas")
         
-        # Configuramos la visualización
         event = st.dataframe(
             df,
-            column_order=("id", "enunciado", "tema_nombre"), # Usamos la nueva columna
+            column_order=("id", "enunciado", "tema_nombre"),
             column_config={
-                "id": st.column_config.NumberColumn("ID", width=10),
-                "enunciado": st.column_config.TextColumn("Enunciado", width=800),
+                "id": st.column_config.Column("ID", width=40), # Usamos Column genérica para forzar ancho
+                "enunciado": st.column_config.TextColumn("Enunciado", width=800), # Muy ancho para empujar al ID
                 "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
             },
             hide_index=True,
@@ -644,63 +641,76 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         # 3. LÓGICA DE SELECCIÓN
         seleccion = event.selection.rows
         if seleccion:
-            # Extraemos la fila seleccionada del dataframe original
+            # Importante: Usamos iloc para obtener los datos limpios
             st.session_state.p_seleccionada = df.iloc[seleccion[0]].to_dict()
     
-    # --- FORMULARIO DE EDICIÓN (Igual que antes pero usando st.session_state.p_seleccionada) ---
+    # 4. FORMULARIO DE EDICIÓN
     p = st.session_state.get("p_seleccionada", None)
     
     st.divider()
     if p:
+        # Limpieza de datos: convertir NaNs a strings vacíos para evitar errores en text_area
+        for key in p:
+            if pd.isna(p[key]): p[key] = ""
+
         with st.container():
             col1, col2 = st.columns(2)
             with col1:
                 st.caption("ENUNCIADO DE LA PREGUNTA:")
-                f_enun = st.text_area("##enun", value=p['enunciado'], height=150, label_visibility="collapsed")
+                f_enun = st.text_area("##enun", value=str(p['enunciado']), height=150, label_visibility="collapsed")
             with col2:
                 st.caption("EXPLICACIÓN / BASE LEGAL:")
-                f_exp = st.text_area("##exp", value=p.get('explicacion', ''), height=150, label_visibility="collapsed")
+                f_exp = st.text_area("##exp", value=str(p.get('explicacion', '')), height=150, label_visibility="collapsed")
 
             col3, col4 = st.columns(2)
             with col3:
                 st.caption("OPCIONES DE RESPUESTA:")
-                f_a = st.text_input("A", value=p['opcion_a'])
-                f_b = st.text_input("B", value=p['opcion_b'])
-                f_c = st.text_input("C", value=p['opcion_c'])
+                f_a = st.text_input("A", value=str(p['opcion_a']))
+                f_b = st.text_input("B", value=str(p['opcion_b']))
+                f_c = st.text_input("C", value=str(p['opcion_c']))
             with col4:
                 st.caption("CONFIGURACIÓN:")
                 f_corr = st.selectbox("Correcta", ["A", "B", "C"], 
-                                     index=["A", "B", "C"].index(p['correcta']))
+                                     index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0)
                 
-                # Selector de tema (usando nombres para que sea humano)
-                nombres_temas = sorted(list(nombre_a_id.keys()))
-                idx_tema = nombres_temas.index(p['tema_nombre']) if p['tema_nombre'] in nombres_temas else 0
+                # Búsqueda segura del índice del tema
+                tema_actual = p.get('tema_nombre', '')
+                try:
+                    idx_tema = nombres_temas.index(tema_actual)
+                except ValueError:
+                    idx_tema = 0
+                
                 f_tema_sel = st.selectbox("Tema", nombres_temas, index=idx_tema)
 
-    # --- BOTONERA ---
-    st.write("###")
-    b1, b2, b3, b4, b5 = st.columns(5)
-    
-    with b1:
-        if st.button("➕ NUEVA", use_container_width=True):
-            st.session_state.p_seleccionada = None
-            st.rerun()
-    
-    with b4:
-        if st.button("💾 GUARDAR", type="primary", use_container_width=True):
-            if p:
+        # 5. BOTONERA
+        st.write("###")
+        b1, b2, b3, b4, b5 = st.columns(5)
+        
+        with b1:
+            if st.button("➕ NUEVA", use_container_width=True):
+                st.session_state.p_seleccionada = None
+                st.rerun()
+        
+        with b4:
+            if st.button("💾 GUARDAR", type="primary", use_container_width=True):
                 upd = {
-                    "enunciado": f_enun, "explicacion": f_exp, "opcion_a": f_a,
-                    "opcion_b": f_b, "opcion_c": f_c, "correcta": f_corr,
-                    "tema_id": nombres_a_id[f_tema]
+                    "enunciado": f_enun, 
+                    "explicacion": f_exp, 
+                    "opcion_a": f_a,
+                    "opcion_b": f_b, 
+                    "opcion_c": f_c, 
+                    "correcta": f_corr,
+                    "tema_id": nombre_a_id[f_tema_sel] # Convertimos el nombre seleccionado de nuevo a ID
                 }
                 supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
-                st.success("¡Actualizado!")
+                st.success("¡Pregunta actualizada!")
+                # Actualizamos el objeto en sesión para que los cambios se reflejen sin perder la selección
+                st.session_state.p_seleccionada.update(upd)
+                st.session_state.p_seleccionada['tema_nombre'] = f_tema_sel
                 st.rerun()
 
-    with b5:
-        if st.button("🗑️ ELIMINAR", use_container_width=True):
-            if p:
+        with b5:
+            if st.button("🗑️ ELIMINAR", use_container_width=True):
                 supabase.table("preguntas").delete().eq("id", p['id']).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
