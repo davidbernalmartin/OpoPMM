@@ -15,32 +15,41 @@
     text-transform: uppercase;
 }
 
-/* Selector de alta prioridad para los botones del Administrador */
-.stElementContainer div.stButton > button[key^="btn_nueva"] {
+/* Limpiamos estilos por defecto y aplicamos colores por Key */
+div[data-testid="stButton"] button[kind="secondary"] {
+    border: none !important;
+}
+
+/* Aplicamos los colores usando el atributo aria-label (que coincide con el texto del botón) */
+div[data-testid="stButton"] button[aria-label*="NUEVA PREGUNTA"] {
     background-color: #e67e22 !important;
     color: white !important;
 }
-.stElementContainer div.stButton > button[key^="btn_pdf"] {
+
+div[data-testid="stButton"] button[aria-label*="PDF A CSV"] {
     background-color: #9b59b6 !important;
     color: white !important;
 }
-.stElementContainer div.stButton > button[key^="btn_importar"] {
+
+div[data-testid="stButton"] button[aria-label*="IMPORTAR CSV"] {
     background-color: #3498db !important;
     color: white !important;
 }
-.stElementContainer div.stButton > button[key^="btn_guardar"] {
+
+div[data-testid="stButton"] button[aria-label*="GUARDAR CAMBIOS"] {
     background-color: #58bb73 !important;
     color: white !important;
 }
-.stElementContainer div.stButton > button[key^="btn_eliminar"] {
+
+div[data-testid="stButton"] button[aria-label*="ELIMINAR"] {
     background-color: #e74c3c !important;
     color: white !important;
 }
 
-/* Forzar que el texto sea blanco y quitar bordes grises */
-.stElementContainer div.stButton > button {
+/* Efecto al pasar el ratón */
+div[data-testid="stButton"] button:hover {
+    filter: brightness(110%);
     border: none !important;
-    outline: none !important;
 }
 
 /* Input y textareas oscuros */
