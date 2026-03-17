@@ -12,8 +12,7 @@ def limpiar_estado_examen():
     st.session_state.temas_seleccionados = []
 
 def mostrar_examen(titulo, lista_preguntas):
-    st.markdown(f'<p class="titulo-pantalla">{titulo}</p>', unsafe_allow_html=True)
-
+    st.markdown(f'<div class="titulo-pantalla">{titulo}</div>', unsafe_allow_html=True)
     # 1. MODO REVISIÓN INDIVIDUAL (Pantalla Completa)
     if st.session_state.get("ver_revision", False):
         idx_rev = st.session_state.get("indice_revision", 0)
@@ -293,7 +292,7 @@ if st.session_state.user:
 
 # --- PANTALLA: INICIO (PÚBLICA) ---
 if st.session_state.sub_pantalla == "inicio":
-    st.markdown('<p class="titulo-pantalla">OpoPMM</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">OpoPMM</div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.write("---")
@@ -303,7 +302,7 @@ if st.session_state.sub_pantalla == "inicio":
 
 # --- PANTALLA: LOGIN / REGISTRO ---
 elif st.session_state.sub_pantalla == "login":
-    st.markdown('<p class="titulo-pantalla">ACCESO</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
     tabs = st.tabs(["Entrar", "Registrarse"])
     
     with tabs[0]:
@@ -334,7 +333,7 @@ elif st.session_state.sub_pantalla == "login":
 
 # --- PANTALLA: MENÚ PRINCIPAL (RESUMEN) ---
 elif st.session_state.sub_pantalla == "menu_principal":
-    st.markdown('<p class="titulo-pantalla">CENTRO DE CONTROL</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">CENTRO DE CONTROL</div>', unsafe_allow_html=True)
     st.info("Bienvenido. Utiliza el menú de la izquierda para navegar por la aplicación.")
     
     # Dashboard rápido
@@ -345,12 +344,12 @@ elif st.session_state.sub_pantalla == "menu_principal":
 
 # --- PANTALLA: ESTADÍSTICAS ---
 elif st.session_state.sub_pantalla == "stats":
-    st.markdown('<p class="titulo-pantalla">PROGRESO</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">PROGRESO</div>', unsafe_allow_html=True)
     st.write("Aquí verás tus gráficos de evolución por temas.")
 
 # --- PANTALLA: PERFIL ---
 elif st.session_state.sub_pantalla == "perfil":
-    st.markdown('<p class="titulo-pantalla">MI PERFIL</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">MI PERFIL</div>', unsafe_allow_html=True)
     
     # 1. Recuperar datos actuales del perfil
     res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).single().execute()
@@ -394,7 +393,7 @@ elif st.session_state.sub_pantalla == "perfil":
 
 # --- PANTALLA: BIBLIOTECA ---
 elif st.session_state.sub_pantalla == "biblioteca":
-    st.markdown('<p class="titulo-pantalla" style="font-size: 30px;">BIBLIOTECA</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">BIBLIOTECA</div>', unsafe_allow_html=True)
     try:
         res_b = supabase.table("biblioteca").select("*").order("orden").execute()
         leyes = res_b.data
@@ -430,7 +429,7 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
     
     # --- PASO 1: LOS 3 BOTONES PRINCIPALES ---
     if st.session_state.paso_configuracion == "botones":
-        st.markdown('<p class="titulo-pantalla">MODO DE EXAMEN</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">MODO EXAMEN</div>', unsafe_allow_html=True)
         st.markdown('<div class="contenedor-test">', unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3)
         
@@ -453,8 +452,7 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
 
     # --- PASO 2: SELECCIÓN DE TEMAS (Solo para "Por Temas") ---
     elif st.session_state.paso_configuracion == "seleccion_temas":
-        st.markdown('<p class="titulo-pantalla">SELECCIONA LOS TEMAS</p>', unsafe_allow_html=True)
-        
+        st.markdown(f'<div class="titulo-pantalla">SELECCION DE TEMAS</div>', unsafe_allow_html=True)
         try:
             # Consultamos la tabla temas para listar los temas
             res = supabase.table("temas").select("id, nombre").order("id").neq("id",1).execute()
@@ -482,7 +480,7 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
 
     # --- PASO 3: SELECCIÓN DE CANTIDAD (Para todos) ---
     elif st.session_state.paso_configuracion == "seleccion_cantidad":
-        st.markdown(f'<p class="titulo-pantalla">NÚMERO DE PREGUNTAS</p>', unsafe_allow_html=True)
+        st.markdown(f'<div class="titulo-pantalla">NUMERO DE PREGUNTAS</div>', unsafe_allow_html=True)
         st.write(f"Modo: **{st.session_state.modo_seleccionado.upper()}**")
         
         cantidad = st.select_slider(
@@ -590,5 +588,5 @@ elif st.session_state.sub_pantalla == "test_simulacro":
                         
 # --- PANTALLA: PANEL ADMIN ---
 elif st.session_state.sub_pantalla == "panel_admin":
-    st.markdown('<p class="titulo-pantalla">GESTIÓN PREGUNTAS</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="titulo-pantalla">GESTION PREGUNTAS</div>', unsafe_allow_html=True)
     st.write("Panel exclusivo para añadir y editar el banco de preguntas.")
