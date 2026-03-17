@@ -328,7 +328,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
             # Calculamos el índice para el radio button (None si no hay respuesta)
             idx_radio = ["A", "B", "C"].index(respuesta_previa) if respuesta_previa in ["A", "B", "C"] else None
             seleccion = st.radio(
-                "Elige la opción correcta:",
+                "",
                 options=["A", "B", "C"],
                 format_func=lambda x: f"{x}) {opciones_dict[x]}",
                 index=idx_radio,
