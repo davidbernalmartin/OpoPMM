@@ -1,27 +1,35 @@
 /* 1. IMPORTACIÓN DE FUENTES */
 @import url('https://fonts.googleapis.com/css2?family=Ranchers&family=Comic+Neue:wght@400;700&display=swap');
 
-/* 2. CONFIGURACIÓN BASE Y PROTECCIÓN DE ICONOS DE SISTEMA */
-/* Esta regla es CRÍTICA: impide que nuestras fuentes toquen los iconos de Streamlit */
-[data-testid="stSidebarCollapseButton"] svg,
-[data-testid="stHeader"] svg,
-[data-testid="stIconMaterial"],
-.st-emotion-cache-6qob1r,
-.st-emotion-cache-15ec6hl,
-button[kind="header"] {
-    font-family: inherit !important;
+/* 2. SOLUCIÓN NUCLEAR PARA ICONOS Y FLECHAS */
+/* Protegemos cualquier elemento que contenga un SVG o material icon */
+span[data-testid="stIconMaterial"], 
+i, 
+svg, 
+circle, 
+path,
+[class*="st-emotion-cache"] svg,
+[data-testid="stSidebarCollapseButton"] {
+    font-family: sans-serif !important;
 }
 
-/* Forzamos que los botones de colapso y el header usen la fuente del sistema */
-[data-testid="stSidebarCollapseButton"] *, 
-[data-testid="stHeader"] * {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+/* Forzamos que el contenedor del botón de colapso sea transparente y visible */
+[data-testid="stSidebarCollapseButton"] {
+    background-color: transparent !important;
+    color: white !important;
+    z-index: 999999;
 }
 
-.stApp { 
-    background-color: #2c3e50; 
-    color: white; 
-    font-family: 'Comic Neue', cursive !important;
+/* Esta regla asegura que el texto de los botones del sistema NO use Ranchers */
+button div p {
+    font-family: inherit;
+}
+
+/* Solo aplicamos Ranchers a NUESTROS elementos específicos */
+.titulo-pantalla, 
+div.stButton > button div p, 
+h1, h2, h3 {
+    font-family: 'Ranchers', cursive !important;
 }
 
 /* 3. TIPOGRAFÍA GENERAL */
