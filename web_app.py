@@ -357,8 +357,8 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
         st.markdown('<p class="titulo-pantalla">SELECCIONA LOS TEMAS</p>', unsafe_allow_html=True)
         
         try:
-            # Consultamos la tabla biblioteca para listar los temas
-            res = supabase.table("biblioteca").select("id, name, orden").order("orden").execute()
+            # Consultamos la tabla temas para listar los temas
+            res = supabase.table("temas").select("id, name, orden").order("orden").execute()
             temas_db = res.data
             
             # Filtramos el ID 1 (Inglés) para que no salga en "Por Temas"
