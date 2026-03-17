@@ -25,19 +25,33 @@ def mostrar_examen(titulo, lista_preguntas):
 
         st.markdown(f"#### {p['enunciado']}")
 
-        # Opciones con formato visual de corrección
+        # --- SECCIÓN DE OPCIONES (Alineación Corregida) ---
         opciones = [("A", p['opcion_a']), ("B", p['opcion_b']), ("C", p['opcion_c'])]
         for letra, texto in opciones:
-            estilo = "padding:10px; border-radius:10px; margin:5px 0; border-left: 5px solid "
+            base_style = "padding: 12px; border-radius: 10px; margin: 8px 0; border-left: 5px solid "
             if letra == p['correcta']:
-                # Opción correcta (Verde)
-                st.markdown(f'<div style="{estilo} #2ecc71; background-color: rgba(46, 204, 113, 0.1);"><b>{letra}) {texto}</b> (Correcta)</div>', unsafe_allow_html=True)
+                # OPCIÓN CORRECTA: Fondo verde y borde verde
+                st.markdown(f"""
+                    <div style="{base_style} #2ecc71; background-color: rgba(46, 204, 113, 0.15);">
+                        <b style="color: white;">{letra}) {texto}</b> <span style="color: #2ecc71; margin-left: 10px;">(Correcta)</span>
+                    </div>
+                """, unsafe_allow_html=True)
+                
             elif letra == resp_usuario and not es_correcta:
-                # Opción fallada por el usuario (Rojo)
-                st.markdown(f'<div style="{estilo} #e74c3c; background-color: rgba(231, 76, 60, 0.1);"><em>{letra}) {texto}</em> (Tu elección)</div>', unsafe_allow_html=True)
+                # OPCIÓN FALLADA: Fondo rojo y borde rojo
+                st.markdown(f"""
+                    <div style="{base_style} #e74c3c; background-color: rgba(231, 76, 60, 0.15);">
+                        <span style="color: white;">{letra}) {texto}</span> <span style="color: #e74c3c; margin-left: 10px;">(Tu elección)</span>
+                    </div>
+                """, unsafe_allow_html=True)
+                
             else:
-                # Opción neutra
-                st.write(f"{letra}) {texto}")
+                # OPCIÓN NEUTRA: Sin fondo pero con el MISMO margen y borde transparente para alinear
+                st.markdown(f"""
+                    <div style="{base_style} transparent; background-color: transparent;">
+                        <span style="color: #bdc3c7;">{letra}) {texto}</span>
+                    </div>
+                """, unsafe_allow_html=True)
 
         st.write("---")
         explicacion_html = p.get('explicacion', '<p>No hay explicación detallada para esta pregunta.</p>')
