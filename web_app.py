@@ -47,9 +47,30 @@ def mostrar_examen(titulo, lista_preguntas):
                 # Opción neutra
                 st.write(f"{letra}) {texto}")
 
-        # Explicación detallada
-        st.info(f"**💡 EXPLICACIÓN:**\n\n{p.get('explicacion', 'No hay explicación detallada para esta pregunta.')}")
-
+        # --- SECCIÓN DE EXPLICACIÓN (Modificada para HTML) ---
+        st.write("---")
+        # Un contenedor con un estilo sutil para enmarcar la explicación
+        st.markdown(
+            """
+            <div style="background-color: rgba(0, 150, 255, 0.1); 
+                        padding: 20px; 
+                        border-radius: 10px; 
+                        border-left: 5px solid #0891B2;">
+                <p style="margin-top:0; font-weight: bold; color: #0891B2; font-size: 1.1rem;">
+                    💡 EXPLICACIÓN DETALLADA
+                </p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+        
+        # Aquí es donde ocurre la magia del HTML
+        explicacion_html = p.get('explicacion', 'No hay explicación disponible.')
+        
+        # Usamos un contenedor para que el texto no pegue con los bordes
+        with st.container():
+            st.write("") # Espacio
+            st.markdown(f'<div class="texto-explicacion-html">{explicacion_html}</div>', unsafe_allow_html=True)
         st.write("---")
         c1, c2, c3 = st.columns([1, 2, 1])
         with c1:
