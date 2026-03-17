@@ -632,7 +632,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             column_order=("id", "enunciado", "tema_nombre"), # Usamos la nueva columna
             column_config={
                 "id": st.column_config.NumberColumn("ID", width=10),
-                "enunciado": st.column_config.TextColumn("Enunciado", width="800"),
+                "enunciado": st.column_config.TextColumn("Enunciado", width=800),
                 "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
             },
             hide_index=True,
