@@ -193,32 +193,36 @@ elif st.session_state.sub_pantalla == "perfil":
 
 # --- PANTALLA: BIBLIOTECA ---
 elif st.session_state.sub_pantalla == "biblioteca":
-    st.markdown('<p class="titulo-pantalla">BIBLIOTECA DE LEYES</p>', unsafe_allow_html=True)
-    st.write("Accede a la normativa oficial y temario actualizado para tu preparación.")
-    st.write("---")
+    st.markdown('<p class="titulo-pantalla" style="font-size: 30px;">BIBLIOTECA</p>', unsafe_allow_html=True)
     try:
-        # Consultamos la tabla 'temas' según tu archivo CSV
-        # Ordenamos por la columna 'orden' para que sigan tu esquema
-        res_b = supabase.table("biblioteca").select("id, name, url_pdf").order("orden").execute()
+        res_b = supabase.table("biblioteca").select("*").order("orden").execute()
         leyes = res_b.data
         if leyes:
+            st.write("---")
+            # Cabecera de la lista (opcional)
+            h1, h2 = st.columns([4, 1])
+            h1.caption("NOMBRE DEL TEMA / LEY")
+            h2.caption("ACCIÓN")
             for ley in leyes:
-                # Solo mostramos las que tienen URL de PDF
-                if ley['url_pdf']:
+                nombre = ley.get('name')
+                url = ley.get('url_pdf')
+                orden = ley.get('orden') or ley.get('id')
+                if nombre and url:
+                    # Contenedor de fila con columnas muy ajustadas
                     with st.container():
-                        col_info, col_btn = st.columns([3, 1])
-                        with col_info:
-                            # Usamos 'name' que es como viene en tu tabla
-                            st.markdown(f"#### 📄 {ley['name']}")
-                            st.caption(f"Referencia Tema #{ley['id']}")
+                        col_txt, col_btn = st.columns([4, 1])
+                        with col_txt:
+                            # Texto principal y secundario en la misma zona
+                            st.markdown(f'<p class="texto-ley">#{orden} - {nombre}</p>', unsafe_allow_html=True)
                         with col_btn:
-                            # Botón de descarga directa
-                            st.link_button("📥 DESCARGAR", ley['url_pdf'], use_container_width=True)
-                        st.write("") # Espacio fino entre elementos
+                            # Botón pequeño (Streamlit usa el estilo del CSS arriba)
+                            st.link_button("📥 PDF", url, use_container_width=True)
+                        # Separador casi invisible
+                        st.markdown('<div style="margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05);"></div>', unsafe_allow_html=True)
         else:
-            st.info("No se han encontrado documentos en la base de datos.")
+            st.info("Biblioteca vacía.")        
     except Exception as e:
-        st.error(f"Hubo un problema al cargar los temas: {e}")
+        st.error(f"Error: {e}")
 
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
