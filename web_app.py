@@ -30,6 +30,14 @@ if "temas_seleccionados" not in st.session_state:
     st.session_state.temas_seleccionados = []
 if "examen_iniciado" not in st.session_state:
     st.session_state.examen_iniciado = "NO"
+if "preguntas_simulacro" not in st.session_state:
+    st.session_state.preguntas_simulacro = []
+if "indice_pregunta" not in st.session_state:
+    st.session_state.indice_pregunta = 0
+if "respuestas_usuario" not in st.session_state:
+    st.session_state.respuestas_usuario = {} # Guardaremos {indice: respuesta}
+if "examen_finalizado" not in st.session_state:
+    st.session_state.examen_finalizado = False
 
 def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
@@ -256,7 +264,94 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
     if st.button("⬅️ Volver al Centro de Control"):
         cambiar_vista("menu_principal")
         st.rerun()
+        
+elif st.session_state.sub_pantalla == "test_simulacro":
+    st.markdown('<p class="titulo-pantalla">SIMULACRO DE EXAMEN</p>', unsafe_allow_html=True)
 
+    # --- LÓGICA DE CARGA INICIAL ---
+    if not st.session_state.preguntas_simulacro:
+        try:
+            # Traemos, por ejemplo, 20 preguntas aleatorias de la tabla preguntas
+            res = supabase.table("preguntas").select("*").execute()
+            if res.data:
+                todas = res.data
+                random.shuffle(todas)
+                st.session_state.preguntas_simulacro = todas[:20] # Ajusta el número aquí
+                st.session_state.indice_pregunta = 0
+                st.session_state.respuestas_usuario = {}
+                st.session_state.examen_finalizado = False
+                st.rerun()
+        except Exception as e:
+            st.error(f"Error al cargar preguntas: {e}")
+            if st.button("Volver"): cambiar_vista("seleccion_tema"); st.rerun()
+
+    # --- PANTALLA DE RESULTADOS FINALES ---
+    if st.session_state.examen_finalizado:
+        st.success("✅ Examen completado")
+        # Aquí calcularemos la nota
+        aciertos = 0
+        preguntas = st.session_state.preguntas_simulacro
+        for i, p in enumerate(preguntas):
+            if st.session_state.respuestas_usuario.get(i) == p['correcta']:
+                aciertos += 1
+        
+        st.metric("TU PUNTUACIÓN", f"{aciertos} / {len(preguntas)}")
+        
+        if st.button("VOLVER AL MENÚ"):
+            st.session_state.preguntas_simulacro = []
+            cambiar_vista("seleccion_tema")
+            st.rerun()
+        return # Salimos para no pintar el resto
+
+    # --- INTERFAZ DEL TEST ---
+    preguntas = st.session_state.preguntas_simulacro
+    idx = st.session_state.indice_pregunta
+    p_actual = preguntas[idx]
+
+    # Barra de progreso
+    progreso = (idx + 1) / len(preguntas)
+    st.progress(progreso, text=f"Pregunta {idx + 1} de {len(preguntas)}")
+
+    # Enunciado
+    st.markdown(f"### {p_actual['enunciado']}")
+    
+    # Opciones
+    opciones = {
+        "A": p_actual['opcion_a'],
+        "B": p_actual['opcion_b'],
+        "C": p_actual['opcion_c']
+    }
+    
+    # Usamos un radio button para la selección
+    # El index=None hace que no haya ninguna marcada por defecto
+    seleccion = st.radio(
+        "Selecciona tu respuesta:",
+        options=["A", "B", "C"],
+        format_func=lambda x: f"{x}) {opciones[x]}",
+        key=f"preg_{idx}"
+    )
+
+    st.write("---")
+    col_prev, col_next = st.columns(2)
+
+    with col_prev:
+        if idx > 0:
+            if st.button("⬅️ Anterior", use_container_width=True):
+                st.session_state.indice_pregunta -= 1
+                st.rerun()
+
+    with col_next:
+        # Guardamos la respuesta antes de pasar
+        st.session_state.respuestas_usuario[idx] = seleccion
+        
+        if idx < len(preguntas) - 1:
+            if st.button("Siguiente ➡️", use_container_width=True):
+                st.session_state.indice_pregunta += 1
+                st.rerun()
+        else:
+            if st.button("🏁 FINALIZAR EXAMEN", type="primary", use_container_width=True):
+                st.session_state.examen_finalizado = True
+                st.rerun()
 # --- PANTALLA: PANEL ADMIN ---
 elif st.session_state.sub_pantalla == "panel_admin":
     st.markdown('<p class="titulo-pantalla">GESTIÓN PREGUNTAS</p>', unsafe_allow_html=True)
