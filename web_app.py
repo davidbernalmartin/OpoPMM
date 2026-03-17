@@ -310,14 +310,31 @@ elif st.session_state.sub_pantalla == "login":
         pw = st.text_input("Contraseña", type="password", key="login_pw")
         if st.button("INICIAR SESIÓN", use_container_width=True, type="primary"):
             try:
+                # 1. Intentamos el login
                 res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
-                st.session_state.user = res.user
-                # Consultar rol
-                p = supabase.table("profiles").select("role").eq("id", res.user.id).single().execute()
-                st.session_state.user_role = p.data['role'] if p.data else "regular"
-                cambiar_vista("menu_principal")
-                st.rerun()
-            except:
+                
+                # Verificamos que tenemos usuario antes de seguir
+                if res.user:
+                    st.session_state.user = res.user
+                    
+                    # 2. Consultar rol - Usamos el ID directamente del objeto 'res.user'
+                    # Añadimos un pequeño manejo de error específico para el perfil
+                    try:
+                        p = supabase.table("profiles").select("role").eq("id", res.user.id).single().execute()
+                        st.session_state.user_role = p.data['role'] if p.data else "regular"
+                    except Exception as e:
+                        # Si falla el perfil pero el login es ok, asignamos rol por defecto
+                        st.session_state.user_role = "regular"
+                    
+                    # 3. CAMBIO DE VISTA Y REFRESCO
+                    cambiar_vista("menu_principal")
+                    st.rerun()
+                else:
+                    st.error("No se pudo recuperar la información del usuario.")
+                    
+            except Exception as e:
+                # Capturamos el error real para no confundir al usuario
+                # Si el error es de Supabase por credenciales, saldrá aquí
                 st.error("Error de acceso: Revisa tus credenciales.")
 
     with tabs[1]:
