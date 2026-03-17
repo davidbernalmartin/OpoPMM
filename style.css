@@ -40,6 +40,39 @@
     border-color: #3498db !important;
 }
 
+/* Estilo para la lista compacta de la biblioteca */
+.fila-biblioteca {
+    padding: 8px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.2s;
+}
+
+.fila-biblioteca:hover {
+    background-color: rgba(255,255,255,0.02);
+}
+
+/* Texto más pequeño para los temas */
+.texto-ley {
+    font-size: 15px !important;
+    font-weight: 500;
+    margin: 0 !important;
+}
+
+.subtexto-ley {
+    font-size: 12px !important;
+    opacity: 0.6;
+    margin: 0 !important;
+}
+
+/* Botón de descarga mini */
+[data-testid="stSidebar"] div.stButton > button, 
+.boton-descarga-mini button {
+    height: 32px !important;
+    font-size: 13px !important;
+    padding: 0px 15px !important;
+    min-height: 32px !important;
+}
+
 /* 5. BOTONES PRINCIPALES Y TARJETAS */
 div.stButton > button {
     border-radius: 10px !important; 
