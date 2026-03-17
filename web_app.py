@@ -47,7 +47,7 @@ def mostrar_examen(titulo, lista_preguntas):
                     border-radius: 10px; 
                     border-left: 5px solid #0891B2;">
             <p style="margin-top:0; margin-bottom: 10px; font-weight: bold; color: #0891B2; font-size: 1.1rem;">
-                💡 EXPLICACIÓN DETALLADA
+                💡 EXPLICACIÓN
             </p>
             <div style="font-size: 1rem; line-height: 1.6; color: #e0e0e0; margin-top: 15px;">
                 {explicacion_html}
