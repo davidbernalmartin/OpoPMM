@@ -15,28 +15,32 @@
     text-transform: uppercase;
 }
 
-/* Colores específicos para la botonera del Administrador */
-div.stButton > button[key^="btn_nueva"] {
-    background-color: #e67e22 !important; color: white !important; border: none !important;
+/* Selector de alta prioridad para los botones del Administrador */
+.stElementContainer div.stButton > button[key^="btn_nueva"] {
+    background-color: #e67e22 !important;
+    color: white !important;
 }
-div.stButton > button[key^="btn_pdf"] {
-    background-color: #9b59b6 !important; color: white !important; border: none !important;
+.stElementContainer div.stButton > button[key^="btn_pdf"] {
+    background-color: #9b59b6 !important;
+    color: white !important;
 }
-div.stButton > button[key^="btn_importar"] {
-    background-color: #3498db !important; color: white !important; border: none !important;
+.stElementContainer div.stButton > button[key^="btn_importar"] {
+    background-color: #3498db !important;
+    color: white !important;
 }
-div.stButton > button[key^="btn_guardar"] {
-    background-color: #58bb73 !important; color: white !important; border: none !important;
+.stElementContainer div.stButton > button[key^="btn_guardar"] {
+    background-color: #58bb73 !important;
+    color: white !important;
 }
-div.stButton > button[key^="btn_eliminar"] {
-    background-color: #e74c3c !important; color: white !important; border: none !important;
+.stElementContainer div.stButton > button[key^="btn_eliminar"] {
+    background-color: #e74c3c !important;
+    color: white !important;
 }
 
-/* Efecto hover para que brillen al pasar el ratón */
-div.stButton > button:hover {
-    opacity: 0.9 !important;
-    transform: scale(1.02);
-    transition: 0.2s;
+/* Forzar que el texto sea blanco y quitar bordes grises */
+.stElementContainer div.stButton > button {
+    border: none !important;
+    outline: none !important;
 }
 
 /* Input y textareas oscuros */
