@@ -294,9 +294,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
         for i, p in enumerate(preguntas):
             if st.session_state.respuestas_usuario.get(i) == p['correcta']:
                 aciertos += 1
-        
         st.metric("TU PUNTUACIÓN", f"{aciertos} / {len(preguntas)}")
-        
         if st.button("VOLVER AL MENÚ"):
             st.session_state.preguntas_simulacro = []
             cambiar_vista("seleccion_tema")
