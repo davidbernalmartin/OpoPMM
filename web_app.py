@@ -671,17 +671,17 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.markdown('<p class="label-admin">OPCIONES DE RESPUESTA:</p>', unsafe_allow_html=True)
                 
                 # Alineación A
-                c_labA, c_inpA = st.columns([0.08, 0.92])
+                c_labA, c_inpA = st.columns([0.04, 0.96])
                 c_labA.markdown('<p style="margin-top:10px; font-weight:bold;">A:</p>', unsafe_allow_html=True)
                 f_a = c_inpA.text_input("A", value=str(p['opcion_a']), label_visibility="collapsed", key=f"in_a_{p['id']}")
                 
                 # Alineación B
-                c_labB, c_inpB = st.columns([0.08, 0.92])
+                c_labB, c_inpB = st.columns([0.04, 0.96])
                 c_labB.markdown('<p style="margin-top:10px; font-weight:bold;">B:</p>', unsafe_allow_html=True)
                 f_b = c_inpB.text_input("B", value=str(p['opcion_b']), label_visibility="collapsed", key=f"in_b_{p['id']}")
                 
                 # Alineación C
-                c_labC, c_inpC = st.columns([0.08, 0.92])
+                c_labC, c_inpC = st.columns([0.04, 0.96])
                 c_labC.markdown('<p style="margin-top:10px; font-weight:bold;">C:</p>', unsafe_allow_html=True)
                 f_c = c_inpC.text_input("C", value=str(p['opcion_c']), label_visibility="collapsed", key=f"in_c_{p['id']}")
 
@@ -689,14 +689,14 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.markdown('<p class="label-admin">CONFIGURACIÓN:</p>', unsafe_allow_html=True)
                 
                 # Alineación Correcta
-                c_labCorr, c_inpCorr = st.columns([0.3, 0.7])
+                c_labCorr, c_inpCorr = st.columns([0.15, 0.85])
                 c_labCorr.markdown('<p style="margin-top:10px; font-weight:bold;">Correcta:</p>', unsafe_allow_html=True)
                 f_corr = c_inpCorr.selectbox("Corr", ["A", "B", "C"], 
                                           index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0,
                                           label_visibility="collapsed", key=f"corr_{p['id']}")
                 
                 # Alineación Tema
-                c_labTema, c_inpTema = st.columns([0.3, 0.7])
+                c_labTema, c_inpTema = st.columns([0.15, 0.85])
                 c_labTema.markdown('<p style="margin-top:10px; font-weight:bold;">Tema:</p>', unsafe_allow_html=True)
                 
                 tema_actual = p.get('tema_nombre', '')
