@@ -16,8 +16,11 @@ def mostrar_examen(titulo, lista_preguntas):
         st.metric("PUNTUACIÓN", f"{aciertos} / {len(lista_preguntas)}")
         
         if st.button("FINALIZAR Y VOLVER", use_container_width=True):
+            # Limpieza total para el próximo examen
             st.session_state.sub_pantalla = "seleccion_tema"
-            st.session_state.preguntas_examen = [] # Limpiamos
+            st.session_state.preguntas_examen = []
+            st.session_state.respuestas_usuario = {}
+            st.session_state.indice_pregunta = 0
             st.session_state.examen_finalizado = False
             st.rerun()
     else:
@@ -25,34 +28,55 @@ def mostrar_examen(titulo, lista_preguntas):
         idx = st.session_state.indice_pregunta
         p_actual = lista_preguntas[idx]
 
+        # Barra de progreso
         st.progress((idx + 1) / len(lista_preguntas), text=f"Pregunta {idx + 1} de {len(lista_preguntas)}")
+        
         st.markdown(f"#### {p_actual['enunciado']}")
         
-        opciones = {"A": p_actual['opcion_a'], "B": p_actual['opcion_b'], "C": p_actual['opcion_c']}
-        res_previa = st.session_state.respuestas_usuario.get(idx)
-        idx_radio = ["A", "B", "C"].index(res_previa) if res_previa in ["A", "B", "C"] else None
+        # 1. Recuperamos la respuesta si ya existe en el estado
+        opciones_letras = ["A", "B", "C"]
+        respuesta_guardada = st.session_state.respuestas_usuario.get(idx)
+        
+        # 2. Calculamos el índice: Si hay respuesta, buscamos su posición (0, 1 o 2). Si no, None.
+        indice_a_mostrar = opciones_letras.index(respuesta_guardada) if respuesta_guardada in opciones_letras else None
 
-        seleccion = st.radio("Opciones:", ["A", "B", "C"], 
-                             format_func=lambda x: f"{x}) {opciones[x]}", 
-                             index=idx_radio, key=f"r_{idx}")
+        opciones_texto = {
+            "A": p_actual['opcion_a'], 
+            "B": p_actual['opcion_b'], 
+            "C": p_actual['opcion_c']
+        }
 
+        # El parámetro index=indice_a_mostrar es la clave de la "memoria"
+        seleccion = st.radio(
+            "Selecciona tu respuesta:",
+            options=opciones_letras,
+            format_func=lambda x: f"{x}) {opciones_texto[x]}",
+            index=indice_a_mostrar,
+            key=f"radio_preg_{idx}" # Clave única por pregunta
+        )
+
+        # Guardamos la selección inmediatamente en el estado
         if seleccion:
             st.session_state.respuestas_usuario[idx] = seleccion
 
         st.write("---")
         col1, col2 = st.columns(2)
+        
         with col1:
             if idx > 0:
                 if st.button("⬅️ ANTERIOR", use_container_width=True):
                     st.session_state.indice_pregunta -= 1
                     st.rerun()
+        
         with col2:
             if idx < len(lista_preguntas) - 1:
+                # El botón siguiente es normal
                 if st.button("SIGUIENTE ➡️", use_container_width=True):
                     st.session_state.indice_pregunta += 1
                     st.rerun()
             else:
-                if st.button("🏁 CORREGIR", type="primary", use_container_width=True):
+                # Botón final
+                if st.button("🏁 CORREGIR EXAMEN", type="primary", use_container_width=True):
                     st.session_state.examen_finalizado = True
                     st.rerun()
 
