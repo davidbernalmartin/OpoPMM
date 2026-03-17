@@ -1,133 +1,59 @@
-/* 1. IMPORTACIÓN DE FUENTES */
+/* 1. IMPORTACIÓN (Las dejamos listas pero no las aplicamos globalmente) */
 @import url('https://fonts.googleapis.com/css2?family=Ranchers&family=Comic+Neue:wght@400;700&display=swap');
 
-/* 2. SOLUCIÓN NUCLEAR PARA ICONOS Y FLECHAS */
-/* Protegemos cualquier elemento que contenga un SVG o material icon */
-span[data-testid="stIconMaterial"], 
-i, 
-svg, 
-circle, 
-path,
-[class*="st-emotion-cache"] svg,
-[data-testid="stSidebarCollapseButton"] {
-    font-family: sans-serif !important;
+/* 2. CONFIGURACIÓN BASE (Colores de fondo y texto) */
+.stApp { 
+    background-color: #2c3e50; 
+    color: white; 
 }
 
-/* Forzamos que el contenedor del botón de colapso sea transparente y visible */
-[data-testid="stSidebarCollapseButton"] {
-    background-color: transparent !important;
-    color: white !important;
-    z-index: 999999;
-}
-
-/* Esta regla asegura que el texto de los botones del sistema NO use Ranchers */
-button div p {
-    font-family: inherit;
-}
-
-/* Solo aplicamos Ranchers a NUESTROS elementos específicos */
-.titulo-pantalla, 
-div.stButton > button div p, 
-h1, h2, h3 {
+/* 3. TÍTULOS (Aquí sí aplicamos Ranchers porque son clases nuestras) */
+.titulo-pantalla {
     font-family: 'Ranchers', cursive !important;
-}
-
-/* 3. TIPOGRAFÍA GENERAL */
-p, span, label, [data-testid="stWidgetLabel"] p, .stMarkdown p {
-    font-family: 'Comic Neue', cursive !important;
-    font-size: 18px !important;
-}
-
-/* 4. TÍTULOS IMPACTANTES (Ranchers) */
-h1, h2, h3, .titulo-pantalla {
-    font-family: 'Ranchers', cursive !important;
-    text-align: center; 
+    font-size: 45px; 
+    text-align: center;
     color: white;
-    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0px #1a252f;
     text-transform: uppercase;
 }
 
-.titulo-pantalla {
-    font-size: 45px; 
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 0px #1a252f, 4px 4px 0px rgba(0,0,0,0.2);
-}
-
-/* 5. NAVEGACIÓN LATERAL (SIDEBAR) */
+/* 4. NAVEGACIÓN LATERAL (SIDEBAR) */
 [data-testid="stSidebar"] {
     background-color: #1c2833 !important;
-    border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Botones del Sidebar como lista de navegación */
+/* Estilo de los botones del sidebar (Sin tocar la fuente del sistema) */
 [data-testid="stSidebar"] div.stButton > button {
-    font-family: 'Ranchers', cursive !important;
-    letter-spacing: 1px;
-    height: 55px !important;
-    font-size: 18px !important;
+    height: 50px !important;
     margin-bottom: 8px !important;
     text-align: left !important;
     justify-content: flex-start !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     background-color: transparent !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
-    transition: 0.3s;
+    transition: 0.2s;
 }
 
 [data-testid="stSidebar"] div.stButton > button:hover {
     background-color: rgba(52, 152, 219, 0.15) !important;
     border-color: #3498db !important;
-    color: #3498db !important;
-    transform: translateX(5px);
 }
 
-/* Botón de Salir específico */
-[data-testid="stSidebar"] div.stButton > button[key="logout"] {
-    margin-top: 40px;
-    font-size: 14px !important;
-    height: 40px !important;
-    border-color: #e74c3c !important;
-    color: #e74c3c !important;
-}
-
-/* 6. BOTONES PRINCIPALES (Derecha) */
+/* 5. BOTONES PRINCIPALES Y TARJETAS */
 div.stButton > button {
-    font-family: 'Ranchers', cursive !important;
-    letter-spacing: 1px;
-    border-radius: 12px !important; 
-    background-color: #34495e; 
-    color: white; 
-    border: 1px solid #465d75;
+    border-radius: 10px !important; 
 }
 
-/* Botón "Primary" (Lanzar, Empezar, etc.) */
+/* Botón "Primary" resaltado */
 button[data-testid="baseButton-primary"] {
     background-color: #f1c40f !important;
     color: #000 !important;
-    border: 2px solid #000 !important;
-    box-shadow: 4px 4px 0px #000 !important;
+    font-weight: bold !important;
 }
 
-/* 7. TARJETAS Y MÉTRICAS */
-.metric-card {
-    background-color: #34495e;
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    border: 1px solid #465d75;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-[data-testid="stMetricValue"] { 
-    font-family: 'Ranchers', cursive !important;
-    font-size: 35px !important; 
-    color: #3498db !important; 
-}
-
-/* 8. INPUTS Y SELECTORS */
+/* 6. CORRECCIÓN DE INPUTS */
 .stTextInput input {
-    font-family: 'Comic Neue', cursive !important;
     background-color: #1c2833 !important;
-    border: 1px solid #465d75 !important;
     color: white !important;
 }
