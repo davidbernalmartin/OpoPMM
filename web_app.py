@@ -38,9 +38,18 @@ def cambiar_vista(sub):
 # Solo mostramos el sidebar si el usuario está logueado
 if st.session_state.user:
     with st.sidebar:
+        # Intentamos sacar el nombre del perfil
+        try:
+            res_p = supabase.table("profiles").select("nombre").eq("id", st.session_state.user.id).single().execute()
+            nombre_db = res_p.data.get("nombre")
+        except:
+            nombre_db = None
+
         st.markdown('<p class="titulo-pantalla" style="font-size: 28px; text-align: left;">OpoPMM 🏆</p>', unsafe_allow_html=True)
-        nombre_user = st.session_state.user.email.split('@')[0].capitalize()
-        st.write(f"¡Hola, **{nombre_user}**!")
+        
+        # Lógica de saludo: Si hay nombre lo pone, si no, solo Hola
+        saludo = f"¡Hola, **{nombre_db}**!" if nombre_db else "¡Hola!"
+        st.write(saludo)
         st.divider()
 
         # 1. Estadísticas / Progreso
