@@ -711,7 +711,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         
         with b4:
             # Este resaltará sobre los demás por ser el principal
-            if st.button("💾 GUARDAR", use_container_width=True, key="btn_save"):
+            if st.button("💾 GUARDAR", type="primary", use_container_width=True, key="btn_save"):
                 upd = {
                     "enunciado": f_enun, 
                     "explicacion": f_exp, 
