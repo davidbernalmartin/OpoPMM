@@ -11,8 +11,8 @@ st.set_page_config(
 
 # --- 2. CONEXIÓN A SUPABASE ---
 # Asegúrate de tener estos nombres exactos en tus Secrets de Streamlit
-url = st.secrets["supabase_url"]
-key = st.secrets["supabase_key"]
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 # --- 3. CARGA DE CSS ---
