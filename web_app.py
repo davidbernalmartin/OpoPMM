@@ -54,15 +54,8 @@ def mostrar_examen(titulo, lista_preguntas):
             </div>
         </div>
         """
-        
-        # 3. Llamamos a st.markdown UNA SOLA VEZ para que todo se procese junto
         st.markdown(explicacion_completa, unsafe_allow_html=True)
         
-        # Usamos un contenedor para que el texto no pegue con los bordes
-        with st.container():
-            st.write("") # Espacio
-            st.markdown(f'<div class="texto-explicacion-html">{explicacion_html}</div>', unsafe_allow_html=True)
-        st.write("---")
         c1, c2, c3 = st.columns([1, 2, 1])
         with c1:
             if idx_rev > 0:
