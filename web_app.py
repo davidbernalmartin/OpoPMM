@@ -603,72 +603,80 @@ elif st.session_state.sub_pantalla == "test_simulacro":
     if st.session_state.preguntas_examen:
         mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
                         
+import pandas as pd
+
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN</div>', unsafe_allow_html=True)
 
-    # 1. CARGAMOS LOS DATOS
+    # 1. CARGAMOS TEMAS (Diccionario para mapear ID -> Nombre y viceversa)
     res_temas = supabase.table("temas").select("id, nombre").execute()
-    temas_dict = {t['id']: t['nombre'] for t in res_temas.data}
-    nombres_a_id = {v: k for k, v in temas_dict.items()}
+    temas_db = res_temas.data
+    id_a_nombre = {t['id']: t['nombre'] for t in temas_db}
+    nombre_a_id = {t['nombre']: t['id'] for t in temas_db}
 
-    # Consulta de preguntas
-    res_p = supabase.table("preguntas").select("id, enunciado, tema_id, opcion_a, opcion_b, opcion_c, correcta, explicacion").order("id", desc=True).execute()
-    df_preguntas = res_p.data
-
-    # --- TABLA INTERACTIVA (El Frame superior) ---
-    st.write("### 📋 Banco de Preguntas")
+    # 2. CARGAMOS PREGUNTAS
+    res_p = supabase.table("preguntas").select("*").order("id", desc=True).execute()
     
-    # Configuramos la tabla para que sea de "Solo Selección"
-    event = st.dataframe(
-        df_preguntas,
-        column_order=("id", "enunciado", "tema_id"),
-        column_config={
-            "id": st.column_config.NumberColumn("ID", width="small"),
-            "enunciado": st.column_config.TextColumn("Enunciado", width="large"),
-            "tema_id": st.column_config.SelectboxColumn("Tema", options=list(temas_dict.values()), width="medium"),
-        },
-        hide_index=True,
-        use_container_width=True,
-        on_select="rerun", # <--- ESTO ES LA CLAVE: detecta el clic en la fila
-        selection_mode="single-row"
-    )
+    if res_p.data:
+        # Convertimos a DataFrame para manipularlo fácil
+        df = pd.DataFrame(res_p.data)
+        
+        # CREAMOS LA COLUMNA MÁGICA: Mapeamos el tema_id al nombre real
+        df['tema_nombre'] = df['tema_id'].map(id_a_nombre)
+        
+        # --- TABLA INTERACTIVA ---
+        st.write("### 📋 Banco de Preguntas")
+        
+        # Configuramos la visualización
+        event = st.dataframe(
+            df,
+            column_order=("id", "enunciado", "tema_nombre"), # Usamos la nueva columna
+            column_config={
+                "id": st.column_config.NumberColumn("ID", width=60),
+                "enunciado": st.column_config.TextColumn("Enunciado", width="large"),
+                "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
+            },
+            hide_index=True,
+            use_container_width=True,
+            on_select="rerun",
+            selection_mode="single-row"
+        )
 
-    # 2. LÓGICA DE CARGA
-    # Si el usuario selecciona una fila en la tabla, cargamos esos datos
-    seleccion = event.selection.rows
-    if seleccion:
-        st.session_state.p_seleccionada = df_preguntas[seleccion[0]]
+        # 3. LÓGICA DE SELECCIÓN
+        seleccion = event.selection.rows
+        if seleccion:
+            # Extraemos la fila seleccionada del dataframe original
+            st.session_state.p_seleccionada = df.iloc[seleccion[0]].to_dict()
     
-    # 3. FORMULARIO DE EDICIÓN (Diseño según tu imagen)
+    # --- FORMULARIO DE EDICIÓN (Igual que antes pero usando st.session_state.p_seleccionada) ---
     p = st.session_state.get("p_seleccionada", None)
-
-    st.divider()
     
-    with st.container():
-        # Fila 1: Enunciado y Explicación
-        col1, col2 = st.columns(2)
-        with col1:
-            st.caption("ENUNCIADO DE LA PREGUNTA:")
-            f_enun = st.text_area("##enun", value=p['enunciado'] if p else "", height=150, label_visibility="collapsed")
-        with col2:
-            st.caption("EXPLICACIÓN / BASE LEGAL:")
-            f_exp = st.text_area("##exp", value=p['explicacion'] if p else "", height=150, label_visibility="collapsed")
+    st.divider()
+    if p:
+        with st.container():
+            col1, col2 = st.columns(2)
+            with col1:
+                st.caption("ENUNCIADO DE LA PREGUNTA:")
+                f_enun = st.text_area("##enun", value=p['enunciado'], height=150, label_visibility="collapsed")
+            with col2:
+                st.caption("EXPLICACIÓN / BASE LEGAL:")
+                f_exp = st.text_area("##exp", value=p.get('explicacion', ''), height=150, label_visibility="collapsed")
 
-        # Fila 2: Opciones y Configuración
-        col3, col4 = st.columns(2)
-        with col3:
-            st.caption("OPCIONES DE RESPUESTA:")
-            f_a = st.text_input("A", value=p['opcion_a'] if p else "", label_visibility="visible")
-            f_b = st.text_input("B", value=p['opcion_b'] if p else "", label_visibility="visible")
-            f_c = st.text_input("C", value=p['opcion_c'] if p else "", label_visibility="visible")
-        with col4:
-            st.caption("CONFIGURACIÓN:")
-            f_corr = st.selectbox("Correcta", ["A", "B", "C"], 
-                                 index=["A", "B", "C"].index(p['correcta']) if p else 0)
-            
-            # Mapeo del tema
-            tema_actual_nombre = temas_dict.get(p['tema_id'], list(temas_dict.values())[0]) if p else list(temas_dict.values())[0]
-            f_tema = st.selectbox("Tema", list(temas_dict.values()), index=list(temas_dict.values()).index(tema_actual_nombre))
+            col3, col4 = st.columns(2)
+            with col3:
+                st.caption("OPCIONES DE RESPUESTA:")
+                f_a = st.text_input("A", value=p['opcion_a'])
+                f_b = st.text_input("B", value=p['opcion_b'])
+                f_c = st.text_input("C", value=p['opcion_c'])
+            with col4:
+                st.caption("CONFIGURACIÓN:")
+                f_corr = st.selectbox("Correcta", ["A", "B", "C"], 
+                                     index=["A", "B", "C"].index(p['correcta']))
+                
+                # Selector de tema (usando nombres para que sea humano)
+                nombres_temas = sorted(list(nombre_a_id.keys()))
+                idx_tema = nombres_temas.index(p['tema_nombre']) if p['tema_nombre'] in nombres_temas else 0
+                f_tema_sel = st.selectbox("Tema", nombres_temas, index=idx_tema)
 
     # --- BOTONERA ---
     st.write("###")
