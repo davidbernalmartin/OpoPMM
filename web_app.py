@@ -83,9 +83,7 @@ def mostrar_examen(titulo, lista_preguntas):
             base_style = "padding: 12px; border-radius: 10px; margin: 8px 0; border-left: 5px solid "
             if letra == p['correcta']:
             # OPCIÓN CORRECTA: Fondo verde y borde verde
-            st.markdown(f"""
-                <div style="{base_style} #2ecc71; background-color: rgba(46, 204, 113, 0.15);">
-                    <b style="color: white;">{letra}) {texto}</b> 
+            st.markdown(f"""<div style={base_style}" #2ecc71; background-color: rgba(46, 204, 113, 0.15);"><b style="color: white;">{letra}) {texto}</b> 
                     <span style="color: #2ecc71; margin-left: 10px;">(Correcta)</span>
                 </div>
             """, unsafe_allow_html=True)
