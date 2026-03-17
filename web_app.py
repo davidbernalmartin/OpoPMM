@@ -194,7 +194,31 @@ elif st.session_state.sub_pantalla == "perfil":
 # --- PANTALLA: BIBLIOTECA ---
 elif st.session_state.sub_pantalla == "biblioteca":
     st.markdown('<p class="titulo-pantalla">BIBLIOTECA DE LEYES</p>', unsafe_allow_html=True)
-    st.write("Consulta y descarga el temario actualizado.")
+    st.write("Accede a la normativa oficial y temario actualizado para tu preparación.")
+    st.write("---")
+    try:
+        # Consultamos la tabla 'temas' según tu archivo CSV
+        # Ordenamos por la columna 'orden' para que sigan tu esquema
+        res_b = supabase.table("temas").select("id, name, url_pdf").order("orden").execute()
+        leyes = res_b.data
+        if leyes:
+            for ley in leyes:
+                # Solo mostramos las que tienen URL de PDF
+                if ley['url_pdf']:
+                    with st.container():
+                        col_info, col_btn = st.columns([3, 1])
+                        with col_info:
+                            # Usamos 'name' que es como viene en tu tabla
+                            st.markdown(f"#### 📄 {ley['name']}")
+                            st.caption(f"Referencia Tema #{ley['id']}")
+                        with col_btn:
+                            # Botón de descarga directa
+                            st.link_button("📥 DESCARGAR", ley['url_pdf'], use_container_width=True)
+                        st.write("") # Espacio fino entre elementos
+        else:
+            st.info("No se han encontrado documentos en la base de datos.")
+    except Exception as e:
+        st.error(f"Hubo un problema al cargar los temas: {e}")
 
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
