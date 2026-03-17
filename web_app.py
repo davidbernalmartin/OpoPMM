@@ -631,8 +631,8 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             df,
             column_order=("id", "enunciado", "tema_nombre"), # Usamos la nueva columna
             column_config={
-                "id": st.column_config.NumberColumn("ID", width=40),
-                "enunciado": st.column_config.TextColumn("Enunciado", width="600"),
+                "id": st.column_config.NumberColumn("ID", width=4),
+                "enunciado": st.column_config.TextColumn("Enunciado", width="large"),
                 "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
             },
             hide_index=True,
