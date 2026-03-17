@@ -19,6 +19,11 @@ URL = st.secrets["SUPABASE_URL"]
 KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(URL, KEY)
 
+if "user" not in st.session_state:
+    st.session_state.user = None
+if "user_role" not in st.session_state:
+    st.session_state.user_role = "invitado"
+
 # --- 2. ESTILOS CSS ---
 def local_css(file_name):
     try:
@@ -225,6 +230,13 @@ elif st.session_state.pantalla == "menu":
             cambiar_vista(pantalla="biblioteca")
             st.rerun()
         if c4.button("📊 ESTADÍSTICAS", use_container_width=True): st.toast("Próximamente")
+        # Botón visible SOLO para Admins
+        if st.session_state.user_role == "admin":
+            st.divider()
+            st.markdown("### PANEL DE CONTROL")
+            if st.button("➕ AÑADIR PREGUNTAS", use_container_width=True):
+                cambiar_vista(sub="panel_admin_preguntas")
+                st.rerun()
     
     elif st.session_state.sub_pantalla == "teoria_opciones":
         c1, c2 = st.columns(2)
@@ -290,3 +302,35 @@ elif st.session_state.pantalla == "biblioteca":
         with st.container(border=True):
             ct, cb = st.columns([0.7, 0.3])
             ct.write(f"**{ley['name']}**"); cb.link_button("📄 PDF", ley['url_pdf'], use_container_width=True)
+elif st.session_state.sub_pantalla == "login":
+    st.markdown('<p class="titulo-pantalla">ACCESO OpoPMM</p>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        tabs = st.tabs(["Entrar", "Registrarse"])
+        # --- TAB: LOGIN ---
+        with tabs[0]:
+            email = st.text_input("Email", key="login_email")
+            password = st.text_input("Contraseña", type="password", key="login_pw")
+            if st.button("ACCEDER", use_container_width=True, type="primary"):
+                try:
+                    res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                    st.session_state.user = res.user
+                    # Consultamos el rol en nuestra tabla 'profiles'
+                    perfil = supabase.table("profiles").select("role").eq("id", res.user.id).single().execute()
+                    st.session_state.user_role = perfil.data['role']
+                    st.success(f"¡Bienvenido de nuevo!")
+                    cambiar_vista(sub="menu_principal")
+                    st.rerun()
+                except Exception as e:
+                    st.error("Error: Credenciales no válidas.")
+        # --- TAB: REGISTRO ---
+        with tabs[1]:
+            new_email = st.text_input("Nuevo Email", key="reg_email")
+            new_password = st.text_input("Nueva Contraseña", type="password", key="reg_pw")
+            if st.button("CREAR CUENTA", use_container_width=True):
+                try:
+                    # Supabase Auth crea el usuario y el trigger de SQL crea el perfil
+                    supabase.auth.sign_up({"email": new_email, "password": new_password})
+                    st.info("¡Cuenta creada! Revisa tu email para confirmar el registro.")
+                except Exception as e:
+                    st.error(f"Error al registrar: {e}")
