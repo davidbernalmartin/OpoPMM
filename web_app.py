@@ -604,115 +604,96 @@ elif st.session_state.sub_pantalla == "test_simulacro":
         mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
                         
 elif st.session_state.sub_pantalla == "admin_preguntas":
-    # --- FILTROS SUPERIORES ---
-    c_bus, c_tem = st.columns([2, 1])
-    with c_bus:
-        busqueda = st.text_input("🔍 BUSCADOR:", placeholder="Filtrar preguntas...")
-    with c_tem:
-        # Obtenemos temas de la base de datos
-        res_t = supabase.table("temas").select("id, nombre").execute()
-        temas_db = {t['nombre']: t['id'] for t in res_t.data}
-        tema_sel = st.selectbox("FILTRAR TEMA:", ["Todos"] + sorted(list(temas_db.keys())))
+    st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN</div>', unsafe_allow_html=True)
 
-    # --- TABLA DE PREGUNTAS ---
-    # Simulamos el encabezado de la tabla de la imagen
-    h1, h2, h3 = st.columns([0.5, 6, 3])
-    h1.caption("ID ↕")
-    h2.caption("Enunciado ↕")
-    h3.caption("Tema ↕")
-    st.markdown('<hr style="margin:0; border-color: #334155;">', unsafe_allow_html=True)
+    # 1. CARGAMOS LOS DATOS
+    res_temas = supabase.table("temas").select("id, nombre").execute()
+    temas_dict = {t['id']: t['nombre'] for t in res_temas.data}
+    nombres_a_id = {v: k for k, v in temas_dict.items()}
 
-    # Consulta
-    query = supabase.table("preguntas").select("id, enunciado, tema_id")
-    if tema_sel != "Todos": query = query.eq("tema_id", temas_db[tema_sel])
-    if busqueda: query = query.ilike("enunciado", f"%{busqueda}%")
+    # Consulta de preguntas
+    res_p = supabase.table("preguntas").select("id, enunciado, tema_id, opcion_a, opcion_b, opcion_c, correcta, explicacion").order("id", desc=True).execute()
+    df_preguntas = res_p.data
+
+    # --- TABLA INTERACTIVA (El Frame superior) ---
+    st.write("### 📋 Banco de Preguntas")
     
-    preguntas = query.order("id", desc=True).limit(10).execute().data
+    # Configuramos la tabla para que sea de "Solo Selección"
+    event = st.dataframe(
+        df_preguntas,
+        column_order=("id", "enunciado", "tema_id"),
+        column_config={
+            "id": st.column_config.NumberColumn("ID", width="small"),
+            "enunciado": st.column_config.TextColumn("Enunciado", width="large"),
+            "tema_id": st.column_config.SelectboxColumn("Tema", options=list(temas_dict.values()), width="medium"),
+        },
+        hide_index=True,
+        use_container_width=True,
+        on_select="rerun", # <--- ESTO ES LA CLAVE: detecta el clic en la fila
+        selection_mode="single-row"
+    )
 
-    for p in preguntas:
-        # Fila interactiva
-        with st.container():
-            col_id, col_enun, col_tema = st.columns([0.5, 6, 3])
-            col_id.write(f"**{p['id']}**")
-            
-            # El enunciado actúa como botón para cargar
-            short_txt = p['enunciado'][:100] + "..." if len(p['enunciado']) > 100 else p['enunciado']
-            if col_enun.button(short_txt, key=f"p_{p['id']}", use_container_width=True):
-                st.session_state.id_pregunta_editando = p['id']
-                st.rerun()
-            
-            # Nombre del tema
-            nombre_t = next((n for n, id_t in temas_db.items() if id_t == p['tema_id']), "Desconocido")
-            col_tema.caption(nombre_t)
-            st.markdown('<hr style="margin:0; opacity: 0.1;">', unsafe_allow_html=True)
+    # 2. LÓGICA DE CARGA
+    # Si el usuario selecciona una fila en la tabla, cargamos esos datos
+    seleccion = event.selection.rows
+    if seleccion:
+        st.session_state.p_seleccionada = df_preguntas[seleccion[0]]
+    
+    # 3. FORMULARIO DE EDICIÓN (Diseño según tu imagen)
+    p = st.session_state.get("p_seleccionada", None)
 
-    # --- FORMULARIO DE EDICIÓN (PARTE INFERIOR) ---
-    st.write("###")
+    st.divider()
     
-    # Si no hay nada seleccionado, intentamos cargar la primera o dejamos vacío
-    p_edit = None
-    if "id_pregunta_editando" in st.session_state:
-        p_edit = supabase.table("preguntas").select("*").eq("id", st.session_state.id_pregunta_editando).single().execute().data
-    
-    # Contenedor del formulario con el estilo de la imagen
     with st.container():
-        row1_col1, row1_col2 = st.columns([1, 1])
-        with row1_col1:
-            st.markdown('<p class="label-admin">ENUNCIADO DE LA PREGUNTA:</p>', unsafe_allow_html=True)
-            f_enun = st.text_area("##", value=p_edit['enunciado'] if p_edit else "", label_visibility="collapsed", height=150)
-        
-        with row1_col2:
-            st.markdown('<p class="label-admin">EXPLICACIÓN / BASE LEGAL:</p>', unsafe_allow_html=True)
-            f_exp = st.text_area("##", value=p_edit['explicacion'] if p_edit else "", label_visibility="collapsed", height=150)
+        # Fila 1: Enunciado y Explicación
+        col1, col2 = st.columns(2)
+        with col1:
+            st.caption("ENUNCIADO DE LA PREGUNTA:")
+            f_enun = st.text_area("##enun", value=p['enunciado'] if p else "", height=150, label_visibility="collapsed")
+        with col2:
+            st.caption("EXPLICACIÓN / BASE LEGAL:")
+            f_exp = st.text_area("##exp", value=p['explicacion'] if p else "", height=150, label_visibility="collapsed")
 
-        st.write("###")
-        row2_col1, row2_col2 = st.columns([1, 1])
-        
-        with row2_col1:
-            st.markdown('<p class="label-admin">OPCIONES DE RESPUESTA:</p>', unsafe_allow_html=True)
-            f_a = st.text_input("A:", value=p_edit['opcion_a'] if p_edit else "")
-            f_b = st.text_input("B:", value=p_edit['opcion_b'] if p_edit else "")
-            f_c = st.text_input("C:", value=p_edit['opcion_c'] if p_edit else "")
+        # Fila 2: Opciones y Configuración
+        col3, col4 = st.columns(2)
+        with col3:
+            st.caption("OPCIONES DE RESPUESTA:")
+            f_a = st.text_input("A", value=p['opcion_a'] if p else "", label_visibility="visible")
+            f_b = st.text_input("B", value=p['opcion_b'] if p else "", label_visibility="visible")
+            f_c = st.text_input("C", value=p['opcion_c'] if p else "", label_visibility="visible")
+        with col4:
+            st.caption("CONFIGURACIÓN:")
+            f_corr = st.selectbox("Correcta", ["A", "B", "C"], 
+                                 index=["A", "B", "C"].index(p['correcta']) if p else 0)
             
-        with row2_col2:
-            st.markdown('<p class="label-admin">CONFIGURACIÓN:</p>', unsafe_allow_html=True)
-            f_corr = st.selectbox("Correcta:", ["A", "B", "C"], 
-                                 index=["A", "B", "C"].index(p_edit['correcta']) if p_edit else 0)
-            
-            # Selector de tema
-            lista_temas_nombres = sorted(list(temas_db.keys()))
-            tema_idx = 0
-            if p_edit:
-                nombre_actual = next((n for n, id_t in temas_db.items() if id_t == p_edit['tema_id']), None)
-                if nombre_actual in lista_temas_nombres:
-                    tema_idx = lista_temas_nombres.index(nombre_actual)
-            
-            f_tema = st.selectbox("Tema:", lista_temas_nombres, index=tema_idx)
+            # Mapeo del tema
+            tema_actual_nombre = temas_dict.get(p['tema_id'], list(temas_dict.values())[0]) if p else list(temas_dict.values())[0]
+            f_tema = st.selectbox("Tema", list(temas_dict.values()), index=list(temas_dict.values()).index(tema_actual_nombre))
 
-    # --- BOTONERA INFERIOR (Colores de la imagen) ---
+    # --- BOTONERA ---
     st.write("###")
     b1, b2, b3, b4, b5 = st.columns(5)
     
     with b1:
-        if st.button("➕ NUEVA PREGUNTA", use_container_width=True, type="secondary"):
-            # Lógica para limpiar campos o insertar vacío
-            pass
-            
+        if st.button("➕ NUEVA", use_container_width=True):
+            st.session_state.p_seleccionada = None
+            st.rerun()
+    
     with b4:
-        if st.button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary"):
-            if p_edit:
+        if st.button("💾 GUARDAR", type="primary", use_container_width=True):
+            if p:
                 upd = {
-                    "enunciado": f_enun, "explicacion": f_exp, "opcion_a": f_a, 
-                    "opcion_b": f_b, "opcion_c": f_c, "correcta": f_corr, 
-                    "tema_id": temas_db[f_tema]
+                    "enunciado": f_enun, "explicacion": f_exp, "opcion_a": f_a,
+                    "opcion_b": f_b, "opcion_c": f_c, "correcta": f_corr,
+                    "tema_id": nombres_a_id[f_tema]
                 }
-                supabase.table("preguntas").update(upd).eq("id", p_edit['id']).execute()
-                st.success("Guardado")
+                supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
+                st.success("¡Actualizado!")
                 st.rerun()
 
     with b5:
         if st.button("🗑️ ELIMINAR", use_container_width=True):
-            if p_edit:
-                supabase.table("preguntas").delete().eq("id", p_edit['id']).execute()
-                del st.session_state.id_pregunta_editando
+            if p:
+                supabase.table("preguntas").delete().eq("id", p['id']).execute()
+                st.session_state.p_seleccionada = None
                 st.rerun()
