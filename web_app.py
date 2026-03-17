@@ -130,6 +130,8 @@ if "configurando_examen" not in st.session_state:
     st.session_state.configurando_examen = False
 if "modo_seleccionado" not in st.session_state:
     st.session_state.modo_seleccionado = None
+if "paso_configuracion" not in st.session_state:
+    st.session_state.paso_configuracion = "botones"
 
 def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
@@ -327,52 +329,86 @@ elif st.session_state.sub_pantalla == "biblioteca":
 
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
-    # --- VISTA DE CONFIGURACIÓN DE CANTIDAD ---
-    if st.session_state.configurando_examen:
-        st.markdown(f'<p class="titulo-pantalla">CONFIGURAR {st.session_state.modo_seleccionado.upper()}</p>', unsafe_allow_html=True)
-        st.write("¿Cuántas preguntas quieres realizar?")
-        # Selector de cantidad
-        cantidad = st.select_slider(
-            "Número de preguntas:",
-            options=[10, 20, 40, 80, 100],
-            value=20
-        )
-        st.write("###")
-        col_canc, col_confirm = st.columns(2)
-        with col_canc:
-            if st.button("❌ CANCELAR", use_container_width=True):
-                st.session_state.configurando_examen = False
-                st.rerun()
-        with col_confirm:
-            if st.button("🚀 EMPEZAR TEST", type="primary", use_container_width=True):
-                # Guardamos la cantidad y saltamos a la carga del test
-                st.session_state.cantidad_preguntas = cantidad
-                st.session_state.sub_pantalla = f"test_{st.session_state.modo_seleccionado}"
-                st.session_state.configurando_examen = False
-                st.rerun()
-    # --- VISTA PRINCIPAL DE BOTONES ---
-    else:
+    
+    # --- PASO 1: LOS 3 BOTONES PRINCIPALES ---
+    if st.session_state.paso_configuracion == "botones":
         st.markdown('<p class="titulo-pantalla">MODO DE EXAMEN</p>', unsafe_allow_html=True)
         st.markdown('<div class="contenedor-test">', unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
-        with c1:
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
             if st.button("🇬🇧\n\nEXAMEN DE INGLÉS", use_container_width=True):
                 st.session_state.modo_seleccionado = "ingles"
-                st.session_state.configurando_examen = True
+                st.session_state.paso_configuracion = "seleccion_cantidad"
                 st.rerun()
-        with c2:
+        with col2:
             if st.button("📚\n\nEXAMEN POR TEMAS", use_container_width=True):
                 st.session_state.modo_seleccionado = "por_temas"
-                st.session_state.configurando_examen = True
+                st.session_state.paso_configuracion = "seleccion_temas" # Va a la lista de temas
                 st.rerun()
-        with c3:
+        with col3:
             if st.button("⏱️\n\nSIMULACRO EXAMEN", use_container_width=True):
                 st.session_state.modo_seleccionado = "simulacro"
-                st.session_state.configurando_examen = True
+                st.session_state.paso_configuracion = "seleccion_cantidad"
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- MODO 1: INGLÉS ---
+    # --- PASO 2: SELECCIÓN DE TEMAS (Solo para "Por Temas") ---
+    elif st.session_state.paso_configuracion == "seleccion_temas":
+        st.markdown('<p class="titulo-pantalla">SELECCIONA LOS TEMAS</p>', unsafe_allow_html=True)
+        
+        try:
+            # Consultamos la tabla biblioteca para listar los temas
+            res = supabase.table("biblioteca").select("id, name, orden").order("orden").execute()
+            temas_db = res.data
+            
+            # Filtramos el ID 1 (Inglés) para que no salga en "Por Temas"
+            opciones = {f"Tema {t['orden']}: {t['name']}": t['id'] for t in temas_db if t['id'] != 1}
+            
+            seleccion = st.multiselect("Selecciona una o varias leyes:", options=list(opciones.keys()))
+            
+            st.write("---")
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("⬅️ VOLVER", use_container_width=True):
+                    st.session_state.paso_configuracion = "botones"
+                    st.rerun()
+            with c2:
+                if st.button("CONTINUAR ➡️", type="primary", use_container_width=True, disabled=not seleccion):
+                    # Guardamos los IDs de los temas elegidos
+                    st.session_state.temas_seleccionados = [opciones[s] for s in seleccion]
+                    st.session_state.paso_configuracion = "seleccion_cantidad"
+                    st.rerun()
+        except Exception as e:
+            st.error(f"Error cargando temas: {e}")
+
+    # --- PASO 3: SELECCIÓN DE CANTIDAD (Para todos) ---
+    elif st.session_state.paso_configuracion == "seleccion_cantidad":
+        st.markdown(f'<p class="titulo-pantalla">NÚMERO DE PREGUNTAS</p>', unsafe_allow_html=True)
+        st.write(f"Modo: **{st.session_state.modo_seleccionado.upper()}**")
+        
+        cantidad = st.select_slider(
+            "¿Cuántas preguntas quieres responder?",
+            options=[10, 20, 40, 80, 100],
+            value=20
+        )
+        
+        st.write("---")
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("⬅️ VOLVER", use_container_width=True):
+                # Si venía de temas, vuelve a temas. Si no, a los botones.
+                if st.session_state.modo_seleccionado == "por_temas":
+                    st.session_state.paso_configuracion = "seleccion_temas"
+                else:
+                    st.session_state.paso_configuracion = "botones"
+                st.rerun()
+        with c2:
+            if st.button("🚀 EMPEZAR EXAMEN", type="primary", use_container_width=True):
+                st.session_state.cantidad_preguntas = cantidad
+                st.session_state.sub_pantalla = f"test_{st.session_state.modo_seleccionado}"
+                st.rerun()
+
 # --- MODO 1: INGLÉS ---
 elif st.session_state.sub_pantalla == "test_ingles":
     if not st.session_state.preguntas_examen:
