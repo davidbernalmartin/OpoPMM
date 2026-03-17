@@ -3,14 +3,13 @@ from supabase import create_client
 import random
 
 def limpiar_estado_examen():
-    """Resetea todas las variables relacionadas con la ejecución de tests."""
     st.session_state.preguntas_examen = []
     st.session_state.indice_pregunta = 0
     st.session_state.respuestas_usuario = {}
     st.session_state.examen_finalizado = False
-    st.session_state.configurando_examen = False
+    st.session_state.paso_configuracion = "botones" # IMPORTANTE: Volver al inicio
     st.session_state.modo_seleccionado = None
-    # Si usas más variables de control, añádelas aquí
+    st.session_state.temas_seleccionados = []
 
 def mostrar_examen(titulo, lista_preguntas):
     st.markdown(f'<p class="titulo-pantalla">{titulo}</p>', unsafe_allow_html=True)
