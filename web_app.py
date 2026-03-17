@@ -607,7 +607,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN</div>', unsafe_allow_html=True)
 
-    # 1. CARGAMOS TEMAS
+    # 1. CARGAMOS TEMAS (Diccionarios de mapeo)
     res_temas = supabase.table("temas").select("id, nombre").execute()
     temas_db = res_temas.data
     id_a_nombre = {t['id']: t['nombre'] for t in temas_db}
@@ -619,17 +619,18 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
     
     if res_p.data:
         df = pd.DataFrame(res_p.data)
-        # Mapeamos el nombre para la visualización
+        # Mapeamos el nombre del tema para que se vea en la tabla
         df['tema_nombre'] = df['tema_id'].map(id_a_nombre).fillna("Sin Tema")
         
         st.write("### 📋 Banco de Preguntas")
         
+        # TABLA INTERACTIVA
         event = st.dataframe(
             df,
             column_order=("id", "enunciado", "tema_nombre"),
             column_config={
-                "id": st.column_config.Column("ID", width=40), # Usamos Column genérica para forzar ancho
-                "enunciado": st.column_config.TextColumn("Enunciado", width=800), # Muy ancho para empujar al ID
+                "id": st.column_config.Column("ID", width=40),
+                "enunciado": st.column_config.TextColumn("Enunciado", width=800),
                 "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
             },
             hide_index=True,
@@ -638,81 +639,87 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             selection_mode="single-row"
         )
 
-        # 3. LÓGICA DE SELECCIÓN
+        # 3. LÓGICA DE SELECCIÓN DE FILA
         seleccion = event.selection.rows
         if seleccion:
-            # Importante: Usamos iloc para obtener los datos limpios
             st.session_state.p_seleccionada = df.iloc[seleccion[0]].to_dict()
-    
+
     # 4. FORMULARIO DE EDICIÓN
     p = st.session_state.get("p_seleccionada", None)
     
     st.divider()
+    
     if p:
-        # Limpieza de datos: convertir NaNs a strings vacíos para evitar errores en text_area
-        for key in p:
+        # Limpieza de nulos para evitar errores en widgets de texto
+        for key in list(p.keys()):
             if pd.isna(p[key]): p[key] = ""
 
         with st.container():
+            # FILA 1: Enunciado y Explicación
             col1, col2 = st.columns(2)
             with col1:
-                st.caption("ENUNCIADO DE LA PREGUNTA:")
-                f_enun = st.text_area("##enun", value=str(p['enunciado']), height=150, label_visibility="collapsed")
+                st.markdown('<p class="label-admin">ENUNCIADO DE LA PREGUNTA:</p>', unsafe_allow_html=True)
+                f_enun = st.text_area("##enun", value=str(p['enunciado']), height=150, label_visibility="collapsed", key=f"enun_{p['id']}")
             with col2:
-                st.caption("EXPLICACIÓN / BASE LEGAL:")
-                f_exp = st.text_area("##exp", value=str(p.get('explicacion', '')), height=150, label_visibility="collapsed")
+                st.markdown('<p class="label-admin">EXPLICACIÓN / BASE LEGAL:</p>', unsafe_allow_html=True)
+                f_exp = st.text_area("##exp", value=str(p.get('explicacion', '')), height=150, label_visibility="collapsed", key=f"exp_{p['id']}")
 
-            # Fila 2: OPCIONES (Izquierda) y CONFIGURACIÓN (Derecha)
-        col_izq, col_der = st.columns(2)
-        
-        with col_izq:
-            st.markdown('<p class="label-admin">OPCIONES DE RESPUESTA:</p>', unsafe_allow_html=True)
-            
-            # Alineación para A
-            c_label, c_input = st.columns([0.05, 0.95])
-            c_label.markdown('<p style="margin-top:10px;">A:</p>', unsafe_allow_html=True)
-            f_a = c_input.text_input("A", value=str(p['opcion_a']), label_visibility="collapsed", key="in_a")
-            
-            # Alineación para B
-            c_label, c_input = st.columns([0.05, 0.95])
-            c_label.markdown('<p style="margin-top:10px;">B:</p>', unsafe_allow_html=True)
-            f_b = c_input.text_input("B", value=str(p['opcion_b']), label_visibility="collapsed", key="in_b")
-            
-            # Alineación para C
-            c_label, c_input = st.columns([0.05, 0.95])
-            c_label.markdown('<p style="margin-top:10px;">C:</p>', unsafe_allow_html=True)
-            f_c = c_input.text_input("C", value=str(p['opcion_c']), label_visibility="collapsed", key="in_c")
+            st.write("###") # Espacio entre bloques
 
-        with col_der:
-            st.markdown('<p class="label-admin">CONFIGURACIÓN:</p>', unsafe_allow_html=True)
+            # FILA 2: Opciones y Configuración (Alineación Horizontal)
+            col_izq, col_der = st.columns(2)
             
-            # Alineación para Correcta
-            c_label, c_input = st.columns([0.2, 0.8])
-            c_label.markdown('<p style="margin-top:10px;">Correcta:</p>', unsafe_allow_html=True)
-            f_corr = c_input.selectbox("Correcta", ["A", "B", "C"], 
-                                      index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0,
-                                      label_visibility="collapsed")
-            
-            # Alineación para Tema
-            c_label, c_input = st.columns([0.2, 0.8])
-            c_label.markdown('<p style="margin-top:10px;">Tema:</p>', unsafe_allow_html=True)
-            
-            tema_actual = p.get('tema_nombre', '')
-            idx_tema = nombres_temas.index(tema_actual) if tema_actual in nombres_temas else 0
-            
-            f_tema_sel = c_input.selectbox("Tema", nombres_temas, index=idx_tema, label_visibility="collapsed")
+            with col_izq:
+                st.markdown('<p class="label-admin">OPCIONES DE RESPUESTA:</p>', unsafe_allow_html=True)
+                
+                # Alineación A
+                c_labA, c_inpA = st.columns([0.08, 0.92])
+                c_labA.markdown('<p style="margin-top:10px; font-weight:bold;">A:</p>', unsafe_allow_html=True)
+                f_a = c_inpA.text_input("A", value=str(p['opcion_a']), label_visibility="collapsed", key=f"in_a_{p['id']}")
+                
+                # Alineación B
+                c_labB, c_inpB = st.columns([0.08, 0.92])
+                c_labB.markdown('<p style="margin-top:10px; font-weight:bold;">B:</p>', unsafe_allow_html=True)
+                f_b = c_inpB.text_input("B", value=str(p['opcion_b']), label_visibility="collapsed", key=f"in_b_{p['id']}")
+                
+                # Alineación C
+                c_labC, c_inpC = st.columns([0.08, 0.92])
+                c_labC.markdown('<p style="margin-top:10px; font-weight:bold;">C:</p>', unsafe_allow_html=True)
+                f_c = c_inpC.text_input("C", value=str(p['opcion_c']), label_visibility="collapsed", key=f"in_c_{p['id']}")
 
-        # 5. BOTONERA
+            with col_der:
+                st.markdown('<p class="label-admin">CONFIGURACIÓN:</p>', unsafe_allow_html=True)
+                
+                # Alineación Correcta
+                c_labCorr, c_inpCorr = st.columns([0.3, 0.7])
+                c_labCorr.markdown('<p style="margin-top:10px; font-weight:bold;">Correcta:</p>', unsafe_allow_html=True)
+                f_corr = c_inpCorr.selectbox("Corr", ["A", "B", "C"], 
+                                          index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0,
+                                          label_visibility="collapsed", key=f"corr_{p['id']}")
+                
+                # Alineación Tema
+                c_labTema, c_inpTema = st.columns([0.3, 0.7])
+                c_labTema.markdown('<p style="margin-top:10px; font-weight:bold;">Tema:</p>', unsafe_allow_html=True)
+                
+                tema_actual = p.get('tema_nombre', '')
+                idx_tema = nombres_temas.index(tema_actual) if tema_actual in nombres_temas else 0
+                f_tema_sel = c_inpTema.selectbox("TemaSel", nombres_temas, index=idx_tema, label_visibility="collapsed", key=f"tema_{p['id']}")
+
+        # 5. BOTONERA INFERIOR
         st.write("###")
         b1, b2, b3, b4, b5 = st.columns(5)
         
         with b1:
-            if st.button("➕ NUEVA", use_container_width=True):
+            if st.button("➕ NUEVA PREGUNTA", use_container_width=True):
                 st.session_state.p_seleccionada = None
                 st.rerun()
         
+        # Botones b2 y b3 (puedes añadir sus funciones de PDF/CSV aquí)
+        with b2: st.button("📄 PDF A CSV", use_container_width=True)
+        with b3: st.button("📤 IMPORTAR CSV", use_container_width=True)
+        
         with b4:
-            if st.button("💾 GUARDAR", type="primary", use_container_width=True):
+            if st.button("💾 GUARDAR CAMBIOS", type="primary", use_container_width=True):
                 upd = {
                     "enunciado": f_enun, 
                     "explicacion": f_exp, 
@@ -720,11 +727,11 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                     "opcion_b": f_b, 
                     "opcion_c": f_c, 
                     "correcta": f_corr,
-                    "tema_id": nombre_a_id[f_tema_sel] # Convertimos el nombre seleccionado de nuevo a ID
+                    "tema_id": nombre_a_id[f_tema_sel]
                 }
                 supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
                 st.success("¡Pregunta actualizada!")
-                # Actualizamos el objeto en sesión para que los cambios se reflejen sin perder la selección
+                # Actualizar el estado local para reflejar cambios sin deseleccionar
                 st.session_state.p_seleccionada.update(upd)
                 st.session_state.p_seleccionada['tema_nombre'] = f_tema_sel
                 st.rerun()
@@ -734,3 +741,9 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 supabase.table("preguntas").delete().eq("id", p['id']).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
+    else:
+        st.info("Selecciona una pregunta de la tabla superior para editar sus detalles.")
+
+    if st.button("⬅️ VOLVER AL MENÚ"):
+        cambiar_vista("menu_principal")
+        st.rerun()
