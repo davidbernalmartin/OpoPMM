@@ -113,9 +113,13 @@ if "preguntas_examen" not in st.session_state:
 if "indice_pregunta" not in st.session_state:
     st.session_state.indice_pregunta = 0
 if "respuestas_usuario" not in st.session_state:
-    st.session_state.respuestas_usuario = {} # Guardaremos {indice: respuesta}
+    st.session_state.respuestas_usuario = {}
 if "examen_finalizado" not in st.session_state:
     st.session_state.examen_finalizado = False
+if "configurando_examen" not in st.session_state:
+    st.session_state.configurando_examen = False
+if "modo_seleccionado" not in st.session_state:
+    st.session_state.modo_seleccionado = None
 
 def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
@@ -312,46 +316,85 @@ elif st.session_state.sub_pantalla == "biblioteca":
 
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
-    st.markdown('<p class="titulo-pantalla">MODO DE EXAMEN</p>', unsafe_allow_html=True)
-    
-    # Abrimos el contenedor con la clase CSS personalizada
-    st.markdown('<div class="contenedor-test">', unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
+    # --- VISTA DE CONFIGURACIÓN DE CANTIDAD ---
+    if st.session_state.configurando_examen:
+        st.markdown(f'<p class="titulo-pantalla">CONFIGURAR {st.session_state.modo_seleccionado.upper()}</p>', unsafe_allow_html=True)
+        st.write("¿Cuántas preguntas quieres realizar?")
+        # Selector de cantidad
+        cantidad = st.select_slider(
+            "Número de preguntas:",
+            options=[10, 20, 40, 80, 100],
+            value=20
+        )
+        st.write("###")
+        col_canc, col_confirm = st.columns(2)
+        with col_canc:
+            if st.button("❌ CANCELAR", use_container_width=True):
+                st.session_state.configurando_examen = False
+                st.rerun()
+        with col_confirm:
+            if st.button("🚀 EMPEZAR TEST", type="primary", use_container_width=True):
+                # Guardamos la cantidad y saltamos a la carga del test
+                st.session_state.cantidad_preguntas = cantidad
+                st.session_state.sub_pantalla = f"test_{st.session_state.modo_seleccionado}"
+                st.session_state.configurando_examen = False
+                st.rerun()
+    # --- VISTA PRINCIPAL DE BOTONES ---
+    else:
+        st.markdown('<p class="titulo-pantalla">MODO DE EXAMEN</p>', unsafe_allow_html=True)
+        st.markdown('<div class="contenedor-test">', unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if st.button("🇬🇧\n\nEXAMEN DE INGLÉS", use_container_width=True):
+                st.session_state.modo_seleccionado = "ingles"
+                st.session_state.configurando_examen = True
+                st.rerun()
+        with c2:
+            if st.button("📚\n\nEXAMEN POR TEMAS", use_container_width=True):
+                st.session_state.modo_seleccionado = "por_temas"
+                st.session_state.configurando_examen = True
+                st.rerun()
+        with c3:
+            if st.button("⏱️\n\nSIMULACRO EXAMEN", use_container_width=True):
+                st.session_state.modo_seleccionado = "simulacro"
+                st.session_state.configurando_examen = True
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    with col1:
-        if st.button("🇬🇧\n\nEXAMEN DE INGLÉS", use_container_width=True):
-            cambiar_vista("test_ingles")
-            st.rerun()
-
-    with col2:
-        if st.button("📚\n\nEXAMEN POR TEMAS", use_container_width=True):
-            cambiar_vista("test_por_temas")
-            st.rerun()
-
-    with col3:
-        if st.button("⏱️\n\nSIMULACRO EXAMEN", use_container_width=True):
-            cambiar_vista("test_simulacro")
-            st.rerun()
-            
-    # Cerramos el contenedor
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.write("---")
-    # Este botón de volver NO se verá afectado por el estilo anterior
-    if st.button("⬅️ Volver al Centro de Control"):
-        cambiar_vista("menu_principal")
-        st.rerun()
-
+# --- MODO 1: INGLÉS ---
 # --- MODO 1: INGLÉS ---
 elif st.session_state.sub_pantalla == "test_ingles":
     if not st.session_state.preguntas_examen:
-        res = supabase.table("preguntas").select("*").eq("tema_id", 1).execute()
-        st.session_state.preguntas_examen = res.data
-        st.session_state.indice_pregunta = 0
-        st.session_state.respuestas_usuario = {}
-        st.rerun()
+        # 1. Recuperamos el límite seleccionado en la pantalla de configuración
+        limite_elegido = st.session_state.get("cantidad_preguntas", 20)    
+        try:
+            # 2. Consultamos solo preguntas de Inglés (ID=1) con el límite real
+            res = supabase.table("preguntas")\
+                .select("*")\
+                .eq("tema_id", 1)\
+                .limit(limite_elegido)\
+                .execute()
+            
+            if res.data:
+                datos = res.data
+                # 3. Barajamos para que el examen no sea siempre igual
+                random.shuffle(datos)
+                st.session_state.preguntas_examen = datos
+                
+                # Reiniciamos el estado del motor de examen
+                st.session_state.indice_pregunta = 0
+                st.session_state.respuestas_usuario = {}
+                st.session_state.examen_finalizado = False
+                st.rerun()
+            else:
+                st.warning("No se han encontrado preguntas de Inglés.")
+                if st.button("Volver"):
+                    cambiar_vista("seleccion_tema")
+                    st.rerun()
+        except Exception as e:
+            st.error(f"Error al cargar el examen de inglés: {e}")
     
+    # Llamamos al motor común
     mostrar_examen("EXAMEN DE INGLÉS", st.session_state.preguntas_examen)
 
 # --- MODO 2: POR TEMAS ---
@@ -369,13 +412,31 @@ elif st.session_state.sub_pantalla == "test_por_temas":
 # --- MODO 3: SIMULACRO ---
 elif st.session_state.sub_pantalla == "test_simulacro":
     if not st.session_state.preguntas_examen:
-        res = supabase.table("preguntas").select("*").neq("tema_id", 1).execute()
-        datos = res.data
-        random.shuffle(datos)
-        st.session_state.preguntas_examen = datos[:20] # 20 aleatorias de leyes
-        st.session_state.indice_pregunta = 0
-        st.rerun()
-    
+        # 1. Obtenemos el límite que eligió el usuario (por defecto 20 si algo falla)
+        limite_elegido = st.session_state.get("cantidad_preguntas", 20)
+        try:
+            # 2. Pedimos a Supabase SOLO la cantidad que necesitamos
+            # Usamos .limit() para no traer 500 preguntas si solo queremos 10
+            res = supabase.table("preguntas")\
+                .select("*")\
+                .neq("tema_id", 1)\
+                .limit(limite_elegido)\
+                .execute()
+            
+            if res.data:
+                datos = res.data
+                # 3. Mezclamos el orden para que no salgan siempre las mismas
+                random.shuffle(datos)
+                st.session_state.preguntas_examen = datos
+                
+                # Reiniciamos contadores
+                st.session_state.indice_pregunta = 0
+                st.session_state.respuestas_usuario = {}
+                st.rerun()
+        except Exception as e:
+            st.error(f"Error al cargar el simulacro: {e}")
+
+    # Llamamos al motor con las preguntas ya limitadas
     mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
                         
 # --- PANTALLA: PANEL ADMIN ---
