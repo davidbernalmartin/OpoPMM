@@ -83,7 +83,7 @@ def mostrar_examen(titulo, lista_preguntas):
             base_style = "padding: 12px; border-radius: 10px; margin: 8px 0; border-left: 5px solid "
             if letra == p['correcta']:
             # OPCIÓN CORRECTA: Fondo verde y borde verde
-            st.markdown(f"""<div style={base_style}" #2ecc71; background-color: rgba(46, 204, 113, 0.15);"><b style="color: white;">{letra}) {texto}</b> 
+            st.markdown(f"""<div style=" {base_style} #2ecc71; background-color: rgba(46, 204, 113, 0.15);"><b style="color: white;">{letra}) {texto}</b> 
                     <span style="color: #2ecc71; margin-left: 10px;">(Correcta)</span>
                 </div>
             """, unsafe_allow_html=True)
@@ -91,7 +91,7 @@ def mostrar_examen(titulo, lista_preguntas):
             elif letra == resp_usuario and not es_correcta:
                 # OPCIÓN FALLADA: Fondo rojo y borde rojo
                 st.markdown(f"""
-                    <div style="{base_style} #e74c3c; background-color: rgba(231, 76, 60, 0.15);">
+                    <div style=" {base_style} #e74c3c; background-color: rgba(231, 76, 60, 0.15);">
                         <span style="color: white;">{letra}) {texto}</span> <span style="color: #e74c3c; margin-left: 10px;">(Tu elección)</span>
                     </div>
                 """, unsafe_allow_html=True)
@@ -99,7 +99,7 @@ def mostrar_examen(titulo, lista_preguntas):
             else:
                 # OPCIÓN NEUTRA: Sin fondo pero con el MISMO margen y borde transparente para alinear
                 st.markdown(f"""
-                    <div style="{base_style} transparent; background-color: transparent;">
+                    <div style=" {base_style} transparent; background-color: transparent;">
                         <span style="color: #bdc3c7;">{letra}) {texto}</span>
                     </div>
                 """, unsafe_allow_html=True)
