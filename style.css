@@ -109,3 +109,14 @@ button[data-testid="baseButton-primary"] {
     background-color: #1c2833 !important;
     color: white !important;
 }
+
+/* Esto busca el div que envuelve al botón por su clave */
+div[data-testid="stButton"] button[key="btn_save"] {
+    background-color: #2ecc71 !important; /* Verde */
+    color: white !important;
+}
+
+div[data-testid="stButton"] button[key="btn_del"] {
+    background-color: #e74c3c !important; /* Rojo */
+    color: white !important;
+}
