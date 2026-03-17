@@ -664,8 +664,6 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.markdown('<p class="label-admin">EXPLICACIÓN / BASE LEGAL:</p>', unsafe_allow_html=True)
                 f_exp = st.text_area("##exp", value=str(p.get('explicacion', '')), height=150, label_visibility="collapsed", key=f"exp_{p['id']}")
 
-            st.write("###") # Espacio entre bloques
-
             # FILA 2: Opciones y Configuración (Alineación Horizontal)
             col_izq, col_der = st.columns(2)
             
