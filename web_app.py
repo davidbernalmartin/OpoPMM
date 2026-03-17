@@ -199,7 +199,7 @@ elif st.session_state.sub_pantalla == "biblioteca":
     try:
         # Consultamos la tabla 'temas' según tu archivo CSV
         # Ordenamos por la columna 'orden' para que sigan tu esquema
-        res_b = supabase.table("temas").select("id, name, url_pdf").order("orden").execute()
+        res_b = supabase.table("biblioteca").select("id, name, url_pdf").order("orden").execute()
         leyes = res_b.data
         if leyes:
             for ley in leyes:
