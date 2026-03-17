@@ -1,136 +1,118 @@
 /* 1. IMPORTACIÓN DE FUENTES */
 @import url('https://fonts.googleapis.com/css2?family=Ranchers&family=Comic+Neue:wght@400;700&display=swap');
 
-/* 2. CONFIGURACIÓN BASE DE LA APP */
+/* 2. CONFIGURACIÓN BASE Y RESET DE ICONOS */
+/* Evitamos que Ranchers rompa los iconos nativos (flechas, menús, etc.) */
+[data-testid="stSidebarNav"] span, 
+[data-testid="stHeader"] button,
+[data-testid="baseButton-secondary"] div,
+.st-emotion-cache-6qob1r,
+svg {
+    font-family: sans-serif !important;
+}
+
 .stApp { 
     background-color: #2c3e50; 
     color: white; 
-    /* Aplicamos Comic Neue como fuente base para todo el texto general */
     font-family: 'Comic Neue', cursive !important;
 }
 
-/* Forzamos Comic Neue en párrafos, etiquetas de selección, radio buttons y markdown */
+/* 3. TIPOGRAFÍA GENERAL */
 p, span, label, [data-testid="stWidgetLabel"] p, .stMarkdown p {
     font-family: 'Comic Neue', cursive !important;
-    font-size: 19px !important;
-    line-height: 1.4 !important;
+    font-size: 18px !important;
 }
 
-/* 3. TÍTULOS Y CABECERAS (Ranchers) */
+/* 4. TÍTULOS IMPACTANTES (Ranchers) */
 h1, h2, h3, .titulo-pantalla {
     font-family: 'Ranchers', cursive !important;
     text-align: center; 
-    margin: 0; 
     color: white;
     letter-spacing: 2px;
     text-transform: uppercase;
 }
 
 .titulo-pantalla {
-    font-size: 40px; 
-    font-weight: 900;
-    text-shadow: 
-        0 1px 0 #ccc, 
-        0 2px 0 #c9c9c9, 
-        0 3px 0 #bbb, 
-        0 4px 0 #b9b9b9, 
-        0 5px 0 #aaa, 
-        0 6px 1px rgba(0,0,0,.1), 
-        0 0 5px rgba(0,0,0,.1), 
-        0 1px 3px rgba(0,0,0,.3), 
-        0 3px 5px rgba(0,0,0,.2), 
-        0 5px 10px rgba(0,0,0,.25), 
-        0 10px 10px rgba(0,0,0,.2), 
-        0 20px 20px rgba(0,0,0,.15);
+    font-size: 45px; 
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0px #1a252f, 4px 4px 0px rgba(0,0,0,0.2);
 }
 
-/* 4. BOTONES (Ranchers) */
+/* 5. NAVEGACIÓN LATERAL (SIDEBAR) */
+[data-testid="stSidebar"] {
+    background-color: #1c2833 !important;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Botones del Sidebar como lista de navegación */
+[data-testid="stSidebar"] div.stButton > button {
+    font-family: 'Ranchers', cursive !important;
+    letter-spacing: 1px;
+    height: 55px !important;
+    font-size: 18px !important;
+    margin-bottom: 8px !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    border-radius: 12px !important;
+    background-color: transparent !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    transition: 0.3s;
+}
+
+[data-testid="stSidebar"] div.stButton > button:hover {
+    background-color: rgba(52, 152, 219, 0.15) !important;
+    border-color: #3498db !important;
+    color: #3498db !important;
+    transform: translateX(5px);
+}
+
+/* Botón de Salir específico */
+[data-testid="stSidebar"] div.stButton > button[key="logout"] {
+    margin-top: 40px;
+    font-size: 14px !important;
+    height: 40px !important;
+    border-color: #e74c3c !important;
+    color: #e74c3c !important;
+}
+
+/* 6. BOTONES PRINCIPALES (Derecha) */
 div.stButton > button {
     font-family: 'Ranchers', cursive !important;
     letter-spacing: 1px;
-    min-height: 70px !important; 
-    font-size: 18px !important;
     border-radius: 12px !important; 
-    transition: 0.3s;
     background-color: #34495e; 
     color: white; 
     border: 1px solid #465d75;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-div.stButton > button:hover { 
-    border-color: #3498db; 
-    color: #3498db; 
-}
-
-/* Botón SELECCIONADO (Primary) */
+/* Botón "Primary" (Lanzar, Empezar, etc.) */
 button[data-testid="baseButton-primary"] {
-    background-color: #f1c40f !important; /* Amarillo oro */
+    background-color: #f1c40f !important;
     color: #000 !important;
     border: 2px solid #000 !important;
     box-shadow: 4px 4px 0px #000 !important;
-    transform: translateY(-2px);
 }
 
-/* Botón LANZAR específico */
-div.stButton > button:contains("🚀") {
-    background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
-    color: white !important;
-    font-size: 24px !important;
-}
-
-/* 5. TARJETAS DE RESULTADOS Y MÉTRICAS */
+/* 7. TARJETAS Y MÉTRICAS */
 .metric-card {
     background-color: #34495e;
-    padding: 15px;
-    border-radius: 10px;
+    padding: 20px;
+    border-radius: 15px;
     text-align: center;
     border: 1px solid #465d75;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
-
-.metric-aciertos { border-top: 5px solid #2ecc71; color: #2ecc71; }
-.metric-fallos { border-top: 5px solid #e74c3c; color: #e74c3c; }
-.metric-nota { border-top: 5px solid #3498db; color: #3498db; }
-.metric-netas { border-top: 5px solid #f1c40f; color: #f1c40f; }
-
-.metric-label { font-size: 14px; color: #bdc3c7; margin-bottom: 5px; text-transform: uppercase; }
-.metric-value { font-size: 32px; font-weight: bold; }
 
 [data-testid="stMetricValue"] { 
-    font-size: 30px !important; 
-    color: #3498db !important; 
     font-family: 'Ranchers', cursive !important;
+    font-size: 35px !important; 
+    color: #3498db !important; 
 }
 
-/* 6. OTROS AJUSTES DE DISEÑO */
-[data-testid="stHorizontalBlock"] { 
-    align-items: center !important; 
-}
-
-.espacio-botones {
-    margin-top: 2.5rem !important;
-    margin-bottom: 1rem;
-}
-
-/* Estilo para los inputs de texto */
+/* 8. INPUTS Y SELECTORS */
 .stTextInput input {
     font-family: 'Comic Neue', cursive !important;
-    background-color: #34495e !important;
-    color: white !important;
+    background-color: #1c2833 !important;
     border: 1px solid #465d75 !important;
-    border-radius: 8px !important;
-}
-
-/* Estilo para las pestañas (Tabs) */
-button[data-baseweb="tab"] {
-    font-family: 'Ranchers', cursive !important;
-    font-size: 18px !important;
-    color: #bdc3c7 !important;
-}
-
-button[aria-selected="true"] {
-    color: #f1c40f !important;
-    border-bottom-color: #f1c40f !important;
+    color: white !important;
 }
