@@ -301,7 +301,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
             st.session_state.preguntas_simulacro = []
             cambiar_vista("seleccion_tema")
             st.rerun()
-        return # Salimos para no pintar el resto
+        return
 
     # --- INTERFAZ DEL TEST ---
     preguntas = st.session_state.preguntas_simulacro
