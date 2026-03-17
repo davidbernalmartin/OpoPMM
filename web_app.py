@@ -662,25 +662,45 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.caption("EXPLICACIÓN / BASE LEGAL:")
                 f_exp = st.text_area("##exp", value=str(p.get('explicacion', '')), height=150, label_visibility="collapsed")
 
-            col3, col4 = st.columns(2)
-            with col3:
-                st.caption("OPCIONES DE RESPUESTA:")
-                f_a = st.text_input("A", value=str(p['opcion_a']))
-                f_b = st.text_input("B", value=str(p['opcion_b']))
-                f_c = st.text_input("C", value=str(p['opcion_c']))
-            with col4:
-                st.caption("CONFIGURACIÓN:")
-                f_corr = st.selectbox("Correcta", ["A", "B", "C"], 
-                                     index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0)
-                
-                # Búsqueda segura del índice del tema
-                tema_actual = p.get('tema_nombre', '')
-                try:
-                    idx_tema = nombres_temas.index(tema_actual)
-                except ValueError:
-                    idx_tema = 0
-                
-                f_tema_sel = st.selectbox("Tema", nombres_temas, index=idx_tema)
+            # Fila 2: OPCIONES (Izquierda) y CONFIGURACIÓN (Derecha)
+        col_izq, col_der = st.columns(2)
+        
+        with col_izq:
+            st.markdown('<p class="label-admin">OPCIONES DE RESPUESTA:</p>', unsafe_allow_html=True)
+            
+            # Alineación para A
+            c_label, c_input = st.columns([0.1, 0.9])
+            c_label.markdown('<p style="margin-top:10px; font-weight:bold;">A:</p>', unsafe_allow_html=True)
+            f_a = c_input.text_input("A", value=str(p['opcion_a']), label_visibility="collapsed", key="in_a")
+            
+            # Alineación para B
+            c_label, c_input = st.columns([0.1, 0.9])
+            c_label.markdown('<p style="margin-top:10px; font-weight:bold;">B:</p>', unsafe_allow_html=True)
+            f_b = c_input.text_input("B", value=str(p['opcion_b']), label_visibility="collapsed", key="in_b")
+            
+            # Alineación para C
+            c_label, c_input = st.columns([0.1, 0.9])
+            c_label.markdown('<p style="margin-top:10px; font-weight:bold;">C:</p>', unsafe_allow_html=True)
+            f_c = c_input.text_input("C", value=str(p['opcion_c']), label_visibility="collapsed", key="in_c")
+
+        with col_der:
+            st.markdown('<p class="label-admin">CONFIGURACIÓN:</p>', unsafe_allow_html=True)
+            
+            # Alineación para Correcta
+            c_label, c_input = st.columns([0.3, 0.7])
+            c_label.markdown('<p style="margin-top:10px; font-weight:bold;">Correcta:</p>', unsafe_allow_html=True)
+            f_corr = c_input.selectbox("Correcta", ["A", "B", "C"], 
+                                      index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0,
+                                      label_visibility="collapsed")
+            
+            # Alineación para Tema
+            c_label, c_input = st.columns([0.3, 0.7])
+            c_label.markdown('<p style="margin-top:10px; font-weight:bold;">Tema:</p>', unsafe_allow_html=True)
+            
+            tema_actual = p.get('tema_nombre', '')
+            idx_tema = nombres_temas.index(tema_actual) if tema_actual in nombres_temas else 0
+            
+            f_tema_sel = c_input.selectbox("Tema", nombres_temas, index=idx_tema, label_visibility="collapsed")
 
         # 5. BOTONERA
         st.write("###")
