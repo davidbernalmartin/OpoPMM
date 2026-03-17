@@ -55,7 +55,7 @@ def mostrar_examen(titulo, lista_preguntas):
         </div>
         """
         st.markdown(explicacion_completa, unsafe_allow_html=True)
-        
+        st.write("---")
         c1, c2, c3 = st.columns([1, 2, 1])
         with c1:
             if idx_rev > 0:
