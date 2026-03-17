@@ -7,8 +7,8 @@ import os
 st.set_page_config(page_title="OpoPMM - Tu Plaza es Nuestra", layout="wide")
 
 # Inicializar Supabase (Asegúrate de tener tus secrets configurados)
-url = st.secrets["supabase_url"]
-key = st.secrets["supabase_key"]
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 # Cargar CSS Externo
