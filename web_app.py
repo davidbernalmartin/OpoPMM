@@ -1,6 +1,7 @@
 import streamlit as st
 from supabase import create_client
 import random
+import pandas as pd
 
 def limpiar_estado_examen():
     st.session_state.preguntas_examen = []
