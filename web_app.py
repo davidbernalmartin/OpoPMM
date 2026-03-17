@@ -53,22 +53,31 @@ def mostrar_examen(titulo, lista_preguntas):
                     </div>
                 """, unsafe_allow_html=True)
 
+        # --- SECCIÓN DE EXPLICACIÓN (Corregida para evitar errores de renderizado) ---
         st.write("---")
-        explicacion_html = p.get('explicacion', '<p>No hay explicación detallada para esta pregunta.</p>')
-        explicacion_completa = f"""
-        <div style="background-color: rgba(0, 150, 255, 0.1); 
-                    padding: 20px; 
-                    border-radius: 10px; 
-                    border-left: 5px solid #0891B2;">
-            <p style="margin-top:0; margin-bottom: 10px; font-weight: bold; color: #0891B2; font-size: 1.1rem;">
-                💡 EXPLICACIÓN
-            </p>
-            <div style="font-size: 1rem; line-height: 1.6; color: #e0e0e0; margin-top: 15px;">
-                {explicacion_html}
+        # 1. Recuperamos la explicación
+        exp_raw = p.get('explicacion', '')
+        # 2. Solo dibujamos el cuadro si realmente hay contenido
+        # Comprobamos que no sea None, ni una cadena vacía, ni solo espacios
+        if exp_raw and str(exp_raw).strip():
+            explicacion_completa = f"""
+            <div style="background-color: rgba(0, 150, 255, 0.1); 
+                        padding: 20px; 
+                        border-radius: 10px; 
+                        border-left: 5px solid #0891B2;
+                        margin-bottom: 20px;">
+                <p style="margin-top:0; margin-bottom: 10px; font-weight: bold; color: #0891B2; font-size: 1.1rem;">
+                    💡 EXPLICACIÓN
+                </p>
+                <div style="font-size: 1rem; line-height: 1.6; color: #e0e0e0;">
+                    {exp_raw}
+                </div>
             </div>
-        </div>
-        """
-        st.markdown(explicacion_completa, unsafe_allow_html=True)
+            """
+            st.markdown(explicacion_completa, unsafe_allow_html=True)
+        else:
+            # Si no hay explicación, mostramos un mensaje discreto o nada
+            st.caption("No hay explicación disponible para esta pregunta.")
         st.write("---")
         c1, c2, c3 = st.columns([1, 2, 1])
         with c1:
