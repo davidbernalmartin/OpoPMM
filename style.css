@@ -7,6 +7,35 @@
     color: white; 
 }
 
+/* Contenedor de la tabla tipo "Grid" */
+.tabla-admin {
+    background-color: #1a2432;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Estilo para las etiquetas de los campos */
+.label-admin {
+    color: #3b82f6; /* Azul claro */
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+/* Input y textareas oscuros */
+div[data-baseweb="textarea"] textarea, div[data-baseweb="input"] input {
+    background-color: #0f172a !important;
+    border: 1px solid #334155 !important;
+    color: white !important;
+}
+
+/* Botones con colores de la imagen */
+.stButton > button {
+    border-radius: 5px !important;
+    font-weight: bold !important;
+}
+
 .texto-explicacion-html {
     font-size: 1.05rem;
     line-height: 1.6;
