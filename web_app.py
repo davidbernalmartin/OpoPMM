@@ -429,7 +429,7 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
     
     # --- PASO 1: LOS 3 BOTONES PRINCIPALES ---
     if st.session_state.paso_configuracion == "botones":
-    st.markdown(f'<div class="titulo-pantalla">MODO EXAMEN</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="titulo-pantalla">MODO EXAMEN</div>', unsafe_allow_html=True)
         st.markdown('<div class="contenedor-test">', unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3)
         
