@@ -463,20 +463,24 @@ elif st.session_state.sub_pantalla == "perfil":
 # --- PANTALLA: BIBLIOTECA ---
 elif st.session_state.sub_pantalla == "biblioteca":
     st.markdown('<div class="titulo-pantalla">📚 BIBLIOTECA LEGISLATIVA</div>', unsafe_allow_html=True)
-
-    # 1. CARGA DE DATOS (Ordenados por el campo 'orden')
+    # 1. CARGA DE DATOS
     res = supabase.table("biblioteca").select("*").order("orden").execute()
     df_biblio = pd.DataFrame(res.data)
-
+    # --- NUEVO: BUSCADOR EN TIEMPO REAL ---
+    st.write("### 🔍 Buscar Normativa")
+    busqueda = st.text_input("Introduce el nombre de la ley...", placeholder="Ej: Constitución, Contratos, Procedimiento...", label_visibility="collapsed")
+    # Filtramos el dataframe si hay texto en el buscador
+    if busqueda:
+        df_mostrar = df_biblio[df_biblio['name'].str.contains(busqueda, case=False, na=False)]
+    else:
+        df_mostrar = df_biblio
+    # ---------------------------------------
     # 2. INTERFAZ DE COLUMNAS
     col_tabla, col_gestion = st.columns([0.65, 0.35])
-
     with col_tabla:
-        st.write("### 📜 Normativa Disponible")
-        
-        if not df_biblio.empty:
+        if not df_mostrar.empty:
             event_biblio = st.dataframe(
-                df_biblio,
+                df_mostrar, # Usamos el dataframe filtrado
                 column_order=("orden", "name"),
                 column_config={
                     "orden": st.column_config.NumberColumn("Nº", width=40),
@@ -485,29 +489,25 @@ elif st.session_state.sub_pantalla == "biblioteca":
                 hide_index=True,
                 use_container_width=True,
                 on_select="rerun",
-                selection_mode="single-row"
+                selection_mode="single-row",
+                key="tabla_biblioteca" # Añadimos key para evitar conflictos
             )
-            
             seleccion = event_biblio.selection.rows
         else:
-            st.info("La biblioteca está vacía.")
+            st.info("No se han encontrado leyes que coincidan con tu búsqueda.")
             seleccion = None
-
     with col_gestion:
         # PESTAÑAS: Una para ver/descargar lo seleccionado y otra para añadir
         tab_ver, tab_nuevo = st.tabs(["🔍 Ver Ley", "➕ Añadir Nueva"])
-
         with tab_ver:
             if seleccion:
                 ley_sel = df_biblio.iloc[seleccion[0]]
                 st.success(f"**Seleccionada:**\n{ley_sel['name']}")
-                
                 # Botón de Descarga (Si hay URL)
                 if ley_sel['url_pdf']:
                     st.link_button("📥 DESCARGAR / VER PDF", ley_sel['url_pdf'], use_container_width=True)
                 else:
                     st.warning("No hay URL configurada para este archivo.")
-                
                 st.divider()
                 # Opción de eliminar (opcional, por gestión)
                 if st.button("🗑️ Eliminar Registro", use_container_width=True):
@@ -515,19 +515,15 @@ elif st.session_state.sub_pantalla == "biblioteca":
                     st.rerun()
             else:
                 st.write("Selecciona una ley de la lista para ver opciones.")
-
         with tab_nuevo:
             st.write("### Nuevo Registro")
             with st.form("form_nueva_ley", clear_on_submit=True):
                 nuevo_nombre = st.text_input("Nombre de la Ley")
                 nueva_url = st.text_input("URL del PDF")
-                
                 # Calculamos el siguiente número de orden automáticamente
                 siguiente_orden = int(df_biblio['orden'].max() + 1) if not df_biblio.empty else 1
                 nuevo_orden = st.number_input("Orden", value=siguiente_orden)
-                
                 btn_crear = st.form_submit_button("AÑADIR A BIBLIOTECA", use_container_width=True)
-                
                 if btn_crear and nuevo_nombre:
                     nueva_data = {
                         "name": nuevo_nombre,
@@ -537,14 +533,11 @@ elif st.session_state.sub_pantalla == "biblioteca":
                     supabase.table("biblioteca").insert(nueva_data).execute()
                     st.success("¡Ley añadida!")
                     st.rerun()
-
     if st.button("⬅️ VOLVER AL MENÚ"):
         st.session_state.sub_pantalla = "menu_principal"
         st.rerun()
-
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
-    
     # --- PASO 1: LOS 3 BOTONES PRINCIPALES ---
     if st.session_state.paso_configuracion == "botones":
         st.markdown(f'<div class="titulo-pantalla">MODO EXAMEN</div>', unsafe_allow_html=True)
