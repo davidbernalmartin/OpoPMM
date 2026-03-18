@@ -462,36 +462,85 @@ elif st.session_state.sub_pantalla == "perfil":
 
 # --- PANTALLA: BIBLIOTECA ---
 elif st.session_state.sub_pantalla == "biblioteca":
-    st.markdown(f'<div class="titulo-pantalla">BIBLIOTECA</div>', unsafe_allow_html=True)
-    try:
-        res_b = supabase.table("biblioteca").select("*").order("orden").execute()
-        leyes = res_b.data
-        if leyes:
-            st.write("---")
-            # Cabecera de la lista (opcional)
-            h1, h2 = st.columns([4, 1])
-            h1.caption("NOMBRE DEL TEMA / LEY")
-            h2.caption("ACCIÓN")
-            for ley in leyes:
-                nombre = ley.get('name')
-                url = ley.get('url_pdf')
-                orden = ley.get('orden') or ley.get('id')
-                if nombre and url:
-                    # Contenedor de fila con columnas muy ajustadas
-                    with st.container():
-                        col_txt, col_btn = st.columns([4, 1])
-                        with col_txt:
-                            # Texto principal y secundario en la misma zona
-                            st.markdown(f'<p class="texto-ley">#{orden} - {nombre}</p>', unsafe_allow_html=True)
-                        with col_btn:
-                            # Botón pequeño (Streamlit usa el estilo del CSS arriba)
-                            st.link_button("📥 PDF", url, use_container_width=True)
-                        # Separador casi invisible
-                        st.markdown('<div style="margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05);"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-pantalla">📚 BIBLIOTECA LEGISLATIVA</div>', unsafe_allow_html=True)
+
+    # 1. CARGA DE DATOS (Ordenados por el campo 'orden')
+    res = supabase.table("biblioteca").select("*").order("orden").execute()
+    df_biblio = pd.DataFrame(res.data)
+
+    # 2. INTERFAZ DE COLUMNAS
+    col_tabla, col_gestion = st.columns([0.65, 0.35])
+
+    with col_tabla:
+        st.write("### 📜 Normativa Disponible")
+        
+        if not df_biblio.empty:
+            event_biblio = st.dataframe(
+                df_biblio,
+                column_order=("orden", "name"),
+                column_config={
+                    "orden": st.column_config.NumberColumn("Nº", width=40),
+                    "name": st.column_config.TextColumn("LEY / NORMA", width="large"),
+                },
+                hide_index=True,
+                use_container_width=True,
+                on_select="rerun",
+                selection_mode="single-row"
+            )
+            
+            seleccion = event_biblio.selection.rows
         else:
-            st.info("Biblioteca vacía.")        
-    except Exception as e:
-        st.error(f"Error: {e}")
+            st.info("La biblioteca está vacía.")
+            seleccion = None
+
+    with col_gestion:
+        # PESTAÑAS: Una para ver/descargar lo seleccionado y otra para añadir
+        tab_ver, tab_nuevo = st.tabs(["🔍 Ver Ley", "➕ Añadir Nueva"])
+
+        with tab_ver:
+            if seleccion:
+                ley_sel = df_biblio.iloc[seleccion[0]]
+                st.success(f"**Seleccionada:**\n{ley_sel['name']}")
+                
+                # Botón de Descarga (Si hay URL)
+                if ley_sel['url_pdf']:
+                    st.link_button("📥 DESCARGAR / VER PDF", ley_sel['url_pdf'], use_container_width=True)
+                else:
+                    st.warning("No hay URL configurada para este archivo.")
+                
+                st.divider()
+                # Opción de eliminar (opcional, por gestión)
+                if st.button("🗑️ Eliminar Registro", use_container_width=True):
+                    supabase.table("biblioteca").delete().eq("id", ley_sel['id']).execute()
+                    st.rerun()
+            else:
+                st.write("Selecciona una ley de la lista para ver opciones.")
+
+        with tab_nuevo:
+            st.write("### Nuevo Registro")
+            with st.form("form_nueva_ley", clear_on_submit=True):
+                nuevo_nombre = st.text_input("Nombre de la Ley")
+                nueva_url = st.text_input("URL del PDF")
+                
+                # Calculamos el siguiente número de orden automáticamente
+                siguiente_orden = int(df_biblio['orden'].max() + 1) if not df_biblio.empty else 1
+                nuevo_orden = st.number_input("Orden", value=siguiente_orden)
+                
+                btn_crear = st.form_submit_button("AÑADIR A BIBLIOTECA", use_container_width=True)
+                
+                if btn_crear and nuevo_nombre:
+                    nueva_data = {
+                        "name": nuevo_nombre,
+                        "url_pdf": nueva_url,
+                        "orden": nuevo_orden
+                    }
+                    supabase.table("biblioteca").insert(nueva_data).execute()
+                    st.success("¡Ley añadida!")
+                    st.rerun()
+
+    if st.button("⬅️ VOLVER AL MENÚ"):
+        st.session_state.sub_pantalla = "menu_principal"
+        st.rerun()
 
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
