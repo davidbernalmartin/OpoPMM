@@ -464,64 +464,112 @@ elif st.session_state.sub_pantalla == "perfil":
 elif st.session_state.sub_pantalla == "biblioteca":
     st.markdown('<div class="titulo-pantalla">📚 BIBLIOTECA LEGISLATIVA</div>', unsafe_allow_html=True)
     
-    # 1. CARGA DE DATOS (Se mantiene igual)
-    res = supabase.table("biblioteca").select("*").order("orden").execute()
-    df_biblio = pd.DataFrame(res.data)
+    # 1. CARGA DE DATOS DESDE SUPABASE
+    try:
+        res = supabase.table("biblioteca").select("*").order("orden").execute()
+        df_biblio = pd.DataFrame(res.data)
+    except Exception as e:
+        st.error(f"Error al conectar con la base de datos: {e}")
+        df_biblio = pd.DataFrame() # Creamos uno vacío para que no rompa el código
 
-    # ... (Aquí va tu código del buscador que ya funciona) ...
+    # --- PASO CRÍTICO: Inicialización de df_mostrar ---
+    # Esto evita el NameError. Por defecto, mostrar es igual a lo que hay en la DB.
+    df_mostrar = df_biblio.copy()
 
-    # 2. INTERFAZ DE COLUMNAS
+    # 2. BUSCADOR EN TIEMPO REAL
+    st.write("### 🔍 Buscar Normativa")
+    busqueda = st.text_input(
+        "Introduce el nombre de la ley...", 
+        placeholder="Ej: Constitución, Contratos, Procedimiento...", 
+        label_visibility="collapsed",
+        key="input_buscador_biblio"
+    )
+
+    # Filtrado dinámico
+    if busqueda and not df_biblio.empty:
+        df_mostrar = df_biblio[df_biblio['name'].str.contains(busqueda, case=False, na=False)]
+
+    # 3. INTERFAZ DE COLUMNAS (65% Tabla, 35% Gestión)
     col_tabla, col_gestion = st.columns([0.65, 0.35])
 
     with col_tabla:
-        # ... (Tu código de st.dataframe se mantiene igual) ...
-        # (Asegúrate de capturar la 'seleccion')
         if not df_mostrar.empty:
-            event_biblio = st.dataframe(df_mostrar, ...) 
-            seleccion = event_biblio.selection.rows
+            event_biblio = st.dataframe(
+                df_mostrar,
+                column_order=("orden", "name"),
+                column_config={
+                    "orden": st.column_config.NumberColumn("Nº", width=40),
+                    "name": st.column_config.TextColumn("LEY / NORMA", width="large"),
+                },
+                hide_index=True,
+                use_container_width=True,
+                on_select="rerun",
+                selection_mode="single-row",
+                key="tabla_biblioteca"
+            )
+            
+            # Capturamos la fila seleccionada
+            seleccion_indices = event_biblio.selection.rows
         else:
-            seleccion = None
+            st.info("No se han encontrado leyes que coincidan con tu búsqueda.")
+            seleccion_indices = []
 
     with col_gestion:
-        # --- CAMBIO AQUÍ: Lógica de pestañas según el ROL ---
+        # --- LÓGICA DE GESTIÓN SEGÚN ROL ---
         if st.session_state.user_role == "admin":
-            # Si es ADMIN, ve las dos pestañas
+            # EL ADMIN VE PESTAÑAS
             tab_ver, tab_nuevo = st.tabs(["🔍 Ver Ley", "➕ Añadir Nueva"])
             
             with tab_ver:
-                if seleccion:
-                    ley_sel = df_mostrar.iloc[seleccion[0]]
+                if seleccion_indices:
+                    # Obtenemos la ley seleccionada usando el índice del dataframe filtrado
+                    ley_sel = df_mostrar.iloc[seleccion_indices[0]]
                     st.success(f"**Seleccionada:**\n{ley_sel['name']}")
+                    
                     if ley_sel['url_pdf']:
                         st.link_button("📥 DESCARGAR / VER PDF", ley_sel['url_pdf'], use_container_width=True)
+                    else:
+                        st.warning("No hay URL configurada.")
                     
                     st.divider()
-                    # Botón de eliminar solo para admin dentro de esta pestaña
-                    if st.button("🗑️ Eliminar Registro", use_container_width=True):
+                    if st.button("🗑️ ELIMINAR REGISTRO", use_container_width=True, type="secondary"):
                         supabase.table("biblioteca").delete().eq("id", ley_sel['id']).execute()
+                        st.success("Registro eliminado.")
                         st.rerun()
                 else:
-                    st.info("Selecciona una ley para ver opciones.")
+                    st.write("Selecciona una fila para gestionar.")
 
             with tab_nuevo:
                 st.write("### Nuevo Registro")
-                # ... (Aquí va tu st.form actual para añadir leyes) ...
+                with st.form("form_nueva_ley_biblio", clear_on_submit=True):
+                    nuevo_nombre = st.text_input("Nombre de la Ley")
+                    nueva_url = st.text_input("URL del PDF (Enlace directo)")
+                    siguiente_orden = int(df_biblio['orden'].max() + 1) if not df_biblio.empty else 1
+                    nuevo_orden = st.number_input("Orden", value=siguiente_orden)
+                    
+                    if st.form_submit_button("AÑADIR A BIBLIOTECA", use_container_width=True):
+                        if nuevo_nombre:
+                            nueva_data = {"name": nuevo_nombre, "url_pdf": nueva_url, "orden": nuevo_orden}
+                            supabase.table("biblioteca").insert(nueva_data).execute()
+                            st.rerun()
+                        else:
+                            st.error("El nombre es obligatorio.")
 
         else:
-            # Si es USUARIO REGULAR, solo ve la opción de descargar
-            st.markdown("### 📄 Detalles de la Ley")
-            if seleccion:
-                ley_sel = df_mostrar.iloc[seleccion[0]]
+            # EL USUARIO REGULAR NO VE PESTAÑAS, SOLO EL DETALLE
+            st.markdown("### 📄 Detalles")
+            if seleccion_indices:
+                ley_sel = df_mostrar.iloc[seleccion_indices[0]]
                 st.info(f"**Normativa:**\n{ley_sel['name']}")
                 if ley_sel['url_pdf']:
                     st.link_button("📥 DESCARGAR / VER PDF", ley_sel['url_pdf'], use_container_width=True)
                 else:
-                    st.warning("El PDF no está disponible todavía.")
+                    st.warning("Documento no disponible.")
             else:
-                st.write("Selecciona una ley de la tabla para obtener el enlace de descarga.")
+                st.write("Selecciona una ley de la lista para ver el enlace de descarga.")
 
-    # Botón volver (Se mantiene igual)
-    if st.button("⬅️ VOLVER AL MENÚ"):
+    st.write("---")
+    if st.button("⬅️ VOLVER AL MENÚ", key="btn_volver_biblio"):
         cambiar_vista("menu_principal")
         st.rerun()
         
