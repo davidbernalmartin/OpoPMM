@@ -769,37 +769,49 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             st.session_state.p_seleccionada = df.iloc[event.selection.rows[0]].to_dict()
 
     st.divider()
-    
-    # 2. RENDERIZADO DEL FORMULARIO CON "MODO"
+
+    # --- INYECCIÓN DE CSS DINÁMICO ---
+    # Si estamos en modo creación, forzamos el estilo a nivel global de página
+    if st.session_state.get("modo_creacion_pregunta", False):
+        st.markdown("""
+            <style>
+                /* Forzar bordes cian en todos los inputs de la página actual */
+                input, textarea, div[data-baseweb="select"] {
+                    border: 2px solid #00F2FE !important;
+                    box-shadow: 0 0 12px rgba(0, 242, 254, 0.6) !important;
+                }
+                /* Animación para que sepa que está "vivo" */
+                @keyframes pulse-border {
+                    0% { box-shadow: 0 0 5px rgba(0, 242, 254, 0.4); }
+                    50% { box-shadow: 0 0 15px rgba(0, 242, 254, 0.8); }
+                    100% { box-shadow: 0 0 5px rgba(0, 242, 254, 0.4); }
+                }
+                input, textarea {
+                    animation: pulse-border 2s infinite !important;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+
+    # 2. RENDERIZADO DEL FORMULARIO
     modo_crear = st.session_state.get("modo_creacion_pregunta", False)
     p_edit = st.session_state.get("p_seleccionada")
 
-    # Contenedor especial para aplicar el CSS de "Iluminación"
-    # Si estamos creando, envolvemos el formulario en un div con la clase de CSS
-    container_class = "modo-creacion-container" if modo_crear else ""
+    if modo_crear:
+        st.markdown('<h3 style="color: #00F2FE;">➕ CREANDO NUEVA PREGUNTA</h3>', unsafe_allow_html=True)
+        p_init = {
+            "id": None, "enunciado": "", "explicacion": "", 
+            "opcion_a": "", "opcion_b": "", "opcion_c": "", 
+            "correcta": "A", "tema_id": res_temas.data[0]['id'] if res_temas.data else None
+        }
+        f_vals = renderizar_formulario_edicion(p_init, nombres_temas, nombre_a_id)
     
-    with st.container():
-        # Inyectamos la clase dinámicamente al contenedor
-        st.markdown(f'<div class="{container_class}">', unsafe_allow_html=True)
-        
-        if modo_crear:
-            st.markdown('<div class="header-creacion">➕ CREANDO NUEVA PREGUNTA (Bordes iluminados)</div>', unsafe_allow_html=True)
-            p_init = {
-                "id": None, "enunciado": "", "explicacion": "", 
-                "opcion_a": "", "opcion_b": "", "opcion_c": "", 
-                "correcta": "A", "tema_id": res_temas.data[0]['id'] if res_temas.data else None
-            }
-            f_vals = renderizar_formulario_edicion(p_init, nombres_temas, nombre_a_id)
-        
-        elif p_edit:
-            st.markdown('<div class="header-edicion">📝 EDITANDO PREGUNTA EXISTENTE</div>', unsafe_allow_html=True)
-            f_vals = renderizar_formulario_edicion(p_edit, nombres_temas, nombre_a_id)
-        
-        else:
-            st.info("💡 Selecciona una pregunta o pulsa 'NUEVA'.")
-            f_vals = None
-
-        st.markdown('</div>', unsafe_allow_html=True)
+    elif p_edit:
+        st.markdown('<h3 style="color: #FFA500;">📝 EDITANDO PREGUNTA EXISTENTE</h3>', unsafe_allow_html=True)
+        f_vals = renderizar_formulario_edicion(p_edit, nombres_temas, nombre_a_id)
+    
+    else:
+        st.info("💡 Selecciona una pregunta o pulsa 'NUEVA'.")
+        f_vals = None
 
     # 3. BOTONERA INFERIOR
     st.write("###")
