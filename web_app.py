@@ -281,6 +281,10 @@ if "modo_seleccionado" not in st.session_state:
     st.session_state.modo_seleccionado = None
 if "paso_configuracion" not in st.session_state:
     st.session_state.paso_configuracion = "botones"
+if "preguntas_pendientes" not in st.session_state:
+    st.session_state.preguntas_pendientes = [] # Aquí irán las preguntas del CSV
+if "mostrando_revision" not in st.session_state:
+    st.session_state.mostrando_revision = False
 
 def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
@@ -745,6 +749,88 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
     nombre_a_id = {t['nombre']: t['id'] for t in res_temas.data}
     nombres_temas = sorted(list(nombre_a_id.keys()))
 
+        # --- 1. FASE DE CARGA DEL CSV ---
+    if st.session_state.get("mostrando_importador", False) and not st.session_state.mostrando_revision:
+        st.info("### 📤 PASO 1: CARGAR ARCHIVO")
+        archivo = st.file_uploader("Sube el CSV (Separador ';')", type=["csv"])
+        
+        if archivo:
+            df_temp = pd.read_csv(archivo, sep=";", encoding="utf-8").fillna("")
+            # Convertimos el DataFrame en una lista de diccionarios para manipularlos fácil
+            st.session_state.preguntas_pendientes = df_temp.to_dict('records')
+            st.session_state.mostrando_revision = True
+            st.rerun()
+    
+        if st.button("❌ CANCELAR"):
+            st.session_state.mostrando_importador = False
+            st.rerun()
+    
+    # --- 2. FASE DE REVISIÓN INTERMEDIA ---
+    if st.session_state.get("mostrando_revision", False):
+        st.warning(f"### 🧐 PASO 2: REVISIÓN DE DATOS ({len(st.session_state.preguntas_pendientes)} preguntas)")
+        st.write("Modifica los campos necesarios antes de la subida definitiva.")
+    
+        nuevas_preguntas_validadas = []
+    
+        # Creamos un formulario expansible por cada pregunta del CSV
+        for i, p in enumerate(st.session_state.preguntas_pendientes):
+            with st.expander(f"Pregunta {i+1}: {str(p.get('Enunciado', ''))[:50]}...", expanded=(i==0)):
+                col1, col2 = st.columns([2, 1])
+                
+                with col1:
+                    enun = st.text_area("Enunciado", value=p.get('Enunciado', ''), key=f"enun_{i}")
+                    exp = st.text_area("Explicación / Base Legal", value=p.get('Explicación', ''), key=f"exp_{i}")
+                
+                with col2:
+                    # Mapeo de Tema (Si el del CSV no existe, ponemos el primero)
+                    tema_csv = str(p.get('Tema', '')).strip()
+                    index_tema = nombres_temas.index(tema_csv) if tema_csv in nombres_temas else 0
+                    tema_sel = st.selectbox("Asignar Tema", nombres_temas, index=index_tema, key=f"tema_{i}")
+                    
+                    # Respuesta Correcta
+                    corr_csv = str(p.get('respuesta_correcta', 'A')).strip().upper()
+                    opciones_corr = ["A", "B", "C"]
+                    index_corr = opciones_corr.index(corr_csv) if corr_csv in opciones_corr else 0
+                    corr_sel = st.selectbox("Respuesta Correcta", opciones_corr, index=index_corr, key=f"corr_{i}")
+    
+                # Opciones de respuesta
+                c_a, c_b, c_c = st.columns(3)
+                opt_a = c_a.text_input("Opción A", value=p.get('opcion_a', ''), key=f"a_{i}")
+                opt_b = c_b.text_input("Opción B", value=p.get('opcion_b', ''), key=f"b_{i}")
+                opt_c = c_c.text_input("Opción C", value=p.get('opcion_c', ''), key=f"c_{i}")
+    
+                # Guardamos los datos validados de esta pregunta
+                nuevas_preguntas_validadas.append({
+                    "enunciado": enun,
+                    "opcion_a": opt_a,
+                    "opcion_b": opt_b,
+                    "opcion_c": opt_c,
+                    "correcta": corr_sel.lower(),
+                    "explicacion": exp,
+                    "tema_id": nombre_a_id[tema_sel]
+                })
+    
+        st.divider()
+        
+        # Botones de acción final
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("🚀 SUBIR TODO A LA BASE DE DATOS", type="primary", use_container_width=True):
+                try:
+                    supabase.table("preguntas").insert(nuevas_preguntas_validadas).execute()
+                    st.success(f"¡Éxito! {len(nuevas_preguntas_validadas)} preguntas añadidas.")
+                    st.session_state.preguntas_pendientes = []
+                    st.session_state.mostrando_revision = False
+                    st.session_state.mostrando_importador = False
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error al subir: {e}")
+                    
+        with c2:
+            if st.button("🗑️ DESCARTAR TODO", use_container_width=True):
+                st.session_state.preguntas_pendientes = []
+                st.session_state.mostrando_revision = False
+                st.rerun()
     res_p = supabase.table("preguntas").select("*").order("id", desc=True).execute()
     
     if res_p.data:
