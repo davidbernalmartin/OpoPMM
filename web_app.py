@@ -152,6 +152,7 @@ def limpiar_estado_maestro():
                 st.session_state[key] = "principal"
             else:
                 del st.session_state[key]
+    st.session_state.paso_configuracion = ""
 
 def renderizar_formulario_edicion(p, nombres_temas, nombre_a_id):
     """Función auxiliar para encapsular el formulario de edición"""
