@@ -19,7 +19,7 @@ def limpiar_texto_madrid(texto):
         texto = re.sub(patron, '', texto, flags=re.IGNORECASE)
     return texto
 
-def parsear_examen_policia_madrid(archivo_pdf):
+def parsear_pdf_a_lista(archivo_pdf):
     preguntas_extraidas = []
     texto_total = ""
 
