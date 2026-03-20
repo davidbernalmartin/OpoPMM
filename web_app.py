@@ -739,7 +739,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN</div>', unsafe_allow_html=True)
 
-    # 1. CARGA DE DATOS (Se mantiene igual)
+    # 1. CARGA DE DATOS (Sin cambios en la tabla)
     res_temas = supabase.table("temas").select("id, nombre").execute()
     id_a_nombre = {t['id']: t['nombre'] for t in res_temas.data}
     nombre_a_id = {t['nombre']: t['id'] for t in res_temas.data}
@@ -765,69 +765,89 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         )
 
         if event.selection.rows:
+            st.session_state.modo_creacion_pregunta = False
             st.session_state.p_seleccionada = df.iloc[event.selection.rows[0]].to_dict()
 
     st.divider()
     
-    # 2. RENDERIZADO DEL FORMULARIO (Si hay seleccionada)
-    p = st.session_state.get("p_seleccionada")
-    
-    if p:
-        # Formulario de edición
-        f_enun, f_exp, f_a, f_b, f_c, f_corr, f_tema_sel = renderizar_formulario_edicion(p, nombres_temas, nombre_a_id)
-    else:
-        st.info("💡 Selecciona una pregunta de la tabla superior para editarla o pulsa 'NUEVA' para crear una desde cero.")
+    # 2. RENDERIZADO DEL FORMULARIO CON "MODO"
+    modo_crear = st.session_state.get("modo_creacion_pregunta", False)
+    p_edit = st.session_state.get("p_seleccionada")
 
-    # 3. BOTONERA INFERIOR (Fuera del 'if p' para que los primeros siempre salgan)
+    # Contenedor especial para aplicar el CSS de "Iluminación"
+    # Si estamos creando, envolvemos el formulario en un div con la clase de CSS
+    container_class = "modo-creacion-container" if modo_crear else ""
+    
+    with st.container():
+        # Inyectamos la clase dinámicamente al contenedor
+        st.markdown(f'<div class="{container_class}">', unsafe_allow_html=True)
+        
+        if modo_crear:
+            st.markdown('<div class="header-creacion">➕ CREANDO NUEVA PREGUNTA (Bordes iluminados)</div>', unsafe_allow_html=True)
+            p_init = {
+                "id": None, "enunciado": "", "explicacion": "", 
+                "opcion_a": "", "opcion_b": "", "opcion_c": "", 
+                "correcta": "A", "tema_id": res_temas.data[0]['id'] if res_temas.data else None
+            }
+            f_vals = renderizar_formulario_edicion(p_init, nombres_temas, nombre_a_id)
+        
+        elif p_edit:
+            st.markdown('<div class="header-edicion">📝 EDITANDO PREGUNTA EXISTENTE</div>', unsafe_allow_html=True)
+            f_vals = renderizar_formulario_edicion(p_edit, nombres_temas, nombre_a_id)
+        
+        else:
+            st.info("💡 Selecciona una pregunta o pulsa 'NUEVA'.")
+            f_vals = None
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # 3. BOTONERA INFERIOR
     st.write("###")
     b1, b2, b3, b4, b5 = st.columns(5)
     
     with b1:
-        # Siempre visible
         if st.button("➕ NUEVA", use_container_width=True, key="btn_nueva"):
-            # Para crear una nueva, podemos resetear la seleccionada a un dict vacío con valores por defecto
-            st.session_state.p_seleccionada = {
-                "id": None, "enunciado": "", "explicacion": "", 
-                "opcion_a": "", "opcion_b": "", "opcion_c": "", 
-                "correcta": "a", "tema_id": res_temas.data[0]['id'] if res_temas.data else None
-            }
+            st.session_state.p_seleccionada = None
+            st.session_state.modo_creacion_pregunta = True
             st.rerun()
     
     with b2:
-        # Siempre visible
-        st.button("📄 PDF A CSV", use_container_width=True, key="btn_pdf")
+        st.button("📄 PDF A CSV", use_container_width=True)
     
     with b3:
-        # Siempre visible
-        st.button("📤 IMPORTAR", use_container_width=True, key="btn_import")
+        st.button("📤 IMPORTAR", use_container_width=True)
     
     with b4:
-        # Solo funcional si hay algo seleccionado o se está creando una nueva
-        if p:
-            if st.button("💾 GUARDAR", type="primary", use_container_width=True, key="btn_save"):
+        # Lógica de GUARDAR (Detecta si es Insert o Update)
+        if f_vals:
+            if st.button("💾 GUARDAR", type="primary", use_container_width=True):
+                # Extraemos valores de f_vals (el retorno de tu función de renderizado)
                 upd = {
-                    "enunciado": f_enun, "explicacion": f_exp, 
-                    "opcion_a": f_a, "opcion_b": f_b, "opcion_c": f_c, 
-                    "correcta": f_corr, "tema_id": nombre_a_id[f_tema_sel]
+                    "enunciado": f_vals[0], "explicacion": f_vals[1], 
+                    "opcion_a": f_vals[2], "opcion_b": f_vals[3], 
+                    "opcion_c": f_vals[4], "correcta": f_vals[5], 
+                    "tema_id": nombre_a_id[f_vals[6]]
                 }
-                if p.get('id'): # Si tiene ID, es un UPDATE
-                    supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
-                    st.success("¡Pregunta actualizada!")
-                else: # Si no tiene ID, es un INSERT
-                    supabase.table("preguntas").insert(upd).execute()
-                    st.success("¡Nueva pregunta creada!")
                 
+                if modo_crear:
+                    supabase.table("preguntas").insert(upd).execute()
+                    st.success("¡Pregunta creada!")
+                else:
+                    supabase.table("preguntas").update(upd).eq("id", p_edit['id']).execute()
+                    st.success("¡Cambios guardados!")
+                
+                st.session_state.modo_creacion_pregunta = False
                 st.session_state.p_seleccionada = None
                 st.rerun()
         else:
-            st.button("💾 GUARDAR", type="primary", use_container_width=True, disabled=True, key="btn_save_dis")
+            st.button("💾 GUARDAR", type="primary", use_container_width=True, disabled=True)
     
     with b5:
-        # Solo funcional si hay algo seleccionado
-        if p and p.get('id'):
-            if st.button("🗑️ ELIMINAR", use_container_width=True, key="btn_del"):
-                supabase.table("preguntas").delete().eq("id", p['id']).execute()
+        # Solo eliminar si hay una pregunta real seleccionada
+        if p_edit and not modo_crear:
+            if st.button("🗑️ ELIMINAR", use_container_width=True):
+                supabase.table("preguntas").delete().eq("id", p_edit['id']).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
         else:
-            st.button("🗑️ ELIMINAR", use_container_width=True, disabled=True, key="btn_del_dis")
+            st.button("🗑️ ELIMINAR", use_container_width=True, disabled=True)
