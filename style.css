@@ -7,18 +7,38 @@
     color: white; 
 }
 
-/* Estilo para el Modo Creación de Preguntas */
-.modo-creacion-container input, 
-.modo-creacion-container textarea,
-.modo-creacion-container .stSelectbox div[data-baseweb="select"] {
+/* --- Estilo para el MODO CREACIÓN de Preguntas --- */
+
+/* 1. Iluminar bordes de los inputs de texto normales (opciones A, B, C) */
+.modo-creacion-container div[data-testid="stWidget"] input {
     border: 2px solid #00F2FE !important; /* Cian neón */
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4) !important;
-    transition: all 0.3s ease-in-out;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.4) !important;
+    transition: all 0.2s ease-in-out;
 }
 
-/* Cabeceras dinámicas */
-.header-edicion { color: #FFA500; font-weight: bold; margin-bottom: 10px; }
-.header-creacion { color: #00F2FE; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,242,254,0.5); }
+/* 2. Iluminar bordes de los textareas (Enunciado y Explicación) */
+/* Este selector es el clave para los textareas de Streamlit */
+.modo-creacion-container div[data-testid="stTextArea"] textarea {
+    border: 2px solid #00F2FE !important;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.4) !important;
+    transition: all 0.2s ease-in-out;
+}
+
+/* 3. Iluminar bordes de los selectboxes (Correcta y Tema) */
+.modo-creacion-container div[data-testid="stSelectbox"] > div {
+    border: 2px solid #00F2FE !important;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.4) !important;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Opcional: Estilo para las cabeceras */
+.header-edicion { color: #FFA500; font-weight: bold; margin-bottom: 15px; }
+.header-creacion { 
+    color: #00F2FE; 
+    font-weight: bold; 
+    margin-bottom: 15px; 
+    text-shadow: 0 0 5px rgba(0,242,254,0.5); 
+}
 
 /* Estilo para las etiquetas de los campos */
 .label-admin {
