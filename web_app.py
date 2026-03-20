@@ -830,8 +830,3 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.rerun()
         else:
             st.button("🗑️ ELIMINAR", use_container_width=True, disabled=True, key="btn_del_dis")
-
-    # Botón de salida
-    if st.button("⬅️ VOLVER AL MENÚ"):
-        cambiar_vista("menu_principal")
-        st.rerun()
