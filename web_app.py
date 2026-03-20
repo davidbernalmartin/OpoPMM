@@ -450,6 +450,11 @@ def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
     st.session_state.p_seleccionada = None
 
+def navegar_a(sub):
+    limpiar_estado_maestro()
+    cambiar_vista(sub)
+    st.rerun()
+
 # --- 5. LÓGICA DE NAVEGACIÓN LATERAL (SIDEBAR) ---
 # Solo mostramos el sidebar si el usuario está logueado
 if st.session_state.user:
@@ -467,40 +472,15 @@ if st.session_state.user:
         saludo = f"¡Hola, **{nombre_db}**!" if nombre_db else "¡Hola!"
         st.write(saludo)
         st.divider()
-
-        # 1. Estadísticas / Progreso
-        if st.button("📊 PROGRESO", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("stats")
-            st.rerun()
-
-        # 2. Perfil
-        if st.button("👤 MI PERFIL", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("perfil")
-            st.rerun()
-
-        # 3. Biblioteca de Leyes
-        if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("biblioteca")
-            st.rerun()
-
-        # 4. Exámenes
-        if st.button("📝 REALIZAR TEST", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("seleccion_tema")
-            st.rerun()
-
+        if st.button("📊 PROGRESO", use_container_width=True):navegar_a("stats")
+        if st.button("👤 MI PERFIL", use_container_width=True):navegar_a("perfil")
+        if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):navegar_a("biblioteca")
+        if st.button("📝 REALIZAR TEST", use_container_width=True):navegar_a("seleccion_tema")
         # 5. Gestión Preguntas (Solo ADMIN)
         if st.session_state.user_role == "admin":
             st.write("")
             st.markdown('<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>', unsafe_allow_html=True)
-            if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):
-                limpiar_estado_maestro()
-                cambiar_vista("admin_preguntas")
-                st.rerun()
-
+            if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):navegar_a("admin_preguntas")
         # 6. Cerrar Sesión (al final)
         st.write("###")
         if st.button("🚪 CERRAR SESIÓN", use_container_width=True, key="logout"):
