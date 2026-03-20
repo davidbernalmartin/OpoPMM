@@ -5,28 +5,48 @@ import pandas as pd
 import re
 import pdfplumber
 
+
 def limpiar_estado_maestro():
-    # Definimos qué valor debe tener cada llave al resetear
-    defaults = {
-        "preguntas": [], "preguntas_pendientes": [], "temas_seleccionados": [],
-        "respuestas_usuario": {},
-        "pregunta_actual": 0, "num_preguntas_test": 0,
-        "test_finalizado": False, "test_generado": False,
-    }
-
-    to_remove = {"paso_configuracion", "sub_pantalla"}
+    """
+    Realiza un reseteo integral de la sesión. 
+    Limpia variables de test, configuración, filtros e importación.
+    """
     
-    for key, value in defaults.items():
-        st.session_state[key] = value
-        
-    for key in to_remove:
+    # 2. Definimos todas las variables que deben volver a su estado inicial
+    # He incluido las de configuración de examen que detecté en tu lógica
+    keys_a_limpiar = [
+        "preguntas",               # Lista de preguntas cargadas para el test
+        "respuestas_usuario",      # Diccionario con lo que el usuario va marcando
+        "test_finalizado",         # Estado de fin de examen
+        "pregunta_actual",         # Índice del carrusel de preguntas
+        "preguntas_pendientes",    # Datos temporales del PDF/CSV en revisión
+        "temas_seleccionados",     # Filtro del multiselect de temas
+        "num_preguntas_test",      # El número elegido en el slider/input
+        "error_importacion",       # Posibles mensajes de error guardados
+        "test_generado",           # Flag de control de generación
+        "paso_configuracion"       # Reseteamos la pantalla en la que entramos al pulsar examen
+    ]
+    
+    for key in keys_a_limpiar:
         if key in st.session_state:
-            del st.session_state[key]
+            # Reseteo según el tipo de dato para evitar errores de tipo más adelante
+            if key in ["preguntas", "preguntas_pendientes", "temas_seleccionados"]:
+                st.session_state[key] = []
+            elif key == "respuestas_usuario":
+                st.session_state[key] = {}
+            elif key in ["pregunta_actual", "num_preguntas_test"]:
+                st.session_state[key] = 0
+            elif key in ["test_finalizado", "test_generado"]:
+                st.session_state[key] = False
+            else:
+                del st.session_state[key]
 
-    # Borrar widgets físicos
-    for widget in ["uploader_pdf_modal", "uploader_modal"]:
-        if widget in st.session_state:
-            del st.session_state[widget]
+    # 3. Limpieza de fragmentos de UI (Widgets de archivo)
+    # Esto ayuda a que el uploader no intente 're-subir' el mismo archivo al volver
+    if "uploader_pdf_modal" in st.session_state:
+        del st.session_state["uploader_pdf_modal"]
+    if "uploader_modal" in st.session_state:
+        del st.session_state["uploader_modal"]
 
 def navegar_a(pantalla):
     limpiar_estado_maestro()
