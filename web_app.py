@@ -18,9 +18,6 @@ def convertir_a_csv(lista_preguntas):
     })
     return df_descarga.to_csv(index=False, sep=";").encode('utf-8')
 
-import pdfplumber
-import re
-
 def limpiar_ruido_general(texto):
     """Limpia cabeceras, pies y avisos de 'continúe' de todas las promociones"""
     patrones = [
