@@ -7,6 +7,19 @@
     color: white; 
 }
 
+/* Estilo para el Modo Creación de Preguntas */
+.modo-creacion-container input, 
+.modo-creacion-container textarea,
+.modo-creacion-container .stSelectbox div[data-baseweb="select"] {
+    border: 2px solid #00F2FE !important; /* Cian neón */
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4) !important;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Cabeceras dinámicas */
+.header-edicion { color: #FFA500; font-weight: bold; margin-bottom: 10px; }
+.header-creacion { color: #00F2FE; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,242,254,0.5); }
+
 /* Estilo para las etiquetas de los campos */
 .label-admin {
     color: #3b82f6; /* Azul claro */
