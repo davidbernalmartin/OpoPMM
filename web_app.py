@@ -135,8 +135,6 @@ def limpiar_estado_maestro():
     Realiza un reseteo integral de la sesión. 
     Limpia variables de test, configuración, filtros e importación.
     """
-    # 1. Forzamos la navegación a la raíz de la sección
-    st.session_state.sub_pantalla = "principal"
     
     # 2. Definimos todas las variables que deben volver a su estado inicial
     # He incluido las de configuración de examen que detecté en tu lógica
@@ -149,7 +147,8 @@ def limpiar_estado_maestro():
         "temas_seleccionados",     # Filtro del multiselect de temas
         "num_preguntas_test",      # El número elegido en el slider/input
         "error_importacion",       # Posibles mensajes de error guardados
-        "test_generado"            # Flag de control de generación
+        "test_generado",           # Flag de control de generación
+        "paso_configuracion"       # Reseteamos la pantalla en la que entramos al pulsar examen
     ]
     
     for key in keys_a_limpiar:
