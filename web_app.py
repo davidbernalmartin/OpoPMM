@@ -18,52 +18,78 @@ def convertir_a_csv(lista_preguntas):
     })
     return df_descarga.to_csv(index=False, sep=";").encode('utf-8')
 
-def limpiar_texto_madrid(texto):
-    # Eliminar cabeceras y pies de página específicos de Madrid
-    patrones_basura = [
-        r'FOLICÍA\s+MUNOPAL\s+MADRID', 
-        r'AYUNTAMIENTO\s+DE\s+MADRID',
-        r'POLICIA\s+MUNICIPAL\s+MADRID',
-        r'POL-B\s*-\s*\d+',
-        r'MUNICA\s+B',
-        r'--- PAGE \d+ ---'
+import pdfplumber
+import re
+
+def limpiar_ruido_general(texto):
+    """Limpia cabeceras, pies y avisos de 'continúe' de todas las promociones"""
+    patrones = [
+        r'(?i)POLIC[ÍI]A\s+MUNICIPAL\s+MADRID',
+        r'(?i)AYUNTAMIENTO\s+DE\s+MADRID',
+        r'(?i)CUESTIONARIO\s+[A-Z]',
+        r'(?i)P[ÁA]GINA\s+\d+',
+        r'(?i)POL-B\s*-\s*\d+',
+        r'(?i)Continúe\s+en\s+la\s+siguiente\s+página',
+        r'(?i)Ha\s+finalizado\s+la\s+prueba',
+        r'---\s+PAGE\s+\d+\s+---'
     ]
-    for patron in patrones_basura:
-        texto = re.sub(patron, '', texto, flags=re.IGNORECASE)
+    for p in patrones:
+        texto = re.sub(p, '', texto)
     return texto
 
-def parsear_pdf_a_lista(archivo_pdf):
+def parsear_examen_universal(archivo_pdf):
     preguntas_extraidas = []
     texto_total = ""
 
     with pdfplumber.open(archivo_pdf) as pdf:
         for pagina in pdf.pages:
-            raw_text = pagina.extract_text()
-            if raw_text:
-                texto_total += limpiar_texto_madrid(raw_text) + "\n"
+            raw = pagina.extract_text()
+            if raw:
+                texto_total += limpiar_ruido_general(raw) + "\n"
 
-    # Dividimos por el patrón "Número seguido de punto al inicio de línea"
-    # El lookahead (?=\d+\.) permite separar sin perder el número
-    bloques = re.split(r'\n(?=\d+\.)', texto_total)
+    # 1. Identificar el inicio de cada pregunta (Número + separador)
+    # Buscamos patrones como: "1.-", "1.", "1) " al inicio de línea
+    bloques = re.split(r'\n\s*(?=\d+[\.\-\)\s]+)', texto_total)
 
     for bloque in bloques:
-        # Buscamos enunciado y opciones A, B, C
-        # Usamos re.DOTALL para que el punto acepte saltos de línea intermedios
-        match = re.search(r'(\d+\.)\s*(.*?)\s*A\.\s*(.*?)\s*B\.\s*(.*?)\s*C\.\s*(.*)', bloque, re.DOTALL)
+        if not bloque.strip(): continue
+
+        # 2. Extraer el enunciado: Todo lo que hay desde el inicio hasta la opción A
+        # El regex busca A o a seguida de punto, paréntesis o guion
+        match_enunciado = re.split(r'\n\s*(?=[aA][\.\-\)\s])', bloque, maxsplit=1)
         
-        if match:
-            num, enunciado, op_a, op_b, op_c = match.groups()
+        if len(match_enunciado) >= 2:
+            enunciado_raw = match_enunciado[0]
+            resto = match_enunciado[1]
             
-            # Limpieza final: quitar saltos de línea internos y espacios extra
-            preguntas_extraidas.append({
-                "Enunciado": enunciado.replace('\n', ' ').strip(),
-                "opcion_a": op_a.replace('\n', ' ').strip(),
-                "opcion_b": op_b.replace('\n', ' ').strip(),
-                "opcion_c": op_c.replace('\n', ' ').strip(),
-                "respuesta_correcta": "A", # Valor por defecto para la revisión
-                "Explicación": "",
-                "Tema": ""
-            })
+            # Limpiar el número del enunciado (ej: "1.- ")
+            enunciado = re.sub(r'^\d+[\.\-\)\s]+', '', enunciado_raw).strip()
+
+            # 3. Extraer opciones B y C
+            # Buscamos el separador de B y luego el de C
+            match_b = re.split(r'\n\s*(?=[bB][\.\-\)\s])', resto, maxsplit=1)
+            if len(match_b) >= 2:
+                op_a = match_b[0].strip()
+                match_c = re.split(r'\n\s*(?=[cC][\.\-\)\s])', match_b[1], maxsplit=1)
+                
+                if len(match_c) >= 2:
+                    op_b = match_c[0].strip()
+                    op_c = match_c[1].strip()
+                    
+                    # Limpiar letras sobrantes al inicio de las opciones si quedaran
+                    op_a = re.sub(r'^[aA][\.\-\)\s]+', '', op_a).strip()
+                    op_b = re.sub(r'^[bB][\.\-\)\s]+', '', op_b).strip()
+                    op_c = re.sub(r'^[cC][\.\-\)\s]+', '', op_c).strip()
+
+                    preguntas_extraidas.append({
+                        "Enunciado": enunciado.replace('\n', ' '),
+                        "opcion_a": op_a.replace('\n', ' '),
+                        "opcion_b": op_b.replace('\n', ' '),
+                        "opcion_c": op_c.replace('\n', ' '),
+                        "respuesta_correcta": "A",
+                        "Explicación": "",
+                        "Tema": ""
+                    })
 
     return preguntas_extraidas
     
@@ -75,7 +101,7 @@ def modal_importar_pdf():
     if archivo:
         with st.spinner("Analizando estructura del examen..."):
             try:
-                lista_preguntas = parsear_pdf_a_lista(archivo)
+                lista_preguntas = parsear_examen_universal(archivo)
                 
                 if lista_preguntas:
                     # Inyectamos los datos en la "mochila" de revisión
