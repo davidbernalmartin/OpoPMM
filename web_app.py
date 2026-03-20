@@ -131,28 +131,47 @@ def modal_importar():
             st.error(f"Error: {e}")
 
 def limpiar_estado_maestro():
-    """Limpia todas las variables de estado para evitar conflictos entre secciones"""
-    # Lista de llaves a eliminar o resetear
-    keys_to_reset = [
-        "preguntas", "respuestas_usuario", "test_finalizado", 
-        "pregunta_actual", "preguntas_pendientes", "sub_pantalla",
-        "uploader_pdf_modal", "uploader_modal"
+    """
+    Realiza un reseteo integral de la sesión. 
+    Limpia variables de test, configuración, filtros e importación.
+    """
+    # 1. Forzamos la navegación a la raíz de la sección
+    st.session_state.sub_pantalla = "principal"
+    
+    # 2. Definimos todas las variables que deben volver a su estado inicial
+    # He incluido las de configuración de examen que detecté en tu lógica
+    keys_a_limpiar = [
+        "preguntas",               # Lista de preguntas cargadas para el test
+        "respuestas_usuario",      # Diccionario con lo que el usuario va marcando
+        "test_finalizado",         # Estado de fin de examen
+        "pregunta_actual",         # Índice del carrusel de preguntas
+        "preguntas_pendientes",    # Datos temporales del PDF/CSV en revisión
+        "temas_seleccionados",     # Filtro del multiselect de temas
+        "num_preguntas_test",      # El número elegido en el slider/input
+        "error_importacion",       # Posibles mensajes de error guardados
+        "test_generado"            # Flag de control de generación
     ]
     
-    for key in keys_to_reset:
+    for key in keys_a_limpiar:
         if key in st.session_state:
-            # En lugar de del, reseteamos a valores iniciales para evitar errores de 'KeyError'
-            if key in ["preguntas", "respuestas_usuario", "preguntas_pendientes"]:
+            # Reseteo según el tipo de dato para evitar errores de tipo más adelante
+            if key in ["preguntas", "preguntas_pendientes", "temas_seleccionados"]:
                 st.session_state[key] = []
-            elif key == "test_finalizado":
-                st.session_state[key] = False
-            elif key == "pregunta_actual":
+            elif key == "respuestas_usuario":
+                st.session_state[key] = {}
+            elif key in ["pregunta_actual", "num_preguntas_test"]:
                 st.session_state[key] = 0
-            elif key == "sub_pantalla":
-                st.session_state[key] = "principal"
+            elif key in ["test_finalizado", "test_generado"]:
+                st.session_state[key] = False
             else:
                 del st.session_state[key]
-    st.session_state.paso_configuracion = ""
+
+    # 3. Limpieza de fragmentos de UI (Widgets de archivo)
+    # Esto ayuda a que el uploader no intente 're-subir' el mismo archivo al volver
+    if "uploader_pdf_modal" in st.session_state:
+        del st.session_state["uploader_pdf_modal"]
+    if "uploader_modal" in st.session_state:
+        del st.session_state["uploader_modal"]
 
 def renderizar_formulario_edicion(p, nombres_temas, nombre_a_id):
     """Función auxiliar para encapsular el formulario de edición"""
