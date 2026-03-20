@@ -5,6 +5,19 @@ import pandas as pd
 import re
 import pdfplumber
 
+def convertir_a_csv(lista_preguntas):
+    import io
+    df_descarga = pd.DataFrame(lista_preguntas)
+    df_descarga = df_descarga.rename(columns={
+        "enunciado": "Enunciado",
+        "opcion_a": "opcion_a",
+        "opcion_b": "opcion_b",
+        "opcion_c": "opcion_c",
+        "correcta": "respuesta_correcta",
+        "explicacion": "Explicación"
+    })
+    return df_descarga.to_csv(index=False, sep=";").encode('utf-8')
+
 def limpiar_texto_madrid(texto):
     # Eliminar cabeceras y pies de página específicos de Madrid
     patrones_basura = [
@@ -993,22 +1006,35 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                 "correcta": c_sel.lower(), "explicacion": exp, "tema_id": nom_a_id[t_sel]
             })
 
-    # --- BOTONERA DE ACCIÓN GLOBAL ---
+# --- BOTONERA DE ACCIÓN GLOBAL ---
     st.divider()
-    c_bot1, c_bot2 = st.columns(2)
+    c_bot1, c_bot2, c_bot3 = st.columns(3) # Cambiamos a 3 columnas
     
     with c_bot1:
-        if st.button("❌ CANCELAR TODA LA IMPORTACIÓN", use_container_width=True):
+        if st.button("❌ CANCELAR TODO", use_container_width=True):
             st.session_state.preguntas_pendientes = []
             st.session_state.sub_pantalla = "admin_preguntas"
             st.rerun()
-            
+
     with c_bot2:
-        if st.button("🚀 SUBIR PREGUNTAS FILTRADAS", type="primary", use_container_width=True):
+        # Generamos el contenido del CSV con lo que hay AHORA en pantalla
+        csv_data = convertir_a_csv(preguntas_para_subir)
+        
+        st.download_button(
+            label="💾 GUARDAR PROGRESO (CSV)",
+            data=csv_data,
+            file_name="revision_parcial_examen.csv",
+            mime="text/csv",
+            use_container_width=True,
+            help="Descarga lo que llevas hecho para seguir en otro momento"
+        )
+            
+    with c_bot3:
+        if st.button("🚀 SUBIR A BASE DE DATOS", type="primary", use_container_width=True):
             if preguntas_para_subir:
-                with st.spinner("Insertando en base de datos..."):
+                with st.spinner("Guardando en Supabase..."):
                     supabase.table("preguntas").insert(preguntas_para_subir).execute()
-                    st.success(f"¡Se han importado {len(preguntas_para_subir)} preguntas!")
+                    st.success(f"¡{len(preguntas_para_subir)} preguntas añadidas!")
                     st.session_state.preguntas_pendientes = []
                     st.session_state.sub_pantalla = "admin_preguntas"
                     st.rerun()
