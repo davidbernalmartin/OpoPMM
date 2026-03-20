@@ -734,11 +734,11 @@ elif st.session_state.sub_pantalla == "test_simulacro":
     if st.session_state.preguntas_examen:
         mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
 
-# --- DENTRO DEL ELIF principal ---
+# --- PANTALLA: GESTIÓN DE PREGUNTAS ---
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN</div>', unsafe_allow_html=True)
 
-    # 1. CARGA DE DATOS
+    # 1. CARGA DE DATOS (Se mantiene igual)
     res_temas = supabase.table("temas").select("id, nombre").execute()
     id_a_nombre = {t['id']: t['nombre'] for t in res_temas.data}
     nombre_a_id = {t['nombre']: t['id'] for t in res_temas.data}
@@ -759,57 +759,79 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 "enunciado": st.column_config.TextColumn("Enunciado", width=800),
                 "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
             },
-            hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row"
+            hide_index=True, use_container_width=True, on_select="rerun", selection_mode="single-row",
+            key="tabla_admin_preguntas"
         )
 
         if event.selection.rows:
             st.session_state.p_seleccionada = df.iloc[event.selection.rows[0]].to_dict()
 
-    # 2. RENDERIZADO DEL FORMULARIO
-    p = st.session_state.get("p_seleccionada")
     st.divider()
     
+    # 2. RENDERIZADO DEL FORMULARIO (Si hay seleccionada)
+    p = st.session_state.get("p_seleccionada")
+    
     if p:
-        # Llamada a la función refactorizada
+        # Formulario de edición
         f_enun, f_exp, f_a, f_b, f_c, f_corr, f_tema_sel = renderizar_formulario_edicion(p, nombres_temas, nombre_a_id)
+    else:
+        st.info("💡 Selecciona una pregunta de la tabla superior para editarla o pulsa 'NUEVA' para crear una desde cero.")
 
-        # --- 5. BOTONERA INFERIOR ---
-        st.write("###")
-        b1, b2, b3, b4, b5 = st.columns(5)
-        
-        with b1:
-            if st.button("➕ NUEVA", use_container_width=True, key="btn_nueva"):
-                st.session_state.p_seleccionada = None
-                st.rerun()
-        
-        with b2:
-            st.button("📄 PDF A CSV", use_container_width=True, key="btn_pdf")
-        
-        with b3:
-            st.button("📤 IMPORTAR", use_container_width=True, key="btn_import")
-        
-        with b4:
-            # Este resaltará sobre los demás por ser el principal
+    # 3. BOTONERA INFERIOR (Fuera del 'if p' para que los primeros siempre salgan)
+    st.write("###")
+    b1, b2, b3, b4, b5 = st.columns(5)
+    
+    with b1:
+        # Siempre visible
+        if st.button("➕ NUEVA", use_container_width=True, key="btn_nueva"):
+            # Para crear una nueva, podemos resetear la seleccionada a un dict vacío con valores por defecto
+            st.session_state.p_seleccionada = {
+                "id": None, "enunciado": "", "explicacion": "", 
+                "opcion_a": "", "opcion_b": "", "opcion_c": "", 
+                "correcta": "a", "tema_id": res_temas.data[0]['id'] if res_temas.data else None
+            }
+            st.rerun()
+    
+    with b2:
+        # Siempre visible
+        st.button("📄 PDF A CSV", use_container_width=True, key="btn_pdf")
+    
+    with b3:
+        # Siempre visible
+        st.button("📤 IMPORTAR", use_container_width=True, key="btn_import")
+    
+    with b4:
+        # Solo funcional si hay algo seleccionado o se está creando una nueva
+        if p:
             if st.button("💾 GUARDAR", type="primary", use_container_width=True, key="btn_save"):
                 upd = {
-                    "enunciado": f_enun, 
-                    "explicacion": f_exp, 
-                    "opcion_a": f_a,
-                    "opcion_b": f_b, 
-                    "opcion_c": f_c, 
-                    "correcta": f_corr,
-                    "tema_id": nombre_a_id[f_tema_sel]
+                    "enunciado": f_enun, "explicacion": f_exp, 
+                    "opcion_a": f_a, "opcion_b": f_b, "opcion_c": f_c, 
+                    "correcta": f_corr, "tema_id": nombre_a_id[f_tema_sel]
                 }
-                supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
-                st.session_state.p_seleccionada.update(upd)
-                st.session_state.p_seleccionada['tema_nombre'] = f_tema_sel
-                st.success("¡Pregunta actualizada!")
+                if p.get('id'): # Si tiene ID, es un UPDATE
+                    supabase.table("preguntas").update(upd).eq("id", p['id']).execute()
+                    st.success("¡Pregunta actualizada!")
+                else: # Si no tiene ID, es un INSERT
+                    supabase.table("preguntas").insert(upd).execute()
+                    st.success("¡Nueva pregunta creada!")
+                
+                st.session_state.p_seleccionada = None
                 st.rerun()
-        
-        with b5:
+        else:
+            st.button("💾 GUARDAR", type="primary", use_container_width=True, disabled=True, key="btn_save_dis")
+    
+    with b5:
+        # Solo funcional si hay algo seleccionado
+        if p and p.get('id'):
             if st.button("🗑️ ELIMINAR", use_container_width=True, key="btn_del"):
                 supabase.table("preguntas").delete().eq("id", p['id']).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
-    else:
-        st.info("Selecciona una pregunta para editar.")
+        else:
+            st.button("🗑️ ELIMINAR", use_container_width=True, disabled=True, key="btn_del_dis")
+
+    # Botón de salida
+    if st.button("⬅️ VOLVER AL MENÚ"):
+        cambiar_vista("menu_principal")
+        st.rerun()
