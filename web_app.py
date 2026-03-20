@@ -972,34 +972,42 @@ elif st.session_state.sub_pantalla == "revision_importacion":
     for i, p in enumerate(st.session_state.preguntas_pendientes):
         with st.expander(f"Pregunta {i+1}: {str(p.get('Enunciado'))[:80]}...", expanded=(i == 0)):
             
-            # CABECERA DEL EXPANDER CON BOTÓN DE BORRAR
-            col_tit, col_del = st.columns([0.85, 0.15])
-            with col_del:
-                # Botón individual para descartar esta pregunta concreta
-                if st.button("🗑️ Quitar", key=f"del_import_{i}", use_container_width=True):
+            # --- FILA 1: CUERPO Y CONTROL ---
+            col_izq, col_der = st.columns([2, 1])
+            
+            with col_izq:
+                enun = st.text_area("Enunciado", value=p.get('Enunciado'), key=f"rev_enun_{i}", height=120)
+                exp = st.text_area("Explicación / Base Legal", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
+            
+            with col_der:
+                # Botón de eliminar arriba a la derecha, bien visible
+                if st.button(f"🗑️ ELIMINAR PREGUNTA {i+1}", key=f"btn_del_{i}", use_container_width=True):
                     st.session_state.preguntas_pendientes.pop(i)
                     st.rerun()
-
-            c1, c2 = st.columns([2, 1])
-            with c1:
-                enun = st.text_area("Enunciado", value=p.get('Enunciado'), key=f"rev_enun_{i}", height=100)
-                exp = st.text_area("Explicación", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
-            
-            with c2:
+                
+                st.write("###") # Pequeño espacio
                 t_csv = str(p.get('Tema')).strip()
                 idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
-                t_sel = st.selectbox("Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
+                t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
                 
-                corr_csv = str(p.get('respuesta_correcta')).strip().upper()
+                corr_csv = str(p.get('respuesta_correcta', 'A')).strip().upper()
                 idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
-                c_sel = st.selectbox("Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
+                c_sel = st.selectbox("Opción Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
 
-            st.write("**Opciones:**")
-            ca, cb, cc = st.columns(3)
-            oa = ca.text_input("A", value=p.get('opcion_a'), key=f"rev_a_{i}")
-            ob = cb.text_input("B", value=p.get('opcion_b'), key=f"rev_b_{i}")
-            oc = cc.text_input("C", value=p.get('opcion_c'), key=f"rev_c_{i}")
+            st.divider()
 
+            # --- FILA 2: OPCIONES DE RESPUESTA ---
+            st.write("**Opciones de respuesta:**")
+            
+            # Usamos columnas pequeñas para las etiquetas A, B, C y grandes para el texto
+            # Así quedan alineadas verticalmente y ganamos ancho para el texto
+            for letra, campo in zip(["A", "B", "C"], ["opcion_a", "opcion_b", "opcion_c"]):
+                c_label, c_input = st.columns([0.1, 2.9])
+                with c_label:
+                    st.markdown(f"<h3 style='text-align: center; color: #00F2FE;'>{letra}</h3>", unsafe_allow_html=True)
+                with c_input:
+                    # Usamos text_input para que sea más limpio, o text_area si son muy largas
+                    globals()[f"o{letra.lower()}"] = st.text_input(f"Contenido de la opción {letra}", value=p.get(campo), key=f"rev_{letra.lower()}_{i}",label_visibility="collapsed")
             # Guardamos los cambios realizados en el formulario
             preguntas_para_subir.append({
                 "enunciado": enun, "opcion_a": oa, "opcion_b": ob, "opcion_c": oc,
