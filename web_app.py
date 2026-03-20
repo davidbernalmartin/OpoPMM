@@ -410,6 +410,7 @@ elif st.session_state.sub_pantalla == "menu_principal":
     c1.metric("Nota Media", "7.2", "0.5")
     c2.metric("Test Completados", "24")
     c3.metric("Días para Examen", "124")
+    st.sidebar.write(f"DEBUG: Tu rol es {st.session_state.user_role}") # Línea temporal
 
 # --- PANTALLA: ESTADÍSTICAS ---
 elif st.session_state.sub_pantalla == "stats":
