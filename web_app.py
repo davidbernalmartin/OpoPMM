@@ -284,6 +284,7 @@ if "paso_configuracion" not in st.session_state:
 
 def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
+    st.session_state.p_seleccionada = None
 
 # --- 5. LÓGICA DE NAVEGACIÓN LATERAL (SIDEBAR) ---
 # Solo mostramos el sidebar si el usuario está logueado
