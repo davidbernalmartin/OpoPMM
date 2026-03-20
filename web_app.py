@@ -867,65 +867,75 @@ elif st.session_state.sub_pantalla == "revision_importacion":
     st.markdown('<div class="titulo-pantalla">🧐 REVISIÓN DE PREGUNTAS IMPORTADAS</div>', unsafe_allow_html=True)
     
     if not st.session_state.get("preguntas_pendientes"):
-        st.warning("No hay preguntas para revisar.")
-        if st.button("⬅️ VOLVER"):
+        st.warning("No quedan preguntas para revisar.")
+        if st.button("⬅️ VOLVER AL PANEL"):
             st.session_state.sub_pantalla = "admin_preguntas"
             st.rerun()
         st.stop()
 
-    # Carga de temas para los selectores
+    # Carga de datos maestros para los selectores
     res_t = supabase.table("temas").select("id, nombre").execute()
     nombres_temas = sorted([t['nombre'] for t in res_t.data])
     nom_a_id = {t['nombre']: t['id'] for t in res_t.data}
 
-    st.info(f"Se han detectado **{len(st.session_state.preguntas_pendientes)}** preguntas. Revisa y edita antes de finalizar.")
+    st.info(f"Tienes **{len(st.session_state.preguntas_pendientes)}** preguntas pendientes de importar.")
 
-    preguntas_finales = []
+    preguntas_para_subir = []
     
+    # Usamos una copia de la lista para evitar errores al eliminar elementos durante el bucle
     for i, p in enumerate(st.session_state.preguntas_pendientes):
-        # USAMOS EXPANDER: Solo el primero (i == 0) estará abierto por defecto
         with st.expander(f"Pregunta {i+1}: {str(p.get('Enunciado'))[:80]}...", expanded=(i == 0)):
-            c1, c2 = st.columns([2, 1])
             
+            # CABECERA DEL EXPANDER CON BOTÓN DE BORRAR
+            col_tit, col_del = st.columns([0.85, 0.15])
+            with col_del:
+                # Botón individual para descartar esta pregunta concreta
+                if st.button("🗑️ Quitar", key=f"del_import_{i}", use_container_width=True):
+                    st.session_state.preguntas_pendientes.pop(i)
+                    st.rerun()
+
+            c1, c2 = st.columns([2, 1])
             with c1:
                 enun = st.text_area("Enunciado", value=p.get('Enunciado'), key=f"rev_enun_{i}", height=100)
-                exp = st.text_area("Explicación / Base Legal", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
+                exp = st.text_area("Explicación", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
             
             with c2:
                 t_csv = str(p.get('Tema')).strip()
                 idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
-                t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
+                t_sel = st.selectbox("Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
                 
                 corr_csv = str(p.get('respuesta_correcta')).strip().upper()
                 idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
-                c_sel = st.selectbox("Opción Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
+                c_sel = st.selectbox("Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
 
-            st.write("**Opciones de respuesta:**")
+            st.write("**Opciones:**")
             ca, cb, cc = st.columns(3)
             oa = ca.text_input("A", value=p.get('opcion_a'), key=f"rev_a_{i}")
             ob = cb.text_input("B", value=p.get('opcion_b'), key=f"rev_b_{i}")
             oc = cc.text_input("C", value=p.get('opcion_c'), key=f"rev_c_{i}")
 
-            preguntas_finales.append({
+            # Guardamos los cambios realizados en el formulario
+            preguntas_para_subir.append({
                 "enunciado": enun, "opcion_a": oa, "opcion_b": ob, "opcion_c": oc,
                 "correcta": c_sel.lower(), "explicacion": exp, "tema_id": nom_a_id[t_sel]
             })
 
-    # --- BOTONERA FIJA INFERIOR ---
+    # --- BOTONERA DE ACCIÓN GLOBAL ---
     st.divider()
-    col_fin1, col_fin2 = st.columns([1, 1])
+    c_bot1, c_bot2 = st.columns(2)
     
-    with col_fin1:
-        if st.button("🗑️ DESCARTAR TODO", use_container_width=True):
+    with c_bot1:
+        if st.button("❌ CANCELAR TODA LA IMPORTACIÓN", use_container_width=True):
             st.session_state.preguntas_pendientes = []
             st.session_state.sub_pantalla = "admin_preguntas"
             st.rerun()
             
-    with col_fin2:
-        if st.button("🚀 FINALIZAR E IMPORTAR", type="primary", use_container_width=True):
-            with st.spinner("Subiendo preguntas..."):
-                supabase.table("preguntas").insert(preguntas_finales).execute()
-                st.success("¡Importación completada!")
-                st.session_state.preguntas_pendientes = []
-                st.session_state.sub_pantalla = "admin_preguntas"
-                st.rerun()
+    with c_bot2:
+        if st.button("🚀 SUBIR PREGUNTAS FILTRADAS", type="primary", use_container_width=True):
+            if preguntas_para_subir:
+                with st.spinner("Insertando en base de datos..."):
+                    supabase.table("preguntas").insert(preguntas_para_subir).execute()
+                    st.success(f"¡Se han importado {len(preguntas_para_subir)} preguntas!")
+                    st.session_state.preguntas_pendientes = []
+                    st.session_state.sub_pantalla = "admin_preguntas"
+                    st.rerun()
