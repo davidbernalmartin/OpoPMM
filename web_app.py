@@ -3,6 +3,25 @@ from supabase import create_client
 import random
 import pandas as pd
 
+@st.dialog("Subir archivo de preguntas")
+def modal_importar():
+    st.write("Selecciona un archivo CSV con el formato correcto.")
+    archivo = st.file_uploader("Arrastra tu archivo aquí", type=["csv"], key="uploader_modal")
+    
+    if archivo:
+        try:
+            df_temp = pd.read_csv(
+                archivo, sep=";", encoding="utf-8", header=0, 
+                names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'respuesta_correcta', 'Explicación', 'Tema']
+            ).fillna("")
+            
+            # Guardamos datos y cambiamos pantalla
+            st.session_state.preguntas_pendientes = df_temp.to_dict('records')
+            st.session_state.sub_pantalla = "revision_importacion"
+            st.rerun() # Esto cierra el diálogo y salta de pantalla
+        except Exception as e:
+            st.error(f"Error: {e}")
+
 def limpiar_estado_examen():
     st.session_state.preguntas_examen = []
     st.session_state.indice_pregunta = 0
@@ -819,19 +838,8 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         st.button("📄 PDF A CSV", use_container_width=True, disabled=True)
 
     with b3:
-        # Cargador que dispara el salto a la pantalla de revisión
-        archivo_import = st.file_uploader("Importar CSV", type=["csv"], label_visibility="collapsed", key="uploader_admin")
-        if archivo_import:
-            try:
-                df_temp = pd.read_csv(archivo_import, sep=";", encoding="utf-8", header=0, 
-                                     names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'respuesta_correcta', 'Explicación', 'Tema']).fillna("")
-                st.session_state.preguntas_pendientes = df_temp.to_dict('records')
-                st.session_state.sub_pantalla = "revision_importacion" # Salto de pantalla
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error: {e}")
-        st.button("📤 IMPORTAR", use_container_width=True, disabled=True, help="Selecciona un archivo arriba")
-
+        if st.button("📤 IMPORTAR", use_container_width=True, key="btn_import_trigger"):
+            modal_importar()
     with b4:
         if f_vals:
             if st.button("💾 GUARDAR", type="primary", use_container_width=True):
