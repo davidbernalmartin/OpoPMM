@@ -980,7 +980,6 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                 exp = st.text_area("Explicación / Base Legal", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
             
             with col_der:
-                st.write("###")
                 if st.button(f"🗑️ ELIMINAR PREGUNTA {i+1}", key=f"btn_del_{i}", use_container_width=True):
                     st.session_state.preguntas_pendientes.pop(i)
                     st.rerun()
