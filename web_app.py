@@ -873,19 +873,18 @@ elif st.session_state.sub_pantalla == "revision_importacion":
             st.rerun()
         st.stop()
 
-    # Necesitamos cargar los temas para los selectores de esta pantalla también
+    # Carga de temas para los selectores
     res_t = supabase.table("temas").select("id, nombre").execute()
     nombres_temas = sorted([t['nombre'] for t in res_t.data])
     nom_a_id = {t['nombre']: t['id'] for t in res_t.data}
 
-    st.info(f"Se han detectado **{len(st.session_state.preguntas_pendientes)}** preguntas. Revisa y edita lo que necesites antes de subir.")
+    st.info(f"Se han detectado **{len(st.session_state.preguntas_pendientes)}** preguntas. Revisa y edita antes de finalizar.")
 
-    # Lista de revisión
     preguntas_finales = []
     
     for i, p in enumerate(st.session_state.preguntas_pendientes):
-        with st.container(border=True): # Un contenedor con borde para cada pregunta
-            st.write(f"### Pregunta {i+1}")
+        # USAMOS EXPANDER: Solo el primero (i == 0) estará abierto por defecto
+        with st.expander(f"Pregunta {i+1}: {str(p.get('Enunciado'))[:80]}...", expanded=(i == 0)):
             c1, c2 = st.columns([2, 1])
             
             with c1:
@@ -893,12 +892,10 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                 exp = st.text_area("Explicación / Base Legal", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
             
             with c2:
-                # Tema
                 t_csv = str(p.get('Tema')).strip()
                 idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
                 t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
                 
-                # Correcta
                 corr_csv = str(p.get('respuesta_correcta')).strip().upper()
                 idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
                 c_sel = st.selectbox("Opción Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
@@ -913,27 +910,22 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                 "enunciado": enun, "opcion_a": oa, "opcion_b": ob, "opcion_c": oc,
                 "correcta": c_sel.lower(), "explicacion": exp, "tema_id": nom_a_id[t_sel]
             })
-        st.write("") # Espaciado entre bloques
 
     # --- BOTONERA FIJA INFERIOR ---
     st.divider()
-    col_fin1, col_fin2, col_fin3 = st.columns([1, 1, 1])
+    col_fin1, col_fin2 = st.columns([1, 1])
     
     with col_fin1:
-        if st.button("🗑️ DESCARTAR TODO Y SALIR", use_container_width=True, type="secondary"):
+        if st.button("🗑️ DESCARTAR TODO", use_container_width=True):
             st.session_state.preguntas_pendientes = []
             st.session_state.sub_pantalla = "admin_preguntas"
             st.rerun()
             
     with col_fin2:
-        # Espacio o contador
-        st.write(f"Total: {len(preguntas_finales)} preguntas listas.")
-
-    with col_fin3:
         if st.button("🚀 FINALIZAR E IMPORTAR", type="primary", use_container_width=True):
-            with st.spinner("Subiendo al banco de preguntas..."):
+            with st.spinner("Subiendo preguntas..."):
                 supabase.table("preguntas").insert(preguntas_finales).execute()
-                st.success("¡Importación completada con éxito!")
+                st.success("¡Importación completada!")
                 st.session_state.preguntas_pendientes = []
-                st.session_state.sub_pantalla = "admin_preguntas" # Volvemos atrás
+                st.session_state.sub_pantalla = "admin_preguntas"
                 st.rerun()
