@@ -12,11 +12,16 @@ def limpiar_estado_maestro():
         "respuestas_usuario": {},
         "pregunta_actual": 0, "num_preguntas_test": 0,
         "test_finalizado": False, "test_generado": False,
-        "paso_configuracion": "principal", "sub_pantalla": "principal"
     }
+
+    to_remove = {"paso_configuracion", "sub_pantalla"}
     
     for key, value in defaults.items():
         st.session_state[key] = value
+        
+    for key in to_remove:
+        if key in session_state:
+            del st.session_state[key]
 
     # Borrar widgets físicos
     for widget in ["uploader_pdf_modal", "uploader_modal"]:
