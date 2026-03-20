@@ -2,7 +2,79 @@ import streamlit as st
 from supabase import create_client
 import random
 import pandas as pd
+import re
+import pdfplumber
 
+def limpiar_texto_madrid(texto):
+    # Eliminar cabeceras y pies de página específicos de Madrid
+    patrones_basura = [
+        r'FOLICÍA\s+MUNOPAL\s+MADRID', 
+        r'AYUNTAMIENTO\s+DE\s+MADRID',
+        r'POLICIA\s+MUNICIPAL\s+MADRID',
+        r'POL-B\s*-\s*\d+',
+        r'MUNICA\s+B',
+        r'--- PAGE \d+ ---'
+    ]
+    for patron in patrones_basura:
+        texto = re.sub(patron, '', texto, flags=re.IGNORECASE)
+    return texto
+
+def parsear_examen_policia_madrid(archivo_pdf):
+    preguntas_extraidas = []
+    texto_total = ""
+
+    with pdfplumber.open(archivo_pdf) as pdf:
+        for pagina in pdf.pages:
+            raw_text = pagina.extract_text()
+            if raw_text:
+                texto_total += limpiar_texto_madrid(raw_text) + "\n"
+
+    # Dividimos por el patrón "Número seguido de punto al inicio de línea"
+    # El lookahead (?=\d+\.) permite separar sin perder el número
+    bloques = re.split(r'\n(?=\d+\.)', texto_total)
+
+    for bloque in bloques:
+        # Buscamos enunciado y opciones A, B, C
+        # Usamos re.DOTALL para que el punto acepte saltos de línea intermedios
+        match = re.search(r'(\d+\.)\s*(.*?)\s*A\.\s*(.*?)\s*B\.\s*(.*?)\s*C\.\s*(.*)', bloque, re.DOTALL)
+        
+        if match:
+            num, enunciado, op_a, op_b, op_c = match.groups()
+            
+            # Limpieza final: quitar saltos de línea internos y espacios extra
+            preguntas_extraidas.append({
+                "Enunciado": enunciado.replace('\n', ' ').strip(),
+                "opcion_a": op_a.replace('\n', ' ').strip(),
+                "opcion_b": op_b.replace('\n', ' ').strip(),
+                "opcion_c": op_c.replace('\n', ' ').strip(),
+                "respuesta_correcta": "A", # Valor por defecto para la revisión
+                "Explicación": "",
+                "Tema": ""
+            })
+
+    return preguntas_extraidas
+    
+@st.dialog("Importar desde PDF")
+def modal_importar_pdf():
+    st.write("Sube el archivo PDF del examen. El sistema intentará extraer las preguntas y opciones automáticamente.")
+    archivo = st.file_uploader("Seleccionar PDF", type=["pdf"], key="uploader_pdf_modal")
+    
+    if archivo:
+        with st.spinner("Analizando estructura del examen..."):
+            try:
+                lista_preguntas = parsear_pdf_a_lista(archivo)
+                
+                if lista_preguntas:
+                    # Inyectamos los datos en la "mochila" de revisión
+                    st.session_state.preguntas_pendientes = lista_preguntas
+                    # Saltamos a la pantalla de revisión que ya creamos
+                    st.session_state.sub_pantalla = "revision_importacion"
+                    st.rerun()
+                else:
+                    st.error("No se detectaron preguntas. Asegúrate de que el PDF tenga el formato 1. Enunciado A. B. C.")
+            except Exception as e:
+                st.error(f"Error al procesar el PDF: {e}")
+                
 @st.dialog("Subir archivo de preguntas")
 def modal_importar():
     st.write("Selecciona un archivo CSV con el formato correcto.")
@@ -835,7 +907,8 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             st.rerun()
 
     with b2:
-        st.button("📄 PDF A CSV", use_container_width=True, disabled=True)
+        if st.button("📄 PDF A REVISIÓN", use_container_width=True, key="btn_pdf"):
+            modal_importar_pdf()
 
     with b3:
         if st.button("📤 IMPORTAR", use_container_width=True, key="btn_import_trigger"):
