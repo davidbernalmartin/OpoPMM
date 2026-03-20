@@ -759,27 +759,26 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             
             if archivo:
                 try:
-                    # 1. Leemos el CSV
-                    df_temp = pd.read_csv(archivo, sep=";", encoding="utf-8")
-                    df_temp.columns = [str(c).strip().lower() for c in df_temp.columns]
-                    df_temp = df_temp.fillna("")
-                    column_mapping = {
-                        'enunciado': 'Enunciado',
-                        'opcion_a': 'opcion_a',
-                        'opcion_b': 'opcion_b',
-                        'opcion_c': 'opcion_c',
-                        'respuesta_correcta': 'respuesta_correcta',
-                        'explicación': 'Explicación', # Ojo con la tilde
-                        'explicacion': 'Explicación',  # Por si viene sin tilde
-                        'tema': 'Tema'
-                    }
-                    df_temp = df_temp.rename(columns=column_mapping)
-                    # Guardamos en el estado
+                    # 1. Leemos el CSV ignorando la cabecera (header=0) 
+                    # y forzamos que no use nombres de columnas del archivo
+                    df_temp = pd.read_csv(
+                        archivo, 
+                        sep=";", 
+                        encoding="utf-8", 
+                        header=0, # Ignora la primera fila
+                        names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'respuesta_correcta', 'Explicación', 'Tema']
+                    ).fillna("")
+                    
+                    # 2. Limpieza básica: quitar espacios en blanco sobrantes en los textos
+                    df_temp = df_temp.applymap(lambda x: str(x).strip() if isinstance(x, str) else x)
+    
+                    # 3. Guardamos en el estado para la fase de revisión
                     st.session_state.preguntas_pendientes = df_temp.to_dict('records')
                     st.session_state.mostrando_revision = True
-                    st.rerun()             
+                    st.rerun()
+                    
                 except Exception as e:
-                    st.error(f"Error al leer el archivo: {e}")
+                    st.error(f"Error técnico: {e}. Revisa que el separador sea ';' y que el archivo tenga 7 columnas.")
             
             if st.button("❌ CANCELAR"):
                 st.session_state.mostrando_importador = False
