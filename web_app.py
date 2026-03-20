@@ -483,11 +483,9 @@ if st.session_state.user:
             if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):navegar_a("admin_preguntas")
         # 6. Cerrar Sesión (al final)
         st.write("###")
-        if st.button("🚪 CERRAR SESIÓN", use_container_width=True, key="logout"):
-            limpiar_estado_maestro()
+        if st.button("🚪 CERRAR SESIÓN", use_container_width=True):
             supabase.auth.sign_out()
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
+            st.session_state.clear()
             st.rerun()
 
 # --- 6. PANTALLAS PRINCIPALES ---
