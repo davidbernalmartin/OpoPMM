@@ -759,10 +759,25 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             
             if archivo:
                 try:
-                    df_temp = pd.read_csv(archivo, sep=";", encoding="utf-8").fillna("")
+                    # 1. Leemos el CSV
+                    df_temp = pd.read_csv(archivo, sep=";", encoding="utf-8")
+                    df_temp.columns = [str(c).strip().lower() for c in df_temp.columns]
+                    df_temp = df_temp.fillna("")
+                    column_mapping = {
+                        'enunciado': 'Enunciado',
+                        'opcion_a': 'opcion_a',
+                        'opcion_b': 'opcion_b',
+                        'opcion_c': 'opcion_c',
+                        'respuesta_correcta': 'respuesta_correcta',
+                        'explicación': 'Explicación', # Ojo con la tilde
+                        'explicacion': 'Explicación',  # Por si viene sin tilde
+                        'tema': 'Tema'
+                    }
+                    df_temp = df_temp.rename(columns=column_mapping)
+                    # Guardamos en el estado
                     st.session_state.preguntas_pendientes = df_temp.to_dict('records')
                     st.session_state.mostrando_revision = True
-                    st.rerun()
+                    st.rerun()             
                 except Exception as e:
                     st.error(f"Error al leer el archivo: {e}")
             
