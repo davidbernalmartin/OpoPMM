@@ -3,7 +3,7 @@ from supabase import create_client, Client
 
 # --- CONFIGURACIÓN ---
 URL = st.secrets["SUPABASE_URL"]
-KEY = st.secrets["SUPABASE_KEY"]
+KEY = st.secrets["SUPABASE_SERVICE_KEY"]
 
 supabase: Client = create_client(URL_SUPABASE, KEY_SUPABASE)
 
