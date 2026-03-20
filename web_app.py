@@ -130,14 +130,28 @@ def modal_importar():
         except Exception as e:
             st.error(f"Error: {e}")
 
-def limpiar_estado_examen():
-    st.session_state.preguntas_examen = []
-    st.session_state.indice_pregunta = 0
-    st.session_state.respuestas_usuario = {}
-    st.session_state.examen_finalizado = False
-    st.session_state.paso_configuracion = "botones" # IMPORTANTE: Volver al inicio
-    st.session_state.modo_seleccionado = None
-    st.session_state.temas_seleccionados = []
+def limpiar_estado_maestro():
+    """Limpia todas las variables de estado para evitar conflictos entre secciones"""
+    # Lista de llaves a eliminar o resetear
+    keys_to_reset = [
+        "preguntas", "respuestas_usuario", "test_finalizado", 
+        "pregunta_actual", "preguntas_pendientes", "sub_pantalla",
+        "uploader_pdf_modal", "uploader_modal"
+    ]
+    
+    for key in keys_to_reset:
+        if key in st.session_state:
+            # En lugar de del, reseteamos a valores iniciales para evitar errores de 'KeyError'
+            if key in ["preguntas", "respuestas_usuario", "preguntas_pendientes"]:
+                st.session_state[key] = []
+            elif key == "test_finalizado":
+                st.session_state[key] = False
+            elif key == "pregunta_actual":
+                st.session_state[key] = 0
+            elif key == "sub_pantalla":
+                st.session_state[key] = "principal"
+            else:
+                del st.session_state[key]
 
 def renderizar_formulario_edicion(p, nombres_temas, nombre_a_id):
     """Función auxiliar para encapsular el formulario de edición"""
@@ -320,7 +334,7 @@ def mostrar_examen(titulo, lista_preguntas):
         with col_fin:
             if st.button("🏁 FINALIZAR Y VOLVER", use_container_width=True, type="primary"):
                 st.session_state.ver_revision = False
-                limpiar_estado_examen()
+                limpiar_estado_maestro()
                 st.session_state.sub_pantalla = "seleccion_tema"
                 st.rerun()
 
@@ -437,22 +451,25 @@ if st.session_state.user:
 
         # 1. Estadísticas / Progreso
         if st.button("📊 PROGRESO", use_container_width=True):
+            limpiar_estado_maestro()
             cambiar_vista("stats")
             st.rerun()
 
         # 2. Perfil
         if st.button("👤 MI PERFIL", use_container_width=True):
+            limpiar_estado_maestro()
             cambiar_vista("perfil")
             st.rerun()
 
         # 3. Biblioteca de Leyes
         if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):
+            limpiar_estado_maestro()
             cambiar_vista("biblioteca")
             st.rerun()
 
         # 4. Exámenes
         if st.button("📝 REALIZAR TEST", use_container_width=True):
-            limpiar_estado_examen()
+            limpiar_estado_maestro()
             cambiar_vista("seleccion_tema")
             st.rerun()
 
@@ -461,12 +478,14 @@ if st.session_state.user:
             st.write("")
             st.markdown('<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>', unsafe_allow_html=True)
             if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):
+                limpiar_estado_maestro()
                 cambiar_vista("admin_preguntas")
                 st.rerun()
 
         # 6. Cerrar Sesión (al final)
         st.write("###")
         if st.button("🚪 CERRAR SESIÓN", use_container_width=True, key="logout"):
+            limpiar_estado_maestro()
             supabase.auth.sign_out()
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
@@ -702,6 +721,7 @@ elif st.session_state.sub_pantalla == "biblioteca":
 
     st.write("---")
     if st.button("⬅️ VOLVER AL MENÚ", key="btn_volver_biblio"):
+        limpiar_estado_maestro()
         cambiar_vista("menu_principal")
         st.rerun()
         
@@ -805,7 +825,7 @@ elif st.session_state.sub_pantalla == "test_ingles":
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
             if st.button("Volver al menú"):
-                limpiar_estado_examen()
+                limpiar_estado_maestro()
                 st.rerun()
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
@@ -832,7 +852,7 @@ elif st.session_state.sub_pantalla == "test_por_temas":
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
             if st.button("Volver al menú"):
-                limpiar_estado_examen()
+                limpiar_estado_maestro()
                 st.rerun()
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
@@ -859,7 +879,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
             if st.button("Volver al menú"):
-                limpiar_estado_examen()
+                limpiar_estado_maestro()
                 st.rerun()
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
@@ -978,6 +998,7 @@ elif st.session_state.sub_pantalla == "revision_importacion":
     if not st.session_state.get("preguntas_pendientes"):
         st.warning("No quedan preguntas para revisar.")
         if st.button("⬅️ VOLVER AL PANEL"):
+            limpiar_estado_maestro()
             st.session_state.sub_pantalla = "admin_preguntas"
             st.rerun()
         st.stop()
@@ -1042,6 +1063,7 @@ elif st.session_state.sub_pantalla == "revision_importacion":
     with c_bot1:
         if st.button("❌ CANCELAR TODO", use_container_width=True):
             st.session_state.preguntas_pendientes = []
+            limpiar_estado_maestro()
             st.session_state.sub_pantalla = "admin_preguntas"
             st.rerun()
 
@@ -1065,5 +1087,6 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                     supabase.table("preguntas").insert(preguntas_para_subir).execute()
                     st.success(f"¡{len(preguntas_para_subir)} preguntas añadidas!")
                     st.session_state.preguntas_pendientes = []
+                    limpiar_estado_maestro()
                     st.session_state.sub_pantalla = "admin_preguntas"
                     st.rerun()
