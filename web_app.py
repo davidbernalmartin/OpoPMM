@@ -743,93 +743,13 @@ elif st.session_state.sub_pantalla == "test_simulacro":
 elif st.session_state.sub_pantalla == "admin_preguntas":
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN DE PREGUNTAS</div>', unsafe_allow_html=True)
 
-    # 1. CARGA DE DATOS MAESTROS (Temas)
+    # 1. CARGA DE DATOS MAESTROS
     res_temas = supabase.table("temas").select("id, nombre").execute()
     id_a_nombre = {t['id']: t['nombre'] for t in res_temas.data}
     nombre_a_id = {t['nombre']: t['id'] for t in res_temas.data}
     nombres_temas = sorted(list(nombre_a_id.keys()))
 
-    # --- BLOQUE A: IMPORTADOR Y REVISIÓN ---
-    if st.session_state.get("mostrando_importador", False):
-        if not st.session_state.get("mostrando_revision", False):
-            # PASO 1: Subida de archivo
-            st.info("### 📤 PASO 1: CARGAR ARCHIVO CSV")
-            st.write("Formato: `Enunciado;opcion_a;opcion_b;opcion_c;respuesta_correcta;Explicación;Tema`")
-            archivo = st.file_uploader("Selecciona el CSV", type=["csv"], key="uploader_csv")
-            
-            if archivo:
-                try:
-                    # 1. Leemos el CSV ignorando la cabecera (header=0) 
-                    # y forzamos que no use nombres de columnas del archivo
-                    df_temp = pd.read_csv(
-                        archivo, 
-                        sep=";", 
-                        encoding="utf-8", 
-                        header=0, # Ignora la primera fila
-                        names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'respuesta_correcta', 'Explicación', 'Tema']
-                    ).fillna("")
-                    
-                    # 2. Limpieza básica: quitar espacios en blanco sobrantes en los textos
-                    df_temp = df_temp.applymap(lambda x: str(x).strip() if isinstance(x, str) else x)
-    
-                    # 3. Guardamos en el estado para la fase de revisión
-                    st.session_state.preguntas_pendientes = df_temp.to_dict('records')
-                    st.session_state.mostrando_revision = True
-                    st.rerun()
-                    
-                except Exception as e:
-                    st.error(f"Error técnico: {e}. Revisa que el separador sea ';' y que el archivo tenga 7 columnas.")
-            
-            if st.button("❌ CANCELAR"):
-                st.session_state.mostrando_importador = False
-                st.rerun()
-        else:
-            # PASO 2: Pantalla de Revisión intermedia
-            st.warning(f"### 🧐 PASO 2: REVISIÓN ({len(st.session_state.preguntas_pendientes)} preguntas)")
-            validadas = []
-            for i, p in enumerate(st.session_state.preguntas_pendientes):
-                with st.expander(f"Pregunta {i+1}: {str(p.get('Enunciado', ''))[:60]}...", expanded=(i==0)):
-                    c1, c2 = st.columns([2, 1])
-                    with c1:
-                        enun = st.text_area("Enunciado", value=p.get('Enunciado', ''), key=f"rev_enun_{i}")
-                        exp = st.text_area("Explicación", value=p.get('Explicación', ''), key=f"rev_exp_{i}")
-                    with c2:
-                        t_csv = str(p.get('Tema', '')).strip()
-                        idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
-                        t_sel = st.selectbox("Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
-                        corr_csv = str(p.get('respuesta_correcta', 'A')).strip().upper()
-                        idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
-                        c_sel = st.selectbox("Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
-                    
-                    ca, cb, cc = st.columns(3)
-                    oa = ca.text_input("Opción A", value=p.get('opcion_a', ''), key=f"rev_a_{i}")
-                    ob = cb.text_input("Opción B", value=p.get('opcion_b', ''), key=f"rev_b_{i}")
-                    oc = cc.text_input("Opción C", value=p.get('opcion_c', ''), key=f"rev_c_{i}")
-
-                    validadas.append({
-                        "enunciado": enun, "opcion_a": oa, "opcion_b": ob, "opcion_c": oc,
-                        "correcta": c_sel.lower(), "explicacion": exp, "tema_id": nombre_a_id[t_sel]
-                    })
-
-            col_sub1, col_sub2 = st.columns(2)
-            with col_sub1:
-                if st.button("🚀 SUBIR TODAS A SUPABASE", type="primary", use_container_width=True):
-                    supabase.table("preguntas").insert(validadas).execute()
-                    st.success("¡Importación exitosa!")
-                    st.session_state.preguntas_pendientes = []
-                    st.session_state.mostrando_revision = False
-                    st.session_state.mostrando_importador = False
-                    st.rerun()
-            with col_sub2:
-                if st.button("🗑️ DESCARTAR TODO", use_container_width=True):
-                    st.session_state.preguntas_pendientes = []
-                    st.session_state.mostrando_revision = False
-                    st.rerun()
-        st.stop() # Bloqueamos el resto de la pantalla mientras estamos en el importador
-
-    # --- BLOQUE B: GESTIÓN NORMAL (Tabla y Edición) ---
-    
-    # 1. CSS DINÁMICO (Bordes iluminados para modo creación)
+    # 2. CSS DINÁMICO (Bordes iluminados para modo creación)
     if st.session_state.get("modo_creacion_pregunta", False):
         st.markdown("""
             <style>
@@ -846,7 +766,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             </style>
         """, unsafe_allow_html=True)
 
-    # 2. TABLA DE PREGUNTAS EXISTENTES
+    # 3. TABLA DE PREGUNTAS EXISTENTES
     res_p = supabase.table("preguntas").select("*").order("id", desc=True).execute()
     if res_p.data:
         df_p = pd.DataFrame(res_p.data)
@@ -869,7 +789,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             st.session_state.modo_creacion_pregunta = False
             st.session_state.p_seleccionada = df_p.iloc[event.selection.rows[0]].to_dict()
 
-    # 3. FORMULARIO DE EDICIÓN / CREACIÓN
+    # 4. FORMULARIO DE EDICIÓN / CREACIÓN
     st.divider()
     modo_crear = st.session_state.get("modo_creacion_pregunta", False)
     p_sel = st.session_state.get("p_seleccionada")
@@ -885,7 +805,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         st.info("💡 Selecciona una pregunta o pulsa 'NUEVA'.")
         f_vals = None
 
-    # 4. BOTONERA INFERIOR
+    # 5. BOTONERA INFERIOR
     st.write("###")
     b1, b2, b3, b4, b5 = st.columns(5)
     
@@ -894,12 +814,24 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
             st.session_state.p_seleccionada = None
             st.session_state.modo_creacion_pregunta = True
             st.rerun()
+
     with b2:
         st.button("📄 PDF A CSV", use_container_width=True, disabled=True)
+
     with b3:
-        if st.button("📤 IMPORTAR", use_container_width=True, key="btn_import"):
-            st.session_state.mostrando_importador = True
-            st.rerun()
+        # Cargador que dispara el salto a la pantalla de revisión
+        archivo_import = st.file_uploader("Importar CSV", type=["csv"], label_visibility="collapsed", key="uploader_admin")
+        if archivo_import:
+            try:
+                df_temp = pd.read_csv(archivo_import, sep=";", encoding="utf-8", header=0, 
+                                     names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'respuesta_correcta', 'Explicación', 'Tema']).fillna("")
+                st.session_state.preguntas_pendientes = df_temp.to_dict('records')
+                st.session_state.sub_pantalla = "revision_importacion" # Salto de pantalla
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error: {e}")
+        st.button("📤 IMPORTAR", use_container_width=True, disabled=True, help="Selecciona un archivo arriba")
+
     with b4:
         if f_vals:
             if st.button("💾 GUARDAR", type="primary", use_container_width=True):
@@ -913,6 +845,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.rerun()
         else:
             st.button("💾 GUARDAR", type="primary", use_container_width=True, disabled=True)
+
     with b5:
         if p_sel and not modo_crear:
             if st.button("🗑️ ELIMINAR", use_container_width=True):
@@ -921,3 +854,78 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                 st.rerun()
         else:
             st.button("🗑️ ELIMINAR", use_container_width=True, disabled=True)
+# --- PANTALLA INTERMEDIA: REVISIÓN DE IMPORTACIÓN ---
+elif st.session_state.sub_pantalla == "revision_importacion":
+    st.markdown('<div class="titulo-pantalla">🧐 REVISIÓN DE PREGUNTAS IMPORTADAS</div>', unsafe_allow_html=True)
+    
+    if not st.session_state.get("preguntas_pendientes"):
+        st.warning("No hay preguntas para revisar.")
+        if st.button("⬅️ VOLVER"):
+            st.session_state.sub_pantalla = "admin_preguntas"
+            st.rerun()
+        st.stop()
+
+    # Necesitamos cargar los temas para los selectores de esta pantalla también
+    res_t = supabase.table("temas").select("id, nombre").execute()
+    nombres_temas = sorted([t['nombre'] for t in res_t.data])
+    nom_a_id = {t['nombre']: t['id'] for t in res_t.data}
+
+    st.info(f"Se han detectado **{len(st.session_state.preguntas_pendientes)}** preguntas. Revisa y edita lo que necesites antes de subir.")
+
+    # Lista de revisión
+    preguntas_finales = []
+    
+    for i, p in enumerate(st.session_state.preguntas_pendientes):
+        with st.container(border=True): # Un contenedor con borde para cada pregunta
+            st.write(f"### Pregunta {i+1}")
+            c1, c2 = st.columns([2, 1])
+            
+            with c1:
+                enun = st.text_area("Enunciado", value=p.get('Enunciado'), key=f"rev_enun_{i}", height=100)
+                exp = st.text_area("Explicación / Base Legal", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
+            
+            with c2:
+                # Tema
+                t_csv = str(p.get('Tema')).strip()
+                idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
+                t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
+                
+                # Correcta
+                corr_csv = str(p.get('respuesta_correcta')).strip().upper()
+                idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
+                c_sel = st.selectbox("Opción Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
+
+            st.write("**Opciones de respuesta:**")
+            ca, cb, cc = st.columns(3)
+            oa = ca.text_input("A", value=p.get('opcion_a'), key=f"rev_a_{i}")
+            ob = cb.text_input("B", value=p.get('opcion_b'), key=f"rev_b_{i}")
+            oc = cc.text_input("C", value=p.get('opcion_c'), key=f"rev_c_{i}")
+
+            preguntas_finales.append({
+                "enunciado": enun, "opcion_a": oa, "opcion_b": ob, "opcion_c": oc,
+                "correcta": c_sel.lower(), "explicacion": exp, "tema_id": nom_a_id[t_sel]
+            })
+        st.write("") # Espaciado entre bloques
+
+    # --- BOTONERA FIJA INFERIOR ---
+    st.divider()
+    col_fin1, col_fin2, col_fin3 = st.columns([1, 1, 1])
+    
+    with col_fin1:
+        if st.button("🗑️ DESCARTAR TODO Y SALIR", use_container_width=True, type="secondary"):
+            st.session_state.preguntas_pendientes = []
+            st.session_state.sub_pantalla = "admin_preguntas"
+            st.rerun()
+            
+    with col_fin2:
+        # Espacio o contador
+        st.write(f"Total: {len(preguntas_finales)} preguntas listas.")
+
+    with col_fin3:
+        if st.button("🚀 FINALIZAR E IMPORTAR", type="primary", use_container_width=True):
+            with st.spinner("Subiendo al banco de preguntas..."):
+                supabase.table("preguntas").insert(preguntas_finales).execute()
+                st.success("¡Importación completada con éxito!")
+                st.session_state.preguntas_pendientes = []
+                st.session_state.sub_pantalla = "admin_preguntas" # Volvemos atrás
+                st.rerun()
