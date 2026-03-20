@@ -463,79 +463,68 @@ elif st.session_state.sub_pantalla == "perfil":
 # --- PANTALLA: BIBLIOTECA ---
 elif st.session_state.sub_pantalla == "biblioteca":
     st.markdown('<div class="titulo-pantalla">📚 BIBLIOTECA LEGISLATIVA</div>', unsafe_allow_html=True)
-    # 1. CARGA DE DATOS
+    
+    # 1. CARGA DE DATOS (Se mantiene igual)
     res = supabase.table("biblioteca").select("*").order("orden").execute()
     df_biblio = pd.DataFrame(res.data)
-    # --- NUEVO: BUSCADOR EN TIEMPO REAL ---
-    st.write("### 🔍 Buscar Normativa")
-    busqueda = st.text_input("Introduce el nombre de la ley...", placeholder="Ej: Constitución, Contratos, Procedimiento...", label_visibility="collapsed")
-    # Filtramos el dataframe si hay texto en el buscador
-    if busqueda:
-        df_mostrar = df_biblio[df_biblio['name'].str.contains(busqueda, case=False, na=False)]
-    else:
-        df_mostrar = df_biblio
-    # ---------------------------------------
+
+    # ... (Aquí va tu código del buscador que ya funciona) ...
+
     # 2. INTERFAZ DE COLUMNAS
     col_tabla, col_gestion = st.columns([0.65, 0.35])
+
     with col_tabla:
+        # ... (Tu código de st.dataframe se mantiene igual) ...
+        # (Asegúrate de capturar la 'seleccion')
         if not df_mostrar.empty:
-            event_biblio = st.dataframe(
-                df_mostrar, # Usamos el dataframe filtrado
-                column_order=("orden", "name"),
-                column_config={
-                    "orden": st.column_config.NumberColumn("Nº", width=40),
-                    "name": st.column_config.TextColumn("LEY / NORMA", width="large"),
-                },
-                hide_index=True,
-                use_container_width=True,
-                on_select="rerun",
-                selection_mode="single-row",
-                key="tabla_biblioteca" # Añadimos key para evitar conflictos
-            )
+            event_biblio = st.dataframe(df_mostrar, ...) 
             seleccion = event_biblio.selection.rows
         else:
-            st.info("No se han encontrado leyes que coincidan con tu búsqueda.")
             seleccion = None
+
     with col_gestion:
-        # PESTAÑAS: Una para ver/descargar lo seleccionado y otra para añadir
-        tab_ver, tab_nuevo = st.tabs(["🔍 Ver Ley", "➕ Añadir Nueva"])
-        with tab_ver:
+        # --- CAMBIO AQUÍ: Lógica de pestañas según el ROL ---
+        if st.session_state.user_role == "admin":
+            # Si es ADMIN, ve las dos pestañas
+            tab_ver, tab_nuevo = st.tabs(["🔍 Ver Ley", "➕ Añadir Nueva"])
+            
+            with tab_ver:
+                if seleccion:
+                    ley_sel = df_mostrar.iloc[seleccion[0]]
+                    st.success(f"**Seleccionada:**\n{ley_sel['name']}")
+                    if ley_sel['url_pdf']:
+                        st.link_button("📥 DESCARGAR / VER PDF", ley_sel['url_pdf'], use_container_width=True)
+                    
+                    st.divider()
+                    # Botón de eliminar solo para admin dentro de esta pestaña
+                    if st.button("🗑️ Eliminar Registro", use_container_width=True):
+                        supabase.table("biblioteca").delete().eq("id", ley_sel['id']).execute()
+                        st.rerun()
+                else:
+                    st.info("Selecciona una ley para ver opciones.")
+
+            with tab_nuevo:
+                st.write("### Nuevo Registro")
+                # ... (Aquí va tu st.form actual para añadir leyes) ...
+
+        else:
+            # Si es USUARIO REGULAR, solo ve la opción de descargar
+            st.markdown("### 📄 Detalles de la Ley")
             if seleccion:
-                ley_sel = df_biblio.iloc[seleccion[0]]
-                st.success(f"**Seleccionada:**\n{ley_sel['name']}")
-                # Botón de Descarga (Si hay URL)
+                ley_sel = df_mostrar.iloc[seleccion[0]]
+                st.info(f"**Normativa:**\n{ley_sel['name']}")
                 if ley_sel['url_pdf']:
                     st.link_button("📥 DESCARGAR / VER PDF", ley_sel['url_pdf'], use_container_width=True)
                 else:
-                    st.warning("No hay URL configurada para este archivo.")
-                st.divider()
-                # Opción de eliminar (opcional, por gestión)
-                if st.button("🗑️ Eliminar Registro", use_container_width=True):
-                    supabase.table("biblioteca").delete().eq("id", ley_sel['id']).execute()
-                    st.rerun()
+                    st.warning("El PDF no está disponible todavía.")
             else:
-                st.write("Selecciona una ley de la lista para ver opciones.")
-        with tab_nuevo:
-            st.write("### Nuevo Registro")
-            with st.form("form_nueva_ley", clear_on_submit=True):
-                nuevo_nombre = st.text_input("Nombre de la Ley")
-                nueva_url = st.text_input("URL del PDF")
-                # Calculamos el siguiente número de orden automáticamente
-                siguiente_orden = int(df_biblio['orden'].max() + 1) if not df_biblio.empty else 1
-                nuevo_orden = st.number_input("Orden", value=siguiente_orden)
-                btn_crear = st.form_submit_button("AÑADIR A BIBLIOTECA", use_container_width=True)
-                if btn_crear and nuevo_nombre:
-                    nueva_data = {
-                        "name": nuevo_nombre,
-                        "url_pdf": nueva_url,
-                        "orden": nuevo_orden
-                    }
-                    supabase.table("biblioteca").insert(nueva_data).execute()
-                    st.success("¡Ley añadida!")
-                    st.rerun()
+                st.write("Selecciona una ley de la tabla para obtener el enlace de descarga.")
+
+    # Botón volver (Se mantiene igual)
     if st.button("⬅️ VOLVER AL MENÚ"):
-        st.session_state.sub_pantalla = "menu_principal"
+        cambiar_vista("menu_principal")
         st.rerun()
+        
 # --- PANTALLA: SELECCIÓN DE TEMA (EXÁMENES) ---
 elif st.session_state.sub_pantalla == "seleccion_tema":
     # --- PASO 1: LOS 3 BOTONES PRINCIPALES ---
