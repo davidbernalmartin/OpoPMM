@@ -20,7 +20,7 @@ def limpiar_estado_maestro():
         st.session_state[key] = value
         
     for key in to_remove:
-        if key in session_state:
+        if key in st.session_state:
             del st.session_state[key]
 
     # Borrar widgets físicos
