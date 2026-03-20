@@ -5,6 +5,29 @@ import pandas as pd
 import re
 import pdfplumber
 
+def limpiar_estado_maestro():
+    # Definimos qué valor debe tener cada llave al resetear
+    defaults = {
+        "preguntas": [], "preguntas_pendientes": [], "temas_seleccionados": [],
+        "respuestas_usuario": {},
+        "pregunta_actual": 0, "num_preguntas_test": 0,
+        "test_finalizado": False, "test_generado": False,
+        "paso_configuracion": "principal", "sub_pantalla": "principal"
+    }
+    
+    for key, value in defaults.items():
+        st.session_state[key] = value
+
+    # Borrar widgets físicos
+    for widget in ["uploader_pdf_modal", "uploader_modal"]:
+        if widget in st.session_state:
+            del st.session_state[widget]
+
+def navegar_a(pantalla):
+    limpiar_estado_maestro()
+    st.session_state.pantalla = pantalla
+    st.rerun()
+
 def convertir_a_csv(lista_preguntas):
     import io
     df_descarga = pd.DataFrame(lista_preguntas)
@@ -13,7 +36,7 @@ def convertir_a_csv(lista_preguntas):
         "opcion_a": "opcion_a",
         "opcion_b": "opcion_b",
         "opcion_c": "opcion_c",
-        "correcta": "respuesta_correcta",
+        "correcta": "correcta",
         "explicacion": "Explicación"
     })
     return df_descarga.to_csv(index=False, sep=";").encode('utf-8')
@@ -83,7 +106,7 @@ def parsear_examen_universal(archivo_pdf):
                         "opcion_a": op_a.replace('\n', ' '),
                         "opcion_b": op_b.replace('\n', ' '),
                         "opcion_c": op_c.replace('\n', ' '),
-                        "respuesta_correcta": "A",
+                        "correcta": "A",
                         "Explicación": "",
                         "Tema": ""
                     })
@@ -120,7 +143,7 @@ def modal_importar():
         try:
             df_temp = pd.read_csv(
                 archivo, sep=";", encoding="utf-8", header=0, 
-                names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'respuesta_correcta', 'Explicación', 'Tema']
+                names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'correcta', 'Explicación', 'Tema']
             ).fillna("")
             
             # Guardamos datos y cambiamos pantalla
@@ -129,48 +152,6 @@ def modal_importar():
             st.rerun() # Esto cierra el diálogo y salta de pantalla
         except Exception as e:
             st.error(f"Error: {e}")
-
-def limpiar_estado_maestro():
-    """
-    Realiza un reseteo integral de la sesión. 
-    Limpia variables de test, configuración, filtros e importación.
-    """
-    
-    # 2. Definimos todas las variables que deben volver a su estado inicial
-    # He incluido las de configuración de examen que detecté en tu lógica
-    keys_a_limpiar = [
-        "preguntas",               # Lista de preguntas cargadas para el test
-        "respuestas_usuario",      # Diccionario con lo que el usuario va marcando
-        "test_finalizado",         # Estado de fin de examen
-        "pregunta_actual",         # Índice del carrusel de preguntas
-        "preguntas_pendientes",    # Datos temporales del PDF/CSV en revisión
-        "temas_seleccionados",     # Filtro del multiselect de temas
-        "num_preguntas_test",      # El número elegido en el slider/input
-        "error_importacion",       # Posibles mensajes de error guardados
-        "test_generado",           # Flag de control de generación
-        "paso_configuracion"       # Reseteamos la pantalla en la que entramos al pulsar examen
-    ]
-    
-    for key in keys_a_limpiar:
-        if key in st.session_state:
-            # Reseteo según el tipo de dato para evitar errores de tipo más adelante
-            if key in ["preguntas", "preguntas_pendientes", "temas_seleccionados"]:
-                st.session_state[key] = []
-            elif key == "respuestas_usuario":
-                st.session_state[key] = {}
-            elif key in ["pregunta_actual", "num_preguntas_test"]:
-                st.session_state[key] = 0
-            elif key in ["test_finalizado", "test_generado"]:
-                st.session_state[key] = False
-            else:
-                del st.session_state[key]
-
-    # 3. Limpieza de fragmentos de UI (Widgets de archivo)
-    # Esto ayuda a que el uploader no intente 're-subir' el mismo archivo al volver
-    if "uploader_pdf_modal" in st.session_state:
-        del st.session_state["uploader_pdf_modal"]
-    if "uploader_modal" in st.session_state:
-        del st.session_state["uploader_modal"]
 
 def renderizar_formulario_edicion(p, nombres_temas, nombre_a_id):
     """Función auxiliar para encapsular el formulario de edición"""
@@ -463,43 +444,36 @@ if st.session_state.user:
 
         st.markdown('<p class="titulo-pantalla" style="font-size: 28px; text-align: left;">OpoPMM 🏆</p>', unsafe_allow_html=True)
         
-        # Lógica de saludo: Si hay nombre lo pone, si no, solo Hola
-        saludo = f"¡Hola, **{nombre_db}**!" if nombre_db else "¡Hola!"
+        if st.session_state.user:
+            if "nombre_usuario" not in st.session_state:
+                try:
+                    res = supabase.table("profiles").select("nombre").eq("id", st.session_state.user.id).single().execute()
+                    st.session_state.nombre_usuario = res.data.get("nombre")
+                except:
+                    st.session_state.nombre_usuario = None
+    
+        saludo = f"¡Hola, **{st.session_state.nombre_usuario}**!" if st.session_state.nombre_usuario else "¡Hola!"
         st.write(saludo)
         st.divider()
 
         # 1. Estadísticas / Progreso
         if st.button("📊 PROGRESO", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("stats")
-            st.rerun()
-
+            navegar_a("stats")
         # 2. Perfil
         if st.button("👤 MI PERFIL", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("perfil")
-            st.rerun()
-
+            navegar_a("perfil")
         # 3. Biblioteca de Leyes
         if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("biblioteca")
-            st.rerun()
-
+            navegar_a("biblioteca")
         # 4. Exámenes
         if st.button("📝 REALIZAR TEST", use_container_width=True):
-            limpiar_estado_maestro()
-            cambiar_vista("seleccion_tema")
-            st.rerun()
-
+            navegar_a("seleccion_tema")
         # 5. Gestión Preguntas (Solo ADMIN)
         if st.session_state.user_role == "admin":
             st.write("")
             st.markdown('<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>', unsafe_allow_html=True)
             if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):
-                limpiar_estado_maestro()
-                cambiar_vista("admin_preguntas")
-                st.rerun()
+                navegar_a("admin_preguntas")
 
         # 6. Cerrar Sesión (al final)
         st.write("###")
@@ -1051,7 +1025,7 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                 idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
                 t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
                 
-                corr_csv = str(p.get('respuesta_correcta', 'A')).strip().upper()
+                corr_csv = str(p.get('correcta', 'A')).strip().upper()
                 idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
                 c_sel = st.selectbox("Opción Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
 
