@@ -3,6 +3,9 @@ from supabase import create_client
 import random
 import pandas as pd
 
+
+st.toast(f"Estado actual: {st.session_state.sub_pantalla} | Rol: {st.session_state.get('user_role')}")
+
 def limpiar_estado_examen():
     st.session_state.preguntas_examen = []
     st.session_state.indice_pregunta = 0
