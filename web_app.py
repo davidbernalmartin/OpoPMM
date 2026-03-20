@@ -455,56 +455,6 @@ def navegar_a(sub):
     cambiar_vista(sub)
     st.rerun()
 
-def renderizar_tarjeta_pregunta(i, datos_pregunta, nombres_temas, nom_a_id):
-    """
-    Renderiza una tarjeta de edición de pregunta en 2 columnas.
-    Devuelve el diccionario con los datos actualizados por el usuario.
-    """
-    with st.expander(f"Pregunta {i+1}: {str(datos_pregunta.get('Enunciado', ''))[:60]}...", expanded=(i == 0)):
-        col_izq, col_der = st.columns([2, 1])
-        
-        with col_izq:
-            enun = st.text_area("Enunciado", value=datos_pregunta.get('Enunciado', ''), key=f"enun_{i}", height=100)
-            exp = st.text_area("Explicación / Base Legal", value=datos_pregunta.get('Explicación', ''), key=f"exp_{i}", height=100)
-        
-        with col_der:
-            # Botón para eliminar esta pregunta específica de la lista
-            if st.button(f"🗑️ ELIMINAR", key=f"btn_del_{i}", use_container_width=True):
-                st.session_state.preguntas_pendientes.pop(i)
-                st.rerun()
-            
-            st.write("---")
-            # Selección de Tema
-            t_actual = str(datos_pregunta.get('Tema', '')).strip()
-            idx_t = nombres_temas.index(t_actual) if t_actual in nombres_temas else 0
-            t_sel = st.selectbox("Tema", nombres_temas, index=idx_t, key=f"tema_{i}")
-            
-            # Selección de Respuesta Correcta
-            c_actual = str(datos_pregunta.get('respuesta_correcta', 'A')).strip().upper()
-            idx_c = ["A", "B", "C"].index(c_actual) if c_actual in ["A", "B", "C"] else 0
-            c_sel = st.selectbox("Correcta", ["A", "B", "C"], index=idx_c, key=f"corr_{i}")
-
-        st.divider()
-        st.write("**Opciones de respuesta:**")
-        
-        # Opciones A, B, C en formato compacto
-        opciones_finales = []
-        for letra, campo in zip(["A", "B", "C"], ["opcion_a", "opcion_b", "opcion_c"]):
-            c_letra, c_input = st.columns([0.1, 2.9])
-            c_letra.markdown(f"<h3 style='text-align:center; color:#00F2FE;'>{letra}</h3>", unsafe_allow_html=True)
-            valor = c_input.text_input(f"Opción {letra}", value=datos_pregunta.get(campo, ''), key=f"op_{letra.lower()}_{i}", label_visibility="collapsed")
-            opciones_finales.append(valor)
-        
-        # Devolvemos el objeto formateado para Supabase
-        return {
-            "enunciado": enun,
-            "opcion_a": opciones_finales[0],
-            "opcion_b": opciones_finales[1],
-            "opcion_c": opciones_finales[2],
-            "correcta": c_sel.lower(),
-            "explicacion": exp,
-            "tema_id": nom_a_id[t_sel]
-        }
 
 # --- 5. LÓGICA DE NAVEGACIÓN LATERAL (SIDEBAR) ---
 # Solo mostramos el sidebar si el usuario está logueado
@@ -1040,38 +990,105 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         else:
             st.button("🗑️ ELIMINAR", use_container_width=True, disabled=True)
 
-elif st.session_state.paso_configuracion == "revision_importacion":
-    st.markdown(f"### 📝 Revisando {len(st.session_state.preguntas_pendientes)} preguntas")
+# --- PANTALLA INTERMEDIA: REVISIÓN DE IMPORTACIÓN ---
+elif st.session_state.sub_pantalla == "revision_importacion":
+    st.markdown('<div class="titulo-pantalla">🧐 REVISIÓN DE PREGUNTAS IMPORTADAS</div>', unsafe_allow_html=True)
     
-    # 1. Obtenemos temas una sola vez
+    if not st.session_state.get("preguntas_pendientes"):
+        st.warning("No quedan preguntas para revisar.")
+        if st.button("⬅️ VOLVER AL PANEL"):
+            limpiar_estado_maestro()
+            st.session_state.sub_pantalla = "admin_preguntas"
+            st.rerun()
+        st.stop()
+
+    # Carga de datos maestros para los selectores
     res_t = supabase.table("temas").select("id, nombre").execute()
-    nombres_temas = [t['nombre'] for t in res_t.data]
+    nombres_temas = sorted([t['nombre'] for t in res_t.data])
     nom_a_id = {t['nombre']: t['id'] for t in res_t.data}
+
+    st.info(f"Tienes **{len(st.session_state.preguntas_pendientes)}** preguntas pendientes de importar.")
+
+    preguntas_para_subir = []
     
-    # 2. Renderizamos las tarjetas y recogemos los datos actualizados
-    preguntas_listas_para_subir = []
+    # Usamos una copia de la lista para evitar errores al eliminar elementos durante el bucle
     for i, p in enumerate(st.session_state.preguntas_pendientes):
-        datos_editados = renderizar_tarjeta_pregunta(i, p, nombres_temas, nom_a_id)
-        preguntas_listas_para_subir.append(datos_editados)
-        
-    # 3. Botonera Global (La que ya tenías)
+        with st.expander(f"Pregunta {i+1}: {str(p.get('Enunciado'))[:80]}...", expanded=(i == 0)):
+            
+            # --- FILA 1: CUERPO Y CONTROL ---
+            col_izq, col_der = st.columns([2, 1])
+            
+            with col_izq:
+                enun = st.text_area("Enunciado", value=p.get('Enunciado'), key=f"rev_enun_{i}", height=120)
+                exp = st.text_area("Explicación / Base Legal", value=p.get('Explicación'), key=f"rev_exp_{i}", height=100)
+            
+            with col_der:
+                if st.button(f"🗑️ ELIMINAR PREGUNTA {i+1}", key=f"btn_del_{i}", use_container_width=True):
+                    st.session_state.preguntas_pendientes.pop(i)
+                    st.rerun()
+                
+                t_csv = str(p.get('Tema')).strip()
+                idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
+                t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
+                
+                corr_csv = str(p.get('respuesta_correcta', 'A')).strip().upper()
+                idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
+                c_sel = st.selectbox("Opción Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
+
+            st.divider()
+
+            # --- FILA 2: OPCIONES DE RESPUESTA ---
+            st.write("**Opciones de respuesta:**")
+            
+            # Usamos columnas pequeñas para las etiquetas A, B, C y grandes para el texto
+            # Así quedan alineadas verticalmente y ganamos ancho para el texto
+            for letra, campo in zip(["A", "B", "C"], ["opcion_a", "opcion_b", "opcion_c"]):
+                c_label, c_input = st.columns([0.1, 2.9])
+                with c_label:
+                    st.markdown(f"<p style=margin-top:10px; font-weight:bold;'>{letra}</p>", unsafe_allow_html=True)
+                with c_input:
+                    # Usamos text_input para que sea más limpio, o text_area si son muy largas
+                    globals()[f"o{letra.lower()}"] = st.text_input(f"Contenido de la opción {letra}", value=p.get(campo), key=f"rev_{letra.lower()}_{i}",label_visibility="collapsed")
+            # Guardamos los cambios realizados en el formulario
+            preguntas_para_subir.append({
+                "enunciado": enun, "opcion_a": oa, "opcion_b": ob, "opcion_c": oc,
+                "correcta": c_sel.lower(), "explicacion": exp, "tema_id": nom_a_id[t_sel]
+            })
+
+# --- BOTONERA DE ACCIÓN GLOBAL ---
     st.divider()
-    col_can, col_csv, col_subir = st.columns(3)
+    c_bot1, c_bot2, c_bot3 = st.columns(3) # Cambiamos a 3 columnas
     
-    with col_can:
+    with c_bot1:
         if st.button("❌ CANCELAR TODO", use_container_width=True):
             st.session_state.preguntas_pendientes = []
-            st.session_state.paso_configuracion = "principal"
+            limpiar_estado_maestro()
+            st.session_state.sub_pantalla = "admin_preguntas"
             st.rerun()
-            
-    with col_csv:
-        csv_data = convertir_a_csv(preguntas_listas_para_subir)
-        st.download_button("💾 GUARDAR CSV", csv_data, "revision.csv", "text/csv", use_container_width=True)
+
+    with c_bot2:
+        # Generamos el contenido del CSV con lo que hay AHORA en pantalla
+        csv_data = convertir_a_csv(preguntas_para_subir)
         
-    with col_subir:
+        st.download_button(
+            label="💾 GUARDAR PROGRESO (CSV)",
+            data=csv_data,
+            file_name="revision_parcial_examen.csv",
+            mime="text/csv",
+            use_container_width=True,
+            help="Descarga lo que llevas hecho para seguir en otro momento"
+        )
+            
+    with c_bot3:
         if st.button("🚀 SUBIR A BASE DE DATOS", type="primary", use_container_width=True):
-            supabase.table("preguntas").insert(preguntas_listas_para_subir).execute()
-            st.success("¡Preguntas guardadas!")
-            st.session_state.preguntas_pendientes = []
+            if preguntas_para_subir:
+                with st.spinner("Guardando en Supabase..."):
+                    supabase.table("preguntas").insert(preguntas_para_subir).execute()
+                    st.success(f"¡{len(preguntas_para_subir)} preguntas añadidas!")
+                    st.session_state.preguntas_pendientes = []
+                    limpiar_estado_maestro()
+                    st.session_state.sub_pantalla = "admin_preguntas"
+                    st.rerun()
+
             st.session_state.paso_configuracion = "principal"
             st.rerun()
