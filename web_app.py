@@ -1002,7 +1002,7 @@ elif st.session_state.sub_pantalla == "revision_importacion":
             for letra, campo in zip(["A", "B", "C"], ["opcion_a", "opcion_b", "opcion_c"]):
                 c_label, c_input = st.columns([0.1, 2.9])
                 with c_label:
-                    st.markdown(f"<p style='text-align: center; color: #00F2FE;'>{letra}</p>", unsafe_allow_html=True)
+                    st.markdown(f"<p style=margin-top:10px; font-weight:bold;'>{letra}</p>", unsafe_allow_html=True)
                 with c_input:
                     # Usamos text_input para que sea más limpio, o text_area si son muy largas
                     globals()[f"o{letra.lower()}"] = st.text_input(f"Contenido de la opción {letra}", value=p.get(campo), key=f"rev_{letra.lower()}_{i}",label_visibility="collapsed")
