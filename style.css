@@ -7,58 +7,6 @@
     color: white; 
 }
 
-/* --- Estilo para el MODO CREACIÓN de Preguntas --- */
-
-/* 1. Iluminar bordes de los inputs de texto normales (opciones A, B, C) */
-.modo-creacion-container div[data-testid="stWidget"] input {
-    border: 2px solid #00F2FE !important; /* Cian neón */
-    box-shadow: 0 0 10px rgba(0, 242, 254, 0.4) !important;
-    transition: all 0.2s ease-in-out;
-}
-
-/* 2. Iluminar bordes de los textareas (Enunciado y Explicación) */
-/* Este selector es el clave para los textareas de Streamlit */
-.modo-creacion-container div[data-testid="stTextArea"] textarea {
-    border: 2px solid #00F2FE !important;
-    box-shadow: 0 0 10px rgba(0, 242, 254, 0.4) !important;
-    transition: all 0.2s ease-in-out;
-}
-
-/* 3. Iluminar bordes de los selectboxes (Correcta y Tema) */
-.modo-creacion-container div[data-testid="stSelectbox"] > div {
-    border: 2px solid #00F2FE !important;
-    box-shadow: 0 0 10px rgba(0, 242, 254, 0.4) !important;
-    transition: all 0.2s ease-in-out;
-}
-
-/* Opcional: Estilo para las cabeceras */
-.header-edicion { color: #FFA500; font-weight: bold; margin-bottom: 15px; }
-.header-creacion { 
-    color: #00F2FE; 
-    font-weight: bold; 
-    margin-bottom: 15px; 
-    text-shadow: 0 0 5px rgba(0,242,254,0.5); 
-}
-
-/* Estilo para las etiquetas de los campos */
-.label-admin {
-    color: #3b82f6; /* Azul claro */
-    font-size: 0.8rem;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-}
-
-.texto-explicacion-html {
-    font-size: 1.05rem;
-    line-height: 1.6;
-    color: #e0e0e0; /* Ajusta según si usas modo oscuro o claro */
-    padding: 0 10px;
-}
-
-.texto-explicacion-html b, .texto-explicacion-html strong {
-    color: #0891B2; /* Las negritas dentro de la explicación resaltarán en cian */
-}
-
 /* 3. TÍTULOS (Aquí sí aplicamos Ranchers porque son clases nuestras) */
 .titulo-pantalla {
     font-family: 'Ranchers', cursive !important;
