@@ -823,8 +823,7 @@ elif st.session_state.sub_pantalla == "test_ingles":
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
             if st.button("Volver al menú"):
-                limpiar_estado_maestro()
-                st.rerun()
+                navegar_a("botones")
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
@@ -850,8 +849,7 @@ elif st.session_state.sub_pantalla == "test_por_temas":
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
             if st.button("Volver al menú"):
-                limpiar_estado_maestro()
-                st.rerun()
+                navegar_a("botones")
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
@@ -877,8 +875,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
             if st.button("Volver al menú"):
-                limpiar_estado_maestro()
-                st.rerun()
+                navegar_a("botones")
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
