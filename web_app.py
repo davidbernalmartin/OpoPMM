@@ -213,7 +213,7 @@ def renderizar_formulario_edicion(p, nombres_temas, nombre_a_id):
             c_labCorr.markdown('<p style="margin-top:10px; font-weight:bold;">Correcta:</p>', unsafe_allow_html=True)
             f_corr = c_inpCorr.selectbox("Corr", ["A", "B", "C"], 
                                       index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0,
-                                      label_visibility="collapsed", key=f"corr_{p['id']}")
+                                      label_visibility="collapsed", key=f"corr_{p['id']}").lower()
             
             # Tema
             c_labTema, c_inpTema = st.columns([0.2, 0.8])
