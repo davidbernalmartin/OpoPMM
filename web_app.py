@@ -211,9 +211,20 @@ def renderizar_formulario_edicion(p, nombres_temas, nombre_a_id):
             # Correcta
             c_labCorr, c_inpCorr = st.columns([0.2, 0.8])
             c_labCorr.markdown('<p style="margin-top:10px; font-weight:bold;">Correcta:</p>', unsafe_allow_html=True)
-            f_corr = c_inpCorr.selectbox("Corr", ["A", "B", "C"], 
-                                      index=["A", "B", "C"].index(p['correcta']) if p['correcta'] in ["A","B","C"] else 0,
-                                      label_visibility="collapsed", key=f"corr_{p['id']}").lower()
+            
+            # Normalizamos el valor que viene de la DB a minúscula
+            val_correcta_db = str(p.get('correcta', 'a')).lower().strip()
+            opciones = ["a", "b", "c"]
+            idx_corr = opciones.index(val_correcta_db) if val_correcta_db in opciones else 0
+        
+            f_corr = c_inpCorr.selectbox(
+                "Corr", 
+                opciones, 
+                index=idx_corr,
+                format_func=lambda x: x.upper(), # El usuario ve A, B, C pero el código maneja a, b, c
+                label_visibility="collapsed", 
+                key=f"corr_{p['id']}"
+            )
             
             # Tema
             c_labTema, c_inpTema = st.columns([0.2, 0.8])
@@ -968,40 +979,37 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
         if f_vals:
             if st.button("💾 GUARDAR", type="primary", use_container_width=True):
                 try:
-                    # Extraemos el nombre del tema del formulario (asumiendo que es el último elemento)
-                    nombre_tema_seleccionado = f_vals[6]
-                    id_tema_final = nombre_a_id.get(nombre_tema_seleccionado)
+                    # 1. Obtener ID del tema
+                    nombre_tema_sel = f_vals[6]
+                    id_tema_final = nombre_a_id.get(nombre_tema_sel)
 
                     if not id_tema_final:
-                        st.error("❌ El tema seleccionado no es válido.")
+                        st.error("❌ Tema no válido")
                     else:
-                        # Construimos el diccionario con nombres exactos de tu DB
+                        # 2. Construir el objeto exactamente como pide la tabla 'preguntas'
                         upd = {
                             "enunciado": str(f_vals[0]).strip(),
                             "explicacion": str(f_vals[1]).strip(),
                             "opcion_a": str(f_vals[2]).strip(),
                             "opcion_b": str(f_vals[3]).strip(),
                             "opcion_c": str(f_vals[4]).strip(),
-                            "correcta": str(f_vals[5]).lower().strip(),
+                            "correcta": str(f_vals[5]).lower().strip(), # AQUÍ está la clave del check constraint
                             "tema_id": id_tema_final
                         }
 
                         with st.spinner("Guardando..."):
                             if modo_crear:
                                 supabase.table("preguntas").insert(upd).execute()
-                                st.success("✅ Pregunta creada")
+                                st.success("✅ Creada")
                             else:
                                 supabase.table("preguntas").update(upd).eq("id", p_sel['id']).execute()
-                                st.success("✅ Pregunta actualizada")
+                                st.success("✅ Actualizada")
                             
-                            # Limpieza de estados y refresco
                             st.session_state.modo_creacion_pregunta = False
                             st.session_state.p_seleccionada = None
                             st.rerun()
                 except Exception as e:
-                    st.error(f"Error al procesar los datos: {str(e)}")
-        else:
-            st.button("💾 GUARDAR", type="primary", use_container_width=True, disabled=True)
+                    st.error(f"Error técnico: {str(e)}")
 
     with b5:
         if p_sel and not modo_crear:
