@@ -213,15 +213,14 @@ def renderizar_formulario_edicion(p, nombres_temas, nombre_a_id):
             c_labCorr.markdown('<p style="margin-top:10px; font-weight:bold;">Correcta:</p>', unsafe_allow_html=True)
             
             # Normalizamos el valor que viene de la DB a minúscula
-            val_correcta_db = str(p.get('correcta', 'a')).lower().strip()
-            opciones = ["a", "b", "c"]
+            val_correcta_db = str(p.get('correcta', 'A')).upper().strip()
+            opciones = ["A", "B", "C"]
             idx_corr = opciones.index(val_correcta_db) if val_correcta_db in opciones else 0
         
             f_corr = c_inpCorr.selectbox(
                 "Corr", 
                 opciones, 
                 index=idx_corr,
-                format_func=lambda x: x.upper(), # El usuario ve A, B, C pero el código maneja a, b, c
                 label_visibility="collapsed", 
                 key=f"corr_{p['id']}"
             )
@@ -993,7 +992,7 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
                             "opcion_a": str(f_vals[2]).strip(),
                             "opcion_b": str(f_vals[3]).strip(),
                             "opcion_c": str(f_vals[4]).strip(),
-                            "correcta": str(f_vals[5]).lower().strip(), # AQUÍ está la clave del check constraint
+                            "correcta": str(f_vals[5]).upper().strip(), # AQUÍ está la clave del check constraint
                             "tema_id": id_tema_final
                         }
 
