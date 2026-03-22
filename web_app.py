@@ -13,7 +13,7 @@ def convertir_a_csv(lista_preguntas):
         "opcion_a": "opcion_a",
         "opcion_b": "opcion_b",
         "opcion_c": "opcion_c",
-        "correcta": "respuesta_correcta",
+        "correcta": "correcta",
         "explicacion": "Explicación"
     })
     return df_descarga.to_csv(index=False, sep=";").encode('utf-8')
@@ -83,7 +83,7 @@ def parsear_examen_universal(archivo_pdf):
                         "opcion_a": op_a.replace('\n', ' '),
                         "opcion_b": op_b.replace('\n', ' '),
                         "opcion_c": op_c.replace('\n', ' '),
-                        "respuesta_correcta": "A",
+                        "correcta": "A",
                         "Explicación": "",
                         "Tema": ""
                     })
@@ -120,7 +120,7 @@ def modal_importar():
         try:
             df_temp = pd.read_csv(
                 archivo, sep=";", encoding="utf-8", header=0, 
-                names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'respuesta_correcta', 'Explicación', 'Tema']
+                names=['Enunciado', 'opcion_a', 'opcion_b', 'opcion_c', 'correcta', 'Explicación', 'Tema']
             ).fillna("")
             
             # Guardamos datos y cambiamos pantalla
@@ -1061,7 +1061,7 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                 idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
                 t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
                 
-                corr_csv = str(p.get('respuesta_correcta', 'A')).strip().upper()
+                corr_csv = str(p.get('correcta', 'A')).strip().upper()
                 idx_c = ["A", "B", "C"].index(corr_csv) if corr_csv in ["A", "B", "C"] else 0
                 c_sel = st.selectbox("Opción Correcta", ["A", "B", "C"], index=idx_c, key=f"rev_corr_{i}")
 
