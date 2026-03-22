@@ -967,14 +967,39 @@ elif st.session_state.sub_pantalla == "admin_preguntas":
     with b4:
         if f_vals:
             if st.button("💾 GUARDAR", type="primary", use_container_width=True):
-                upd = {"enunciado": f_vals[0], "explicacion": f_vals[1], "opcion_a": f_vals[2], "opcion_b": f_vals[3], "opcion_c": f_vals[4], "correcta": f_vals[5].lower(), "tema_id": nombre_a_id[f_vals[6]]}
-                if modo_crear:
-                    supabase.table("preguntas").insert(upd).execute()
-                else:
-                    supabase.table("preguntas").update(upd).eq("id", p_sel['id']).execute()
-                st.session_state.modo_creacion_pregunta = False
-                st.session_state.p_seleccionada = None
-                st.rerun()
+                try:
+                    # Extraemos el nombre del tema del formulario (asumiendo que es el último elemento)
+                    nombre_tema_seleccionado = f_vals[6]
+                    id_tema_final = nombre_a_id.get(nombre_tema_seleccionado)
+
+                    if not id_tema_final:
+                        st.error("❌ El tema seleccionado no es válido.")
+                    else:
+                        # Construimos el diccionario con nombres exactos de tu DB
+                        upd = {
+                            "enunciado": str(f_vals[0]).strip(),
+                            "explicacion": str(f_vals[1]).strip(),
+                            "opcion_a": str(f_vals[2]).strip(),
+                            "opcion_b": str(f_vals[3]).strip(),
+                            "opcion_c": str(f_vals[4]).strip(),
+                            "correcta": str(f_vals[5]).lower().strip(),
+                            "tema_id": id_tema_final
+                        }
+
+                        with st.spinner("Guardando..."):
+                            if modo_crear:
+                                supabase.table("preguntas").insert(upd).execute()
+                                st.success("✅ Pregunta creada")
+                            else:
+                                supabase.table("preguntas").update(upd).eq("id", p_sel['id']).execute()
+                                st.success("✅ Pregunta actualizada")
+                            
+                            # Limpieza de estados y refresco
+                            st.session_state.modo_creacion_pregunta = False
+                            st.session_state.p_seleccionada = None
+                            st.rerun()
+                except Exception as e:
+                    st.error(f"Error al procesar los datos: {str(e)}")
         else:
             st.button("💾 GUARDAR", type="primary", use_container_width=True, disabled=True)
 
