@@ -460,7 +460,7 @@ def mostrar_examen(titulo, lista_preguntas):
             else:
                 if st.button("🏁 FINALIZAR Y GUARDAR"):
                     nota, ok, ko = guardar_resultado_examen(
-                        st.session_state.preguntas_test, 
+                        st.session_state.preguntas_examen, 
                         st.session_state.respuestas,
                         tipo=st.session_state.get('tipo_test_actual', 'Personalizado')
                     )
