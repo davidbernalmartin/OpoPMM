@@ -44,7 +44,7 @@ def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
         "num_preguntas": total,
         "aciertos": aciertos,
         "fallos": fallos,
-        "blancos": blanks,
+        "blancos": blancos,
         "nota_final": nota
     }).execute()
 
@@ -201,7 +201,8 @@ def limpiar_estado_maestro():
         "num_preguntas_test",      # El número elegido en el slider/input
         "error_importacion",       # Posibles mensajes de error guardados
         "test_generado",           # Flag de control de generación
-        "paso_configuracion"       # Reseteamos la pantalla en la que entramos al pulsar examen
+        "paso_configuracion",      # Reseteamos la pantalla en la que entramos al pulsar examen
+        "tipo_test_actual"
     ]
     
     for key in keys_a_limpiar:
