@@ -466,8 +466,7 @@ def mostrar_examen(titulo, lista_preguntas):
                         tipo=st.session_state.get('tipo_test_actual', 'Personalizado')
                     )
                     
-                    st.session_state.test_finalizado = True
-                    st.success(f"Examen guardado. Nota: {nota}")
+                    st.session_state.examen_finalizado = True
                     st.rerun()
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
