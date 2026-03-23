@@ -877,6 +877,7 @@ elif st.session_state.sub_pantalla == "seleccion_tema":
 elif st.session_state.sub_pantalla == "test_ingles":
     if not st.session_state.preguntas_examen:
         limite_elegido = st.session_state.get("cantidad_preguntas", 20)
+        st.session_state.tipo_test_actual = "ingles"
         try:
             # Traemos TODAS las de inglés
             res = supabase.table("preguntas").select("*").eq("tema_id", 1).execute()
@@ -897,7 +898,6 @@ elif st.session_state.sub_pantalla == "test_ingles":
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
-        st.session_state.tipo_test_actual = "ingles"
         mostrar_examen("EXAMEN DE INGLÉS", st.session_state.preguntas_examen)
 
 # --- MODO 2: POR TEMAS ---
@@ -905,6 +905,7 @@ elif st.session_state.sub_pantalla == "test_por_temas":
     if not st.session_state.preguntas_examen:
         ids_seleccionados = st.session_state.get("temas_seleccionados", [])
         limite_elegido = st.session_state.get("cantidad_preguntas", 20)
+        st.session_state.tipo_test_actual = "temas"
         try:
             # Traemos todo lo que NO sea inglés (ID != 1)
             res = supabase.table("preguntas").select("*").in_("tema_id", ids_seleccionados).execute()
@@ -924,13 +925,13 @@ elif st.session_state.sub_pantalla == "test_por_temas":
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
-        st.session_state.tipo_test_actual = "temas"
         mostrar_examen("EXAMEN POR TEMAS", st.session_state.preguntas_examen)
 
 # --- MODO 3: SIMULACRO ---
 elif st.session_state.sub_pantalla == "test_simulacro":
     if not st.session_state.preguntas_examen:
         limite_elegido = st.session_state.get("cantidad_preguntas", 20)
+        st.session_state.tipo_test_actual = "simulacro"
         try:
             # Traemos todo lo que NO sea inglés (ID != 1)
             res = supabase.table("preguntas").select("*").neq("tema_id", 1).execute()
@@ -951,7 +952,6 @@ elif st.session_state.sub_pantalla == "test_simulacro":
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
-        st.session_state.tipo_test_actual = "simulacro"
         mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
 
 # --- PANTALLA: GESTIÓN DE PREGUNTAS ---
