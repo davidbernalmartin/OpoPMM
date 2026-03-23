@@ -4,6 +4,7 @@ import random
 import pandas as pd
 import re
 import pdfplumber
+import plotly.express as px
 
 def mostrar_progreso():
     st.markdown('<div class="titulo-pantalla">📊 MI PROGRESO</div>', unsafe_allow_html=True)
@@ -39,9 +40,9 @@ def mostrar_progreso():
             st.info("Realiza tu primer examen para ver la evolución.")
 
     with col2:
-        st.subheader("🎯 Fallos por Tema")
+        st.subheader("🎯 Distribución de Fallos")
         if res_e.data:
-            # Procesamos los datos para contar fallos por nombre de tema
+            # Preparamos el DataFrame (Igual que antes)
             conteo_fallos = []
             for error in res_e.data:
                 nombre_tema = error.get('temas', {}).get('nombre', 'Desconocido')
@@ -50,12 +51,26 @@ def mostrar_progreso():
             df_fallos = pd.DataFrame(conteo_fallos, columns=['Tema'])
             df_pie = df_fallos.value_counts().reset_index()
             df_pie.columns = ['Tema', 'Fallos']
-            
-            # Gráfico de sectores simple (Streamlit usa st.plotly_chart para sectores o barras)
-            # Para mantenerlo "simple" sin librerías extra, usamos barras horizontales que se leen muy bien:
-            st.bar_chart(df_pie.set_index('Tema'))
+            # CREACIÓN DEL GRÁFICO CON PLOTLY
+            fig = px.pie(
+                df_pie, 
+                values='Fallos', 
+                names='Tema', 
+                hole=0.4, # Efecto Donut: queda más limpio y permite leer mejor
+                color_discrete_sequence=px.colors.qualitative.T10 # Paleta de 10 colores distintos
+            )
+            # Ajustes de Estilo (Fondo transparente para que no desentone con tu CSS)
+            fig.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color="white"),
+                margin=dict(t=10, b=10, l=10, r=10),
+                legend=dict(orientation="h", yanchor="bottom", y=-0.5, xanchor="center", x=0.5)
+            )
+            # Mostrar en Streamlit
+            st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("Aún no tienes fallos registrados. ¡Buen trabajo!")
+            st.info("¡Sin fallos registrados! Sigue así.")
 
     if st.button("⬅️ VOLVER AL MENÚ"):
         st.session_state.pantalla_actual = "principal"
