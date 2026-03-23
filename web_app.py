@@ -458,10 +458,10 @@ def mostrar_examen(titulo, lista_preguntas):
                     st.session_state.indice_pregunta += 1
                     st.rerun()
             else:
-                if st.button("🏁 FINALIZAR Y GUARDAR"):
+                if st.button("🏁 FINALIZAR Y GUARDAR", use_container_width=True):
                     nota, ok, ko = guardar_resultado_examen(
                         st.session_state.preguntas_examen, 
-                        st.session_state.respuestas,
+                        st.session_state.respuestas_usuario,
                         tipo=st.session_state.get('tipo_test_actual', 'Personalizado')
                     )
                     
