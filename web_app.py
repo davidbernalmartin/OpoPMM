@@ -5,6 +5,58 @@ import pandas as pd
 import re
 import pdfplumber
 
+def mostrar_progreso():
+    st.markdown('<div class="titulo-pantalla">📊 MI PROGRESO</div>', unsafe_allow_html=True)
+    # --- DATOS PARA GRÁFICO DE LÍNEAS (Evolución de Notas) ---
+    res_h = supabase.table("historial_examenes")\
+        .select("created_at, nota_final")\
+        .eq("user_id", st.session_state.user.id)\
+        .order("created_at")\
+        .execute()
+    
+    # --- DATOS PARA GRÁFICO DE SECTORES (Fallos por Tema) ---
+    # Traemos los errores y el nombre del tema haciendo un join sencillo
+    res_e = supabase.table("errores_usuario")\
+        .select("tema_id, temas(nombre)")\
+        .eq("user_id", st.session_state.user.id)\
+        .execute()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("📈 Evolución de Notas")
+        if res_h.data:
+            df_notas = pd.DataFrame(res_h.data)
+            # Convertimos fecha a formato legible
+            df_notas['Fecha'] = pd.to_datetime(df_notas['created_at']).dt.date
+            # Graficamos
+            st.line_chart(df_notas.set_index('Fecha')['nota_final'])
+        else:
+            st.info("Realiza tu primer examen para ver la evolución.")
+
+    with col2:
+        st.subheader("🎯 Fallos por Tema")
+        if res_e.data:
+            # Procesamos los datos para contar fallos por nombre de tema
+            conteo_fallos = []
+            for error in res_e.data:
+                nombre_tema = error.get('temas', {}).get('nombre', 'Desconocido')
+                conteo_fallos.append(nombre_tema)
+            
+            df_fallos = pd.DataFrame(conteo_fallos, columns=['Tema'])
+            df_pie = df_fallos.value_counts().reset_index()
+            df_pie.columns = ['Tema', 'Fallos']
+            
+            # Gráfico de sectores simple (Streamlit usa st.plotly_chart para sectores o barras)
+            # Para mantenerlo "simple" sin librerías extra, usamos barras horizontales que se leen muy bien:
+            st.bar_chart(df_pie.set_index('Tema'))
+        else:
+            st.info("Aún no tienes fallos registrados. ¡Buen trabajo!")
+
+    if st.button("⬅️ VOLVER AL MENÚ"):
+        st.session_state.pantalla_actual = "principal"
+        st.rerun()
+
 def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
     """
     datos_test: Lista de diccionarios con las preguntas del test
@@ -636,8 +688,7 @@ elif st.session_state.sub_pantalla == "menu_principal":
 
 # --- PANTALLA: ESTADÍSTICAS ---
 elif st.session_state.sub_pantalla == "stats":
-    st.markdown(f'<div class="titulo-pantalla">PROGRESO</div>', unsafe_allow_html=True)
-    st.write("Aquí verás tus gráficos de evolución por temas.")
+    mostrar_progreso()
 
 # --- PANTALLA: PERFIL ---
 elif st.session_state.sub_pantalla == "perfil":
