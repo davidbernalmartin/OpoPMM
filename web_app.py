@@ -5,6 +5,59 @@ import pandas as pd
 import re
 import pdfplumber
 
+def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
+    """
+    datos_test: Lista de diccionarios con las preguntas del test
+    respuestas_usuario: Diccionario con {indice: 'A/B/C'}
+    """
+    aciertos = 0
+    fallos = 0
+    blancos = 0
+    lista_errores = []
+
+    for i, p in enumerate(datos_test):
+        resp = respuestas_usuario.get(i)
+        correcta = str(p['correcta']).upper().strip()
+        
+        if resp is None:
+            blancos += 1
+        elif resp == correcta:
+            aciertos += 1
+        else:
+            fallos += 1
+            # Preparamos el detalle del error para la tabla 'errores_usuario'
+            lista_errores.append({
+                "tema_id": p.get('tema_id'),
+                "pregunta_id": p.get('id')
+                # El user_id y examen_id se añaden al insertar
+            })
+
+    # Fórmula de nota (ejemplo: aciertos - fallos/3 sobre 10)
+    # Ajusta esta fórmula según la oposición real
+    total = len(datos_test)
+    nota = (aciertos - (fallos / 3)) * (10 / total) if total > 0 else 0
+    nota = max(0, round(nota, 2)) # Que no baje de 0
+
+    # 1. Insertar Resumen en 'historial_examenes'
+    res_h = supabase.table("historial_examenes").insert({
+        "tipo_examen": tipo,
+        "num_preguntas": total,
+        "aciertos": aciertos,
+        "fallos": fallos,
+        "blancos": blanks,
+        "nota_final": nota
+    }).execute()
+
+    # 2. Si hubo fallos, registrarlos vinculados al ID del examen recién creado
+    if fallos > 0 and res_h.data:
+        examen_id = res_h.data[0]['id']
+        for error in lista_errores:
+            error["examen_id"] = examen_id
+        
+        supabase.table("errores_usuario").insert(lista_errores).execute()
+    
+    return nota, aciertos, fallos
+    
 def convertir_a_csv(lista_preguntas):
     import io
     df_descarga = pd.DataFrame(lista_preguntas)
@@ -405,8 +458,15 @@ def mostrar_examen(titulo, lista_preguntas):
                     st.session_state.indice_pregunta += 1
                     st.rerun()
             else:
-                if st.button("🏁 CORREGIR EXAMEN", type="primary", use_container_width=True):
-                    st.session_state.examen_finalizado = True
+                if st.button("🏁 FINALIZAR Y GUARDAR"):
+                    nota, ok, ko = guardar_resultado_examen(
+                        st.session_state.preguntas_test, 
+                        st.session_state.respuestas,
+                        tipo=st.session_state.get('tipo_test_actual', 'Personalizado')
+                    )
+                    
+                    st.session_state.test_finalizado = True
+                    st.success(f"Examen guardado. Nota: {nota}")
                     st.rerun()
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
@@ -837,6 +897,7 @@ elif st.session_state.sub_pantalla == "test_ingles":
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
+        st.session_state.tipo_test_actual = "ingles"
         mostrar_examen("EXAMEN DE INGLÉS", st.session_state.preguntas_examen)
 
 # --- MODO 2: POR TEMAS ---
@@ -863,6 +924,7 @@ elif st.session_state.sub_pantalla == "test_por_temas":
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
+        st.session_state.tipo_test_actual = "temas"
         mostrar_examen("EXAMEN POR TEMAS", st.session_state.preguntas_examen)
 
 # --- MODO 3: SIMULACRO ---
@@ -889,6 +951,7 @@ elif st.session_state.sub_pantalla == "test_simulacro":
     
     # IMPORTANTE: Esto queda fuera del bloque 'if not st.session_state.preguntas_examen'
     if st.session_state.preguntas_examen:
+        st.session_state.tipo_test_actual = "simulacro"
         mostrar_examen("SIMULACRO GENERAL", st.session_state.preguntas_examen)
 
 # --- PANTALLA: GESTIÓN DE PREGUNTAS ---
