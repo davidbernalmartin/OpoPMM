@@ -24,13 +24,17 @@ def mostrar_progreso():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📈 Evolución de Notas")
+        st.subheader("📈 Evolución de Notas (Media por Día)")
         if res_h.data:
             df_notas = pd.DataFrame(res_h.data)
-            # Convertimos fecha a formato legible
+            # 1. Convertimos la columna a formato Fecha (sin horas)
             df_notas['Fecha'] = pd.to_datetime(df_notas['created_at']).dt.date
-            # Graficamos
-            st.line_chart(df_notas.set_index('Fecha')['nota_final'])
+            # 2. AGRUPAMOS POR FECHA y calculamos la media de las notas de ese día
+            df_media_dia = df_notas.groupby('Fecha')['nota_final'].mean().reset_index()
+            # 3. Redondeamos a 2 decimales para que quede bonito
+            df_media_dia['nota_final'] = df_media_dia['nota_final'].round(2)
+            # 4. Pintamos el gráfico usando la columna agrupada
+            st.line_chart(df_media_dia.set_index('Fecha')['nota_final'])
         else:
             st.info("Realiza tu primer examen para ver la evolución.")
 
