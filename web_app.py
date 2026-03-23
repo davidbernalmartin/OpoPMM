@@ -657,7 +657,7 @@ elif st.session_state.sub_pantalla == "biblioteca":
                 df_mostrar,
                 column_order=("orden", "name"),
                 column_config={
-                    "orden": st.column_config.NumberColumn("Nº", width=20),
+                    "orden": st.column_config.NumberColumn("Nº"),
                     "name": st.column_config.TextColumn("LEY / NORMA", width="large"),
                 },
                 hide_index=True,
