@@ -25,7 +25,7 @@ def mostrar_progreso():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📈 Evolución de Notas")
+        st.subheader("📈 Nota media exámenes")
         if res_h.data:
             df_notas = pd.DataFrame(res_h.data)
             df_notas['Fecha'] = pd.to_datetime(df_notas['created_at']).dt.date
@@ -62,14 +62,13 @@ def mostrar_progreso():
             st.info("Aún no hay datos de exámenes.")
 
     with col2:
-        st.subheader("🎯 Distribución de Fallos")
+        st.subheader("🎯 Número de fallos por tema")
         if res_e.data:
             # Preparamos el DataFrame (Igual que antes)
             conteo_fallos = []
             for error in res_e.data:
                 nombre_tema = error.get('temas', {}).get('nombre', 'Desconocido')
                 conteo_fallos.append(nombre_tema)
-            
             df_fallos = pd.DataFrame(conteo_fallos, columns=['Tema'])
             df_pie = df_fallos.value_counts().reset_index()
             df_pie.columns = ['Tema', 'Fallos']
