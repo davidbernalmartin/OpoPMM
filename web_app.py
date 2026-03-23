@@ -193,7 +193,7 @@ def limpiar_estado_maestro():
     # 2. Definimos todas las variables que deben volver a su estado inicial
     # He incluido las de configuración de examen que detecté en tu lógica
     keys_a_limpiar = [
-        "preguntas_test",
+        "preguntas_examen",
         "respuestas",
         "tipo_test_actual",
         "nota_ultima",
