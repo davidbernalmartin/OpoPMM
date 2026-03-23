@@ -79,6 +79,7 @@ def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
             fallos += 1
             # Preparamos el detalle del error para la tabla 'errores_usuario'
             lista_errores.append({
+                "user_id": st.session_state.user.id,
                 "tema_id": p.get('tema_id'),
                 "pregunta_id": p.get('id')
                 # El user_id y examen_id se añaden al insertar
