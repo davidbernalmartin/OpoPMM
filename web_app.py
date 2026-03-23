@@ -40,6 +40,7 @@ def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
 
     # 1. Insertar Resumen en 'historial_examenes'
     res_h = supabase.table("historial_examenes").insert({
+        "user_id": st.session_state.user.id,
         "tipo_examen": tipo,
         "num_preguntas": total,
         "aciertos": aciertos,
