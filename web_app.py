@@ -25,19 +25,41 @@ def mostrar_progreso():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📈 Evolución de Notas (Media por Día)")
+        st.subheader("📈 Evolución de Notas")
         if res_h.data:
             df_notas = pd.DataFrame(res_h.data)
-            # 1. Convertimos la columna a formato Fecha (sin horas)
             df_notas['Fecha'] = pd.to_datetime(df_notas['created_at']).dt.date
-            # 2. AGRUPAMOS POR FECHA y calculamos la media de las notas de ese día
+            # Agrupamos por fecha para obtener la media diaria
             df_media_dia = df_notas.groupby('Fecha')['nota_final'].mean().reset_index()
-            # 3. Redondeamos a 2 decimales para que quede bonito
             df_media_dia['nota_final'] = df_media_dia['nota_final'].round(2)
-            # 4. Pintamos el gráfico usando la columna agrupada
-            st.line_chart(df_media_dia.set_index('Fecha')['nota_final'])
+            # CREACIÓN DEL GRÁFICO DE LÍNEAS
+            fig_line = px.line(
+                df_media_dia, 
+                x='Fecha', 
+                y='nota_final',
+                markers=True, # Añade puntos en cada día
+                text='nota_final', # Muestra la nota sobre el punto
+                labels={'nota_final': 'Nota Media', 'Fecha': 'Día de Estudio'},
+                template="plotly_dark" # Para que encaje con el modo oscuro
+            )
+            # Personalización de la línea y el área
+            fig_line.update_traces(
+                line_color='#00ffcc', # Un color neón que resalte
+                line_width=3,
+                marker=dict(size=10, symbol='circle', color='white', line=dict(width=2, color='#00ffcc')),
+                textposition="top center"
+            )
+            # Ajustes de ejes y fondo
+            fig_line.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                yaxis=dict(range=[0, 10.5], gridcolor='rgba(255,255,255,0.1)'), # Forzamos escala 0-10
+                xaxis=dict(gridcolor='rgba(255,255,255,0.1)'),
+                margin=dict(t=20, b=20, l=20, r=20)
+            )
+            st.plotly_chart(fig_line, use_container_width=True)
         else:
-            st.info("Realiza tu primer examen para ver la evolución.")
+            st.info("Aún no hay datos de exámenes.")
 
     with col2:
         st.subheader("🎯 Distribución de Fallos")
