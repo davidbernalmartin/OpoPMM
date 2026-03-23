@@ -1194,6 +1194,7 @@ elif st.session_state.sub_pantalla == "revision_importacion":
     res_t = supabase.table("temas").select("id, nombre").execute()
     nombres_temas = sorted([t['nombre'] for t in res_t.data])
     nom_a_id = {t['nombre']: t['id'] for t in res_t.data}
+    id_a_nom = {t['id']: t['nombre'] for t in res_t.data}
 
     st.info(f"Tienes **{len(st.session_state.preguntas_pendientes)}** preguntas pendientes de importar.")
 
@@ -1215,8 +1216,13 @@ elif st.session_state.sub_pantalla == "revision_importacion":
                     st.session_state.preguntas_pendientes.pop(i)
                     st.rerun()
                 
-                t_csv = str(p.get('Tema')).strip()
-                idx_t = nombres_temas.index(t_csv) if t_csv in nombres_temas else 0
+                tema_id_csv = p.get('Tema')
+                try:
+                    tema_id_val = int(tema_id_csv)
+                    nombre_preasignado = id_a_nom.get(tema_id_val)
+                except:
+                    nombre_preasignado = None
+                idx_t = nombres_temas.index(nombre_preasignado) if nombre_preasignado in nombres_temas else 0
                 t_sel = st.selectbox("Asignar Tema", nombres_temas, index=idx_t, key=f"rev_tema_{i}")
                 
                 corr_csv = str(p.get('correcta', 'A')).strip().upper()
