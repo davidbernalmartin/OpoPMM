@@ -193,6 +193,10 @@ def limpiar_estado_maestro():
     # 2. Definimos todas las variables que deben volver a su estado inicial
     # He incluido las de configuración de examen que detecté en tu lógica
     keys_a_limpiar = [
+        "preguntas_test",
+        "respuestas",
+        "tipo_test_actual",
+        "nota_ultima",
         "preguntas",               # Lista de preguntas cargadas para el test
         "respuestas_usuario",      # Diccionario con lo que el usuario va marcando
         "test_finalizado",         # Estado de fin de examen
@@ -208,9 +212,9 @@ def limpiar_estado_maestro():
     for key in keys_a_limpiar:
         if key in st.session_state:
             # Reseteo según el tipo de dato para evitar errores de tipo más adelante
-            if key in ["preguntas", "preguntas_pendientes", "temas_seleccionados"]:
+            if key in ["preguntas_test", "preguntas", "preguntas_pendientes", "temas_seleccionados"]:
                 st.session_state[key] = []
-            elif key == "respuestas_usuario":
+            elif key in ["respuestas_usuario","respuestas", "respuestas_usuario"]:
                 st.session_state[key] = {}
             elif key in ["pregunta_actual", "num_preguntas_test"]:
                 st.session_state[key] = 0
