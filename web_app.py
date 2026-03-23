@@ -658,7 +658,7 @@ elif st.session_state.sub_pantalla == "biblioteca":
                 column_order=("orden", "name"),
                 column_config={
                     "orden": st.column_config.NumberColumn("Nº"),
-                    "name": st.column_config.TextColumn("LEY / NORMA", width="large"),
+                    "name": st.column_config.TextColumn("LEY / NORMA", width="800"),
                 },
                 hide_index=True,
                 use_container_width=True,
