@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+
+# Streamlit (claves locales; en Cloud usar UI de secrets)
+.streamlit/secrets.toml
+
+# Variables de entorno
+.env
+.env.*
+
+# Bases de datos locales
+*.db
+*.sqlite3
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Distribución / pruebas
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/

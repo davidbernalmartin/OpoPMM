@@ -1,21 +1,80 @@
-# Exam Business Logic
+"""Business logic for exam evaluation and persistence."""
 
-class Exam:
-    def __init__(self, subject, date, duration):
-        self.subject = subject
-        self.date = date
-        self.duration = duration
+from __future__ import annotations
 
-    def is_conflict(self, other_exam):
-        return self.date == other_exam.date
+from dataclasses import dataclass
+from typing import Any
 
-    def __str__(self):
-        return f"Exam(subject={self.subject}, date={self.date}, duration={self.duration})"
 
-# Example usage
-if __name__ == '__main__':
-    exam1 = Exam('Math', '2026-03-25', 90)
-    exam2 = Exam('Physics', '2026-03-25', 120)
-    print(exam1)
-    print(exam2)
-    print(f"Conflict: {exam1.is_conflict(exam2)}")
+@dataclass(frozen=True)
+class ExamResult:
+    total: int
+    aciertos: int
+    fallos: int
+    blancos: int
+    nota: float
+    errores: list[dict[str, Any]]
+
+
+def calculate_exam_result(
+    preguntas: list[dict[str, Any]], respuestas_usuario: dict[int, str], user_id: str
+) -> ExamResult:
+    aciertos = 0
+    fallos = 0
+    blancos = 0
+    lista_errores: list[dict[str, Any]] = []
+
+    for i, pregunta in enumerate(preguntas):
+        resp = respuestas_usuario.get(i)
+        correcta = str(pregunta["correcta"]).upper().strip()
+
+        if resp is None:
+            blancos += 1
+        elif resp == correcta:
+            aciertos += 1
+        else:
+            fallos += 1
+            lista_errores.append(
+                {
+                    "user_id": user_id,
+                    "tema_id": pregunta.get("tema_id"),
+                    "pregunta_id": pregunta.get("id"),
+                }
+            )
+
+    total = len(preguntas)
+    nota = (aciertos - (fallos / 3)) * (10 / total) if total > 0 else 0
+    nota = max(0, round(nota, 2))
+
+    return ExamResult(
+        total=total,
+        aciertos=aciertos,
+        fallos=fallos,
+        blancos=blancos,
+        nota=nota,
+        errores=lista_errores,
+    )
+
+
+def persist_exam_result(supabase: Any, user_id: str, exam_type: str, result: ExamResult) -> None:
+    """Persist exam summary and related wrong answers in Supabase."""
+    res_h = (
+        supabase.table("historial_examenes")
+        .insert(
+            {
+                "user_id": user_id,
+                "tipo_examen": exam_type,
+                "num_preguntas": result.total,
+                "aciertos": result.aciertos,
+                "fallos": result.fallos,
+                "blancos": result.blancos,
+                "nota_final": result.nota,
+            }
+        )
+        .execute()
+    )
+
+    if result.fallos > 0 and res_h.data:
+        examen_id = res_h.data[0]["id"]
+        errores = [{**error, "examen_id": examen_id} for error in result.errores]
+        supabase.table("errores_usuario").insert(errores).execute()

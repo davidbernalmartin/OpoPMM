@@ -1,11 +1,26 @@
+"""Exam metrics model used by view layer."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
 class Examen:
-    def __init__(self, notas):
-        self.notas = notas  # List of grades
+    total: int
+    aciertos: int
+    fallos: int
 
-    def calcular_nota_final(self):
-        if not self.notas:
-            return 0  # No grades
-        return sum(self.notas) / len(self.notas)  # Average of grades
+    @property
+    def blancos(self) -> int:
+        return self.total - (self.aciertos + self.fallos)
 
-    def agregar_nota(self, nota):
-        self.notas.append(nota)  # Add a new grade
+    @property
+    def netas(self) -> float:
+        return self.aciertos - (self.fallos * 0.33)
+
+    @property
+    def nota_sobre_diez(self) -> float:
+        if self.total <= 0:
+            return 0.0
+        return (max(0.0, self.netas) / self.total) * 10
