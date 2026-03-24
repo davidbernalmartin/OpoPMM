@@ -12,11 +12,12 @@ from src.views.screens.importacion import get_modal_importar_csv, get_modal_impo
 from src.views.screens.perfil import render_perfil_screen
 from src.views.screens.progreso import render_progreso_screen
 
+
 def mostrar_progreso():
     render_progreso_screen(supabase=supabase, user_id=st.session_state.user.id)
     if st.button("⬅️ VOLVER AL MENÚ"):
-        st.session_state.pantalla_actual = "principal"
-        st.rerun()
+        navegar_a("menu_principal")
+
 
 def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
     """
@@ -35,14 +36,12 @@ def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
         result=result,
     )
     return result.nota, result.aciertos, result.fallos
-    
+
+
 def limpiar_estado_maestro():
-    """
-    Realiza un reseteo integral de la sesión. 
-    Limpia variables de test, configuración, filtros e importación.
-    """
-    
+    """Resetea estado de examen/importación sin tocar auth."""
     reset_exam_state(st.session_state)
+
 
 def mostrar_examen(titulo, lista_preguntas):
     render_examen_runtime(
@@ -52,15 +51,15 @@ def mostrar_examen(titulo, lista_preguntas):
         limpiar_estado_maestro=limpiar_estado_maestro,
     )
 
+
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
     page_title="OpoPMM - Tu Plaza es Nuestra",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="auto",
 )
 
 # --- 2. CONEXIÓN A SUPABASE ---
-# Asegúrate de tener estos nombres exactos en tus Secrets de Streamlit
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_SERVICE_KEY"]
 supabase = create_client(url, key)
@@ -72,46 +71,96 @@ with open("style.css") as f:
 # --- 4. INICIALIZACIÓN DE ESTADOS (SESSION STATE) ---
 ensure_defaults(st.session_state)
 
+
 def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
     st.session_state.p_seleccionada = None
+
 
 def navegar_a(sub):
     limpiar_estado_maestro()
     cambiar_vista(sub)
     st.rerun()
 
+
+def _nombre_perfil_sidebar():
+    try:
+        res = (
+            supabase.table("profiles")
+            .select("nombre")
+            .eq("id", st.session_state.user.id)
+            .single()
+            .execute()
+        )
+        return res.data.get("nombre") if res.data else None
+    except Exception:
+        return None
+
+
+def _pantallas_tras_menu():
+    """Enruta stats, perfil, biblioteca, exámenes y admin (una sola pantalla por ejecución)."""
+    if st.session_state.sub_pantalla == "stats":
+        mostrar_progreso()
+        return True
+    if render_perfil_screen(supabase=supabase):
+        return True
+    if render_biblioteca_screen(
+        supabase=supabase,
+        limpiar_estado_maestro=limpiar_estado_maestro,
+        cambiar_vista=cambiar_vista,
+    ):
+        return True
+    if render_examenes_screen(
+        supabase=supabase,
+        mostrar_examen=mostrar_examen,
+        navegar_a=navegar_a,
+    ):
+        return True
+    if render_admin_preguntas_screens(
+        supabase=supabase,
+        renderizar_formulario_edicion=renderizar_formulario_edicion_pregunta,
+        modal_importar_pdf=modal_importar_pdf,
+        modal_importar=modal_importar,
+        limpiar_estado_maestro=limpiar_estado_maestro,
+        convertir_a_csv=convertir_preguntas_a_csv,
+    ):
+        return True
+    return False
+
+
 modal_importar_pdf = get_modal_importar_pdf()
 modal_importar = get_modal_importar_csv()
 
 
 # --- 5. LÓGICA DE NAVEGACIÓN LATERAL (SIDEBAR) ---
-# Solo mostramos el sidebar si el usuario está logueado
 if st.session_state.user:
     with st.sidebar:
-        # Intentamos sacar el nombre del perfil
-        try:
-            res_p = supabase.table("profiles").select("nombre").eq("id", st.session_state.user.id).single().execute()
-            nombre_db = res_p.data.get("nombre")
-        except:
-            nombre_db = None
+        nombre_db = _nombre_perfil_sidebar()
 
-        st.markdown('<p class="titulo-pantalla" style="font-size: 28px; text-align: left;">OpoPMM 🏆</p>', unsafe_allow_html=True)
-        
-        # Lógica de saludo: Si hay nombre lo pone, si no, solo Hola
+        st.markdown(
+            '<p class="titulo-pantalla" style="font-size: 28px; text-align: left;">OpoPMM 🏆</p>',
+            unsafe_allow_html=True,
+        )
+
         saludo = f"¡Hola, **{nombre_db}**!" if nombre_db else "¡Hola!"
         st.write(saludo)
         st.divider()
-        if st.button("📊 PROGRESO", use_container_width=True):navegar_a("stats")
-        if st.button("👤 MI PERFIL", use_container_width=True):navegar_a("perfil")
-        if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):navegar_a("biblioteca")
-        if st.button("📝 REALIZAR TEST", use_container_width=True):navegar_a("seleccion_tema")
-        # 5. Gestión Preguntas (Solo ADMIN)
+        if st.button("📊 PROGRESO", use_container_width=True):
+            navegar_a("stats")
+        if st.button("👤 MI PERFIL", use_container_width=True):
+            navegar_a("perfil")
+        if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):
+            navegar_a("biblioteca")
+        if st.button("📝 REALIZAR TEST", use_container_width=True):
+            navegar_a("seleccion_tema")
         if st.session_state.user_role == "admin":
             st.write("")
-            st.markdown('<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>', unsafe_allow_html=True)
-            if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):navegar_a("admin_preguntas")
-        # 6. Cerrar Sesión (al final)
+            st.markdown(
+                '<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>',
+                unsafe_allow_html=True,
+            )
+            if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):
+                navegar_a("admin_preguntas")
         st.write("###")
         if st.button("🚪 CERRAR SESIÓN", use_container_width=True):
             supabase.auth.sign_out()
@@ -120,9 +169,8 @@ if st.session_state.user:
 
 # --- 6. PANTALLAS PRINCIPALES ---
 
-# --- PANTALLA: INICIO (PÚBLICA) ---
 if st.session_state.sub_pantalla == "inicio":
-    st.markdown(f'<div class="titulo-pantalla">OpoPMM</div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-pantalla">OpoPMM</div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.write("---")
@@ -130,41 +178,34 @@ if st.session_state.sub_pantalla == "inicio":
             cambiar_vista("login")
             st.rerun()
 
-# --- PANTALLA: LOGIN / REGISTRO ---
 elif st.session_state.sub_pantalla == "login":
-    st.markdown(f'<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
     tabs = st.tabs(["Entrar", "Registrarse"])
-    
+
     with tabs[0]:
         email = st.text_input("Email", key="login_email")
         pw = st.text_input("Contraseña", type="password", key="login_pw")
         if st.button("INICIAR SESIÓN", use_container_width=True, type="primary"):
             try:
-                # 1. Intentamos el login
                 res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
-                
-                # Verificamos que tenemos usuario antes de seguir
                 if res.user:
                     st.session_state.user = res.user
-                    
-                    # 2. Consultar rol - Usamos el ID directamente del objeto 'res.user'
-                    # Añadimos un pequeño manejo de error específico para el perfil
                     try:
-                        p = supabase.table("profiles").select("role").eq("id", res.user.id).single().execute()
-                        st.session_state.user_role = p.data['role'] if p.data else "regular"
-                    except Exception as e:
-                        # Si falla el perfil pero el login es ok, asignamos rol por defecto
+                        p = (
+                            supabase.table("profiles")
+                            .select("role")
+                            .eq("id", res.user.id)
+                            .single()
+                            .execute()
+                        )
+                        st.session_state.user_role = p.data["role"] if p.data else "regular"
+                    except Exception:
                         st.session_state.user_role = "regular"
-                    
-                    # 3. CAMBIO DE VISTA Y REFRESCO
                     cambiar_vista("menu_principal")
                     st.rerun()
                 else:
                     st.error("No se pudo recuperar la información del usuario.")
-                    
-            except Exception as e:
-                # Capturamos el error real para no confundir al usuario
-                # Si el error es de Supabase por credenciales, saldrá aquí
+            except Exception:
                 st.error("Error de acceso: Revisa tus credenciales.")
 
     with tabs[1]:
@@ -172,50 +213,18 @@ elif st.session_state.sub_pantalla == "login":
         n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw")
         if st.button("CREAR CUENTA", use_container_width=True):
             try:
-                # Si tienes la confirmación desactivada en Supabase, entra directo
-                res = supabase.auth.sign_up({"email": n_email, "password": n_pw})
+                supabase.auth.sign_up({"email": n_email, "password": n_pw})
                 st.success("¡Cuenta creada! Intenta loguearte ahora.")
             except Exception as e:
                 st.error(f"Error: {e}")
 
-# --- PANTALLA: MENÚ PRINCIPAL (RESUMEN) ---
 elif st.session_state.sub_pantalla == "menu_principal":
-    st.markdown(f'<div class="titulo-pantalla">CENTRO DE CONTROL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-pantalla">CENTRO DE CONTROL</div>', unsafe_allow_html=True)
     st.info("Bienvenido. Utiliza el menú de la izquierda para navegar por la aplicación.")
-    
-    # Dashboard rápido
     c1, c2, c3 = st.columns(3)
     c1.metric("Nota Media", "7.2", "0.5")
     c2.metric("Test Completados", "24")
     c3.metric("Días para Examen", "124")
 
-# --- PANTALLA: ESTADÍSTICAS ---
-elif st.session_state.sub_pantalla == "stats":
-    mostrar_progreso()
-
-elif render_perfil_screen(supabase=supabase):
-    pass
-
-elif render_biblioteca_screen(
-    supabase=supabase,
-    limpiar_estado_maestro=limpiar_estado_maestro,
-    cambiar_vista=cambiar_vista,
-):
-    pass
-
-elif render_examenes_screen(
-    supabase=supabase,
-    mostrar_examen=mostrar_examen,
-    navegar_a=navegar_a,
-):
-    pass
-
-elif render_admin_preguntas_screens(
-    supabase=supabase,
-    renderizar_formulario_edicion=renderizar_formulario_edicion_pregunta,
-    modal_importar_pdf=modal_importar_pdf,
-    modal_importar=modal_importar,
-    limpiar_estado_maestro=limpiar_estado_maestro,
-    convertir_a_csv=convertir_preguntas_a_csv,
-):
+elif _pantallas_tras_menu():
     pass

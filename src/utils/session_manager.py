@@ -52,7 +52,7 @@ def reset_exam_state(session_state: dict) -> None:
     for key in RESETTABLE_KEYS:
         if key not in session_state:
             continue
-        if key in {"preguntas_test", "preguntas", "preguntas_pendientes", "temas_seleccionados"}:
+        if key in {"preguntas", "preguntas_pendientes", "temas_seleccionados"}:
             session_state[key] = []
         elif key in {"respuestas_usuario", "respuestas"}:
             session_state[key] = {}
