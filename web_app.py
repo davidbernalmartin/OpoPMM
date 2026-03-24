@@ -1246,7 +1246,7 @@ elif st.session_state.sub_pantalla == "revision_importacion":
             # Guardamos los cambios realizados en el formulario
             preguntas_para_subir.append({
                 "enunciado": enun, "opcion_a": oa, "opcion_b": ob, "opcion_c": oc,
-                "correcta": c_sel.lower(), "explicacion": exp, "tema_id": nom_a_id[t_sel]
+                "correcta": c_sel.upper(), "explicacion": exp, "tema_id": nom_a_id[t_sel]
             })
 
 # --- BOTONERA DE ACCIÓN GLOBAL ---
