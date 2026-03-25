@@ -52,7 +52,7 @@ def render_biblioteca_screen(
                     "name": st.column_config.TextColumn("LEY / NORMA", width="900"),
                 },
                 hide_index=True,
-                use_container_width=True,
+                width='stretch',
                 on_select="rerun",
                 selection_mode="single-row",
                 key="tabla_biblioteca",
@@ -72,12 +72,12 @@ def render_biblioteca_screen(
                     st.success(f"**Seleccionada:**\n{ley_sel['name']}")
 
                     if ley_sel["url_pdf"]:
-                        st.link_button("📥 DESCARGAR / VER PDF", ley_sel["url_pdf"], use_container_width=True)
+                        st.link_button("📥 DESCARGAR / VER PDF", ley_sel["url_pdf"], width='stretch')
                     else:
                         st.warning("No hay URL configurada.")
 
                     st.divider()
-                    if st.button("🗑️ ELIMINAR REGISTRO", use_container_width=True, type="secondary"):
+                    if st.button("🗑️ ELIMINAR REGISTRO", width='stretch', type="secondary"):
                         supabase.table("biblioteca").delete().eq("id", ley_sel["id"]).execute()
                         st.success("Registro eliminado.")
                         st.rerun()
@@ -92,7 +92,7 @@ def render_biblioteca_screen(
                     siguiente_orden = int(df_biblio["orden"].max() + 1) if not df_biblio.empty else 1
                     nuevo_orden = st.number_input("Orden", value=siguiente_orden)
 
-                    if st.form_submit_button("AÑADIR A BIBLIOTECA", use_container_width=True):
+                    if st.form_submit_button("AÑADIR A BIBLIOTECA", width='stretch'):
                         if nuevo_nombre:
                             nueva_data = {"name": nuevo_nombre, "url_pdf": nueva_url, "orden": nuevo_orden}
                             supabase.table("biblioteca").insert(nueva_data).execute()
@@ -105,7 +105,7 @@ def render_biblioteca_screen(
                 ley_sel = df_mostrar.iloc[seleccion_indices[0]]
                 st.info(f"**Normativa:**\n{ley_sel['name']}")
                 if ley_sel["url_pdf"]:
-                    st.link_button("📥 DESCARGAR / VER PDF", ley_sel["url_pdf"], use_container_width=True)
+                    st.link_button("📥 DESCARGAR / VER PDF", ley_sel["url_pdf"], width='stretch')
                 else:
                     st.warning("Documento no disponible.")
             else:

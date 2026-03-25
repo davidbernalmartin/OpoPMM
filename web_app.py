@@ -145,13 +145,13 @@ if st.session_state.user:
         saludo = f"¡Hola, **{nombre_db}**!" if nombre_db else "¡Hola!"
         st.write(saludo)
         st.divider()
-        if st.button("📊 PROGRESO", use_container_width=True):
+        if st.button("📊 PROGRESO", width='stretch'):
             navegar_a("stats")
-        if st.button("👤 MI PERFIL", use_container_width=True):
+        if st.button("👤 MI PERFIL", width='stretch'):
             navegar_a("perfil")
-        if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):
+        if st.button("📚 BIBLIOTECA DE LEYES", width='stretch'):
             navegar_a("biblioteca")
-        if st.button("📝 REALIZAR TEST", use_container_width=True):
+        if st.button("📝 REALIZAR TEST", width='stretch'):
             navegar_a("seleccion_tema")
         if st.session_state.user_role == "admin":
             st.write("")
@@ -159,10 +159,10 @@ if st.session_state.user:
                 '<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>',
                 unsafe_allow_html=True,
             )
-            if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):
+            if st.button("⚙️ GESTIÓN PREGUNTAS", width='stretch'):
                 navegar_a("admin_preguntas")
         st.write("###")
-        if st.button("🚪 CERRAR SESIÓN", use_container_width=True):
+        if st.button("🚪 CERRAR SESIÓN", width='stretch'):
             supabase.auth.sign_out()
             st.session_state.clear()
             st.rerun()
@@ -174,7 +174,7 @@ if st.session_state.sub_pantalla == "inicio":
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.write("---")
-        if st.button("¡VAMOS A POR LA PLAZA!", use_container_width=True, type="primary"):
+        if st.button("¡VAMOS A POR LA PLAZA!", width='stretch', type="primary"):
             cambiar_vista("login")
             st.rerun()
 
@@ -185,7 +185,7 @@ elif st.session_state.sub_pantalla == "login":
     with tabs[0]:
         email = st.text_input("Email", key="login_email")
         pw = st.text_input("Contraseña", type="password", key="login_pw")
-        if st.button("INICIAR SESIÓN", use_container_width=True, type="primary"):
+        if st.button("INICIAR SESIÓN", width='stretch', type="primary"):
             try:
                 res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
                 if res.user:
@@ -211,7 +211,7 @@ elif st.session_state.sub_pantalla == "login":
     with tabs[1]:
         n_email = st.text_input("Nuevo Email", key="reg_email")
         n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw")
-        if st.button("CREAR CUENTA", use_container_width=True):
+        if st.button("CREAR CUENTA", width='stretch'):
             try:
                 supabase.auth.sign_up({"email": n_email, "password": n_pw})
                 st.success("¡Cuenta creada! Intenta loguearte ahora.")

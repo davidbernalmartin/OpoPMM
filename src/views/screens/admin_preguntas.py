@@ -86,7 +86,7 @@ def _render_admin_preguntas(
                 "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
             },
             hide_index=True,
-            use_container_width=True,
+            width='stretch',
             on_select="rerun",
             selection_mode="single-row",
             key="tabla_admin_preguntas",
@@ -124,21 +124,21 @@ def _render_admin_preguntas(
     b1, b2, b3, b4, b5 = st.columns(5)
 
     with b1:
-        if st.button("➕ NUEVA", use_container_width=True, key="btn_nueva"):
+        if st.button("➕ NUEVA", width='stretch', key="btn_nueva"):
             st.session_state.p_seleccionada = None
             st.session_state.modo_creacion_pregunta = True
             st.rerun()
 
     with b2:
-        if st.button("📄 PDF A REVISIÓN", use_container_width=True, key="btn_pdf"):
+        if st.button("📄 PDF A REVISIÓN", width='stretch', key="btn_pdf"):
             modal_importar_pdf()
 
     with b3:
-        if st.button("📤 IMPORTAR", use_container_width=True, key="btn_import_trigger"):
+        if st.button("📤 IMPORTAR", width='stretch', key="btn_import_trigger"):
             modal_importar()
 
     with b4:
-        if f_vals and st.button("💾 GUARDAR", type="primary", use_container_width=True):
+        if f_vals and st.button("💾 GUARDAR", type="primary", width='stretch'):
             try:
                 nombre_tema_sel = f_vals[6]
                 id_tema_final = nombre_a_id.get(nombre_tema_sel)
@@ -172,12 +172,12 @@ def _render_admin_preguntas(
 
     with b5:
         if p_sel and not modo_crear:
-            if st.button("🗑️ ELIMINAR", use_container_width=True):
+            if st.button("🗑️ ELIMINAR", width='stretch'):
                 supabase.table("preguntas").delete().eq("id", p_sel["id"]).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
         else:
-            st.button("🗑️ ELIMINAR", use_container_width=True, disabled=True)
+            st.button("🗑️ ELIMINAR", width='stretch', disabled=True)
 
 
 def _render_revision_importacion(
@@ -213,7 +213,7 @@ def _render_revision_importacion(
                 )
 
             with col_der:
-                if st.button(f"🗑️ ELIMINAR PREGUNTA {i+1}", key=f"btn_del_{i}", use_container_width=True):
+                if st.button(f"🗑️ ELIMINAR PREGUNTA {i+1}", key=f"btn_del_{i}", width='stretch'):
                     st.session_state.preguntas_pendientes.pop(i)
                     st.rerun()
 
@@ -262,7 +262,7 @@ def _render_revision_importacion(
     c_bot1, c_bot2, c_bot3 = st.columns(3)
 
     with c_bot1:
-        if st.button("❌ CANCELAR TODO", use_container_width=True):
+        if st.button("❌ CANCELAR TODO", width='stretch'):
             st.session_state.preguntas_pendientes = []
             limpiar_estado_maestro()
             st.session_state.sub_pantalla = "admin_preguntas"
@@ -275,12 +275,12 @@ def _render_revision_importacion(
             data=csv_data,
             file_name="revision_parcial_examen.csv",
             mime="text/csv",
-            use_container_width=True,
+            width='stretch',
             help="Descarga lo que llevas hecho para seguir en otro momento",
         )
 
     with c_bot3:
-        if st.button("🚀 SUBIR A BASE DE DATOS", type="primary", use_container_width=True):
+        if st.button("🚀 SUBIR A BASE DE DATOS", type="primary", width='stretch'):
             if preguntas_para_subir:
                 with st.spinner("Guardando en Supabase..."):
                     supabase.table("preguntas").insert(preguntas_para_subir).execute()

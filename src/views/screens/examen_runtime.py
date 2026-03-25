@@ -79,15 +79,15 @@ def render_examen_runtime(
         st.write("---")
         c1, c2, c3 = st.columns([1, 2, 1])
         with c1:
-            if idx_rev > 0 and st.button("⬅️ ANTERIOR", key="rev_prev", use_container_width=True):
+            if idx_rev > 0 and st.button("⬅️ ANTERIOR", key="rev_prev", width='stretch'):
                 st.session_state.indice_revision -= 1
                 st.rerun()
         with c2:
-            if st.button("VOLVER AL RESUMEN", use_container_width=True):
+            if st.button("VOLVER AL RESUMEN", width='stretch'):
                 st.session_state.ver_revision = False
                 st.rerun()
         with c3:
-            if idx_rev < len(lista_preguntas) - 1 and st.button("SIGUIENTE ➡️", key="rev_next", use_container_width=True):
+            if idx_rev < len(lista_preguntas) - 1 and st.button("SIGUIENTE ➡️", key="rev_next", width='stretch'):
                 st.session_state.indice_revision += 1
                 st.rerun()
 
@@ -145,12 +145,12 @@ def render_examen_runtime(
         st.write("###")
         col_rev, col_fin = st.columns(2)
         with col_rev:
-            if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", use_container_width=True):
+            if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", width='stretch'):
                 st.session_state.ver_revision = True
                 st.session_state.indice_revision = 0
                 st.rerun()
         with col_fin:
-            if st.button("🏁 FINALIZAR Y VOLVER", use_container_width=True, type="primary"):
+            if st.button("🏁 FINALIZAR Y VOLVER", width='stretch', type="primary"):
                 st.session_state.ver_revision = False
                 limpiar_estado_maestro()
                 st.session_state.sub_pantalla = "seleccion_tema"
@@ -181,15 +181,15 @@ def render_examen_runtime(
         st.write("---")
         col1, col2 = st.columns(2)
         with col1:
-            if idx > 0 and st.button("⬅️ ANTERIOR", use_container_width=True):
+            if idx > 0 and st.button("⬅️ ANTERIOR", width='stretch'):
                 st.session_state.indice_pregunta -= 1
                 st.rerun()
         with col2:
             if idx < len(lista_preguntas) - 1:
-                if st.button("SIGUIENTE ➡️", use_container_width=True):
+                if st.button("SIGUIENTE ➡️", width='stretch'):
                     st.session_state.indice_pregunta += 1
                     st.rerun()
-            elif st.button("🏁 FINALIZAR Y GUARDAR", use_container_width=True):
+            elif st.button("🏁 FINALIZAR Y GUARDAR", width='stretch'):
                 guardar_resultado_examen(
                     st.session_state.preguntas_examen,
                     st.session_state.respuestas_usuario,
