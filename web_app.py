@@ -65,6 +65,12 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_SERVICE_KEY"]
 supabase = create_client(url, key)
 
+session = supabase.auth.get_session()
+if session and not st.session_state.user:
+    st.session_state.user = session.user
+    # Aquí podrías llamar a tu lógica de 'profiles' para obtener el rol
+    st.session_state.sub_pantalla = "menu_principal"
+
 # --- 3. CARGA DE CSS ---
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -133,6 +139,14 @@ if st.session_state.sub_pantalla == "inicio":
 # --- PANTALLA: LOGIN / REGISTRO ---
 elif st.session_state.sub_pantalla == "login":
     st.markdown(f'<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
+    
+    # Botón de Google (Fuera o dentro de los tabs)
+    if st.button("🚀 ENTRAR CON GOOGLE", use_container_width=True):
+        from src.services.auth_service import iniciar_login_google
+        auth_url = iniciar_login_google(supabase)
+        # Redirección de JavaScript para abrir OAuth
+        st.markdown(f'<meta http-equiv="refresh" content="0;url={auth_url}">', unsafe_allow_html=True)
+
     tabs = st.tabs(["Entrar", "Registrarse"])
     
     with tabs[0]:
