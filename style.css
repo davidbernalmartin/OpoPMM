@@ -90,3 +90,11 @@ button[data-testid="baseButton-primary"] {
     background-color: #1c2833 !important;
     color: white !important;
 }
+
+/* Separación de opciones en los tests */
+div[role="radiogroup"] > label {
+    margin-bottom: 18px !important;
+    padding: 12px !important;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+}
