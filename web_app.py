@@ -15,8 +15,8 @@ from src.views.screens.progreso import render_progreso_screen
 
 def mostrar_progreso():
     render_progreso_screen(supabase=supabase, user_id=st.session_state.user.id)
-    if st.button("⬅️ VOLVER AL MENÚ"):
-        navegar_a("menu_principal")
+    if st.button("📜 HISTORIAL DE EXAMENES", width='stretch'):
+        navegar_a("historial")
 
 
 def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
@@ -29,11 +29,14 @@ def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
         respuestas_usuario,
         user_id=st.session_state.user.id,
     )
+    ids_ordenados = [p.get("id") for p in datos_test]
     persist_exam_result(
         supabase=supabase,
         user_id=st.session_state.user.id,
         exam_type=tipo,
         result=result,
+        preguntas_ids=ids_ordenados,
+        respuestas_usuario=respuestas_usuario,
     )
     return result.nota, result.aciertos, result.fallos
 
@@ -201,7 +204,7 @@ elif st.session_state.sub_pantalla == "login":
                         st.session_state.user_role = p.data["role"] if p.data else "regular"
                     except Exception:
                         st.session_state.user_role = "regular"
-                    cambiar_vista("menu_principal")
+                    cambiar_vista("stats")
                     st.rerun()
                 else:
                     st.error("No se pudo recuperar la información del usuario.")
@@ -218,13 +221,13 @@ elif st.session_state.sub_pantalla == "login":
             except Exception as e:
                 st.error(f"Error: {e}")
 
-elif st.session_state.sub_pantalla == "menu_principal":
-    st.markdown('<div class="titulo-pantalla">CENTRO DE CONTROL</div>', unsafe_allow_html=True)
-    st.info("Bienvenido. Utiliza el menú de la izquierda para navegar por la aplicación.")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Nota Media", "7.2", "0.5")
-    c2.metric("Test Completados", "24")
-    c3.metric("Días para Examen", "124")
+elif st.session_state.sub_pantalla == "historial":
+    from src.views.screens.historial import render_historial_screen
+    render_historial_screen(supabase, mostrar_examen)
+
+# Esta ruta es para cuando pulsas "Repasar"
+elif st.session_state.sub_pantalla == "repaso_historial":
+    mostrar_examen("REPASO EXAMEN", st.session_state.preguntas_examen)
 
 elif _pantallas_tras_menu():
     pass

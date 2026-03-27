@@ -56,7 +56,7 @@ def calculate_exam_result(
     )
 
 
-def persist_exam_result(supabase: Any, user_id: str, exam_type: str, result: ExamResult) -> None:
+def persist_exam_result(supabase: Any, user_id: str, exam_type: str, result: ExamResult, preguntas_ids: list[int], respuestas_usuario: dict[int, str]) -> None:
     """Persist exam summary and related wrong answers in Supabase."""
     res_h = (
         supabase.table("historial_examenes")
@@ -69,6 +69,8 @@ def persist_exam_result(supabase: Any, user_id: str, exam_type: str, result: Exa
                 "fallos": result.fallos,
                 "blancos": result.blancos,
                 "nota_final": result.nota,
+                "preguntas_ids": preguntas_ids,
+                "respuestas_usuario": respuestas_usuario,
             }
         )
         .execute()

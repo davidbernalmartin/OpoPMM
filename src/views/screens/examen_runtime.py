@@ -83,8 +83,16 @@ def render_examen_runtime(
                 st.session_state.indice_revision -= 1
                 st.rerun()
         with c2:
-            if st.button("VOLVER AL RESUMEN", width='stretch'):
-                st.session_state.ver_revision = False
+            # Detectamos si es un repaso del historial o un examen recién hecho
+            es_repaso = st.session_state.get("sub_pantalla") == "repaso_historial"
+            texto_boton = "VOLVER AL HISTORIAL" if es_repaso else "VOLVER AL RESUMEN"
+            
+            if st.button(texto_boton, width='stretch'):
+                if es_repaso:
+                    st.session_state.ver_revision = False
+                    st.session_state.sub_pantalla = "historial" # Volvemos a la lista
+                else:
+                    st.session_state.ver_revision = False # Volvemos al resumen de notas
                 st.rerun()
         with c3:
             if idx_rev < len(lista_preguntas) - 1 and st.button("SIGUIENTE ➡️", key="rev_next", width='stretch'):
