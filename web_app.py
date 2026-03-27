@@ -11,12 +11,12 @@ from src.views.screens.examenes import render_examenes_screen
 from src.views.screens.importacion import get_modal_importar_csv, get_modal_importar_pdf
 from src.views.screens.perfil import render_perfil_screen
 from src.views.screens.progreso import render_progreso_screen
+from src.utils.ui_config import init_page_config  # <--- IMPORTAMOS LA UTILIDAD
+
+init_page_config()  # <--- CONFIGURAMOS LA PÁGINA
 
 def mostrar_progreso():
     render_progreso_screen(supabase=supabase, user_id=st.session_state.user.id)
-    if st.button("⬅️ VOLVER AL MENÚ"):
-        st.session_state.pantalla_actual = "principal"
-        st.rerun()
 
 def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
     """
@@ -52,13 +52,6 @@ def mostrar_examen(titulo, lista_preguntas):
         limpiar_estado_maestro=limpiar_estado_maestro,
     )
 
-# --- 1. CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(
-    page_title="OpoPMM - Tu Plaza es Nuestra",
-    layout="wide",
-    initial_sidebar_state="auto"
-)
-
 # --- 2. CONEXIÓN A SUPABASE ---
 # Asegúrate de tener estos nombres exactos en tus Secrets de Streamlit
 url = st.secrets["SUPABASE_URL"]
@@ -69,7 +62,7 @@ session = supabase.auth.get_session()
 if session and not st.session_state.user:
     st.session_state.user = session.user
     # Aquí podrías llamar a tu lógica de 'profiles' para obtener el rol
-    st.session_state.sub_pantalla = "menu_principal"
+    st.session_state.sub_pantalla = "stats"
 
 # --- 3. CARGA DE CSS ---
 with open("style.css") as f:
@@ -108,18 +101,18 @@ if st.session_state.user:
         saludo = f"¡Hola, **{nombre_db}**!" if nombre_db else "¡Hola!"
         st.write(saludo)
         st.divider()
-        if st.button("📊 PROGRESO", use_container_width=True):navegar_a("stats")
-        if st.button("👤 MI PERFIL", use_container_width=True):navegar_a("perfil")
-        if st.button("📚 BIBLIOTECA DE LEYES", use_container_width=True):navegar_a("biblioteca")
-        if st.button("📝 REALIZAR TEST", use_container_width=True):navegar_a("seleccion_tema")
+        if st.button("📊 PROGRESO", width='stretch'):navegar_a("stats")
+        if st.button("👤 MI PERFIL", width='stretch'):navegar_a("perfil")
+        if st.button("📚 BIBLIOTECA DE LEYES", width='stretch'):navegar_a("biblioteca")
+        if st.button("📝 REALIZAR TEST", width='stretch'):navegar_a("seleccion_tema")
         # 5. Gestión Preguntas (Solo ADMIN)
         if st.session_state.user_role == "admin":
             st.write("")
             st.markdown('<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>', unsafe_allow_html=True)
-            if st.button("⚙️ GESTIÓN PREGUNTAS", use_container_width=True):navegar_a("admin_preguntas")
+            if st.button("⚙️ GESTIÓN PREGUNTAS", width='stretch'):navegar_a("admin_preguntas")
         # 6. Cerrar Sesión (al final)
         st.write("###")
-        if st.button("🚪 CERRAR SESIÓN", use_container_width=True):
+        if st.button("🚪 CERRAR SESIÓN", width='stretch'):
             supabase.auth.sign_out()
             st.session_state.clear()
             st.rerun()
@@ -132,7 +125,7 @@ if st.session_state.sub_pantalla == "inicio":
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.write("---")
-        if st.button("¡VAMOS A POR LA PLAZA!", use_container_width=True, type="primary"):
+        if st.button("¡VAMOS A POR LA PLAZA!", width='stretch', type="primary"):
             cambiar_vista("login")
             st.rerun()
 
@@ -141,7 +134,7 @@ elif st.session_state.sub_pantalla == "login":
     st.markdown(f'<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
     
     # Botón de Google (Fuera o dentro de los tabs)
-    if st.button("🚀 ENTRAR CON GOOGLE", use_container_width=True):
+    if st.button("🚀 ENTRAR CON GOOGLE", width='stretch'):
         from src.services.auth_service import iniciar_login_google
         auth_url = iniciar_login_google(supabase)
         # Redirección de JavaScript para abrir OAuth
@@ -152,7 +145,7 @@ elif st.session_state.sub_pantalla == "login":
     with tabs[0]:
         email = st.text_input("Email", key="login_email")
         pw = st.text_input("Contraseña", type="password", key="login_pw")
-        if st.button("INICIAR SESIÓN", use_container_width=True, type="primary"):
+        if st.button("INICIAR SESIÓN", width='stretch', type="primary"):
             try:
                 # 1. Intentamos el login
                 res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
@@ -171,7 +164,7 @@ elif st.session_state.sub_pantalla == "login":
                         st.session_state.user_role = "regular"
                     
                     # 3. CAMBIO DE VISTA Y REFRESCO
-                    cambiar_vista("menu_principal")
+                    cambiar_vista("stats")
                     st.rerun()
                 else:
                     st.error("No se pudo recuperar la información del usuario.")
@@ -184,24 +177,13 @@ elif st.session_state.sub_pantalla == "login":
     with tabs[1]:
         n_email = st.text_input("Nuevo Email", key="reg_email")
         n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw")
-        if st.button("CREAR CUENTA", use_container_width=True):
+        if st.button("CREAR CUENTA", width='stretch'):
             try:
                 # Si tienes la confirmación desactivada en Supabase, entra directo
                 res = supabase.auth.sign_up({"email": n_email, "password": n_pw})
                 st.success("¡Cuenta creada! Intenta loguearte ahora.")
             except Exception as e:
                 st.error(f"Error: {e}")
-
-# --- PANTALLA: MENÚ PRINCIPAL (RESUMEN) ---
-elif st.session_state.sub_pantalla == "menu_principal":
-    st.markdown(f'<div class="titulo-pantalla">CENTRO DE CONTROL</div>', unsafe_allow_html=True)
-    st.info("Bienvenido. Utiliza el menú de la izquierda para navegar por la aplicación.")
-    
-    # Dashboard rápido
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Nota Media", "7.2", "0.5")
-    c2.metric("Test Completados", "24")
-    c3.metric("Días para Examen", "124")
 
 # --- PANTALLA: ESTADÍSTICAS ---
 elif st.session_state.sub_pantalla == "stats":

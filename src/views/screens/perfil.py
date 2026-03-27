@@ -35,7 +35,7 @@ def render_perfil_screen(*, supabase: Any) -> bool:
         st.write(f"**Email de cuenta:** {st.session_state.user.email}")
         st.write(f"**Rol de usuario:** {st.session_state.user_role.upper()}")
 
-        if st.button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary"):
+        if st.button("💾 GUARDAR CAMBIOS", width='stretch', type="primary"):
             try:
                 actualizacion = {
                     "nombre": nombre,

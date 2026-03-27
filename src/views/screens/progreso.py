@@ -52,7 +52,7 @@ def render_progreso_screen(*, supabase: Any, user_id: str) -> None:
                 xaxis=dict(gridcolor="rgba(255,255,255,0.1)"),
                 margin=dict(t=20, b=20, l=20, r=20),
             )
-            st.plotly_chart(fig_line, use_container_width=True)
+            st.plotly_chart(fig_line, width='stretch')
         else:
             st.info("Aún no hay datos de exámenes.")
 
@@ -80,6 +80,6 @@ def render_progreso_screen(*, supabase: Any, user_id: str) -> None:
                 margin=dict(t=10, b=10, l=10, r=10),
                 legend=dict(orientation="h", yanchor="bottom", y=-0.5, xanchor="center", x=0.5),
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("¡Sin fallos registrados! Sigue así.")

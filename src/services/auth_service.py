@@ -6,8 +6,8 @@ def iniciar_login_google(supabase: Client):
     """
     # En local suele ser http://localhost:8501
     # En producción debe ser la URL de tu app en Streamlit Cloud
-    #redirect_url = "http://localhost:8501" 
-    redirect_url = "https://opopmm.streamlit.app"
+    redirect_url = "http://localhost:8501" 
+    #redirect_url = "https://viglgksnpajdgpfprmqg.supabase.co/auth/v1/callback"
     
     res = supabase.auth.sign_in_with_oauth({
         "provider": "google",
