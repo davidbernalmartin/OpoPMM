@@ -100,69 +100,56 @@ def render_examen_runtime(
                 st.rerun()
 
     elif st.session_state.examen_finalizado:
+        # 1. Cálculos iniciales
         total = len(lista_preguntas)
-        aciertos = sum(1 for i, p in enumerate(lista_preguntas) if st.session_state.respuestas_usuario.get(i) == p["correcta"])
-        fallos = sum(
-            1
-            for i, p in enumerate(lista_preguntas)
-            if st.session_state.respuestas_usuario.get(i) is not None and st.session_state.respuestas_usuario.get(i) != p["correcta"]
-        )
+        respuestas = st.session_state.respuestas_usuario
+        aciertos = sum(1 for i, p in enumerate(lista_preguntas) if respuestas.get(i) == p["correcta"])
+        fallos = sum(1 for i, p in enumerate(lista_preguntas) if respuestas.get(i) is not None and respuestas.get(i) != p["correcta"])
         resumen = Examen(total=total, aciertos=aciertos, fallos=fallos)
         sin_responder = resumen.blancos
         netas = resumen.netas
         nota_diez = resumen.nota_sobre_diez
-
-        st.markdown('<h2 style="text-align: center;">📊 RESULTADOS DEL EXAMEN</h2>', unsafe_allow_html=True)
-        st.write("###")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown(
-                f'<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🟢 Aciertos</p><h1 style="color: #2ecc71; margin-top:0;">{aciertos}</h1></div>',
-                unsafe_allow_html=True,
-            )
-        with col2:
-            st.markdown(
-                f'<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">🔴 Fallos</p><h1 style="color: #e74c3c; margin-top:0;">{fallos}</h1></div>',
-                unsafe_allow_html=True,
-            )
-        with col3:
-            st.markdown(
-                f'<div style="text-align: center;"><p style="font-size: 1.5rem; margin-bottom:0;">⚪ En blanco</p><h1 style="color: #bdc3c7; margin-top:0;">{sin_responder}</h1></div>',
-                unsafe_allow_html=True,
-            )
-
-        st.write("---")
-        c_netas, c_nota = st.columns(2)
-        with c_netas:
-            st.markdown(
-                f"""<div style="background-color: #6D28D9; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #4C1D95;">
-                <p style="margin:0; font-size: 1.3rem; color: #EDE9FE; font-weight: bold;">PREGUNTAS NETAS</p>
-                <h1 style="margin:0; color: white; font-size: 3.5rem;">{netas:.2f}</h1>
+        # 2. Lógica de colores dinámicos (Arquitectura Visual)
+        color_resultado = "#2ecc71" if nota_diez >= 5 else "#e74c3c"
+        mensaje_resultado = "¡ENHORABUENA!" if nota_diez >= 5 else "SIGUE INTENTÁNDOLO"
+        # 3. Renderizado Optimizado para Móvil
+        st.markdown(f'<h2 style="text-align: center; color: {color_resultado};">{mensaje_resultado}</h2>', unsafe_allow_html=True)
+        # Tarjeta de Nota Principal (Ancho completo para impacto visual)
+        st.markdown(
+            f"""<div style="background-color: {color_resultado}; padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                <p style="margin:0; font-size: 1.2rem; color: white; opacity: 0.9; font-weight: bold;">PUNTUACIÓN FINAL</p>
+                <h1 style="margin:0; color: white; font-size: 4.5rem; line-height: 1;">{nota_diez:.2f}</h1>
+                <p style="margin:0; font-size: 1rem; color: white;">sobre 10 puntos</p>
             </div>""",
-                unsafe_allow_html=True,
-            )
-        with c_nota:
-            st.markdown(
-                f"""<div style="background-color: #0891B2; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #164E63;">
-                <p style="margin:0; font-size: 1.3rem; color: #CFFAFE; font-weight: bold;">NOTA SOBRE 10</p>
-                <h1 style="margin:0; color: white; font-size: 3.5rem;">{nota_diez:.2f}</h1>
-            </div>""",
-                unsafe_allow_html=True,
-            )
-
+            unsafe_allow_html=True,
+        )
+        # Estadísticas en Grid 2x2 (Mejor que 3 columnas en móvil)
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown(f"""<div style="background-color: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 10px;">
+                <span style="font-size: 0.9rem; color: #2ecc71;">✅ ACIERTOS</span><br><b style="font-size: 1.5rem;">{aciertos}</b>
+            </div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div style="background-color: rgba(189, 195, 199, 0.1); border: 1px solid #bdc3c7; padding: 15px; border-radius: 15px; text-align: center;">
+                <span style="font-size: 0.9rem; color: #bdc3c7;">⚪ BLANCOS</span><br><b style="font-size: 1.5rem;">{sin_responder}</b>
+            </div>""", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"""<div style="background-color: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 10px;">
+                <span style="font-size: 0.9rem; color: #e74c3c;">❌ FALLOS</span><br><b style="font-size: 1.5rem;">{fallos}</b>
+            </div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div style="background-color: rgba(109, 40, 217, 0.1); border: 1px solid #6D28D9; padding: 15px; border-radius: 15px; text-align: center;">
+                <span style="font-size: 0.9rem; color: #6D28D9;">🎯 NETAS</span><br><b style="font-size: 1.5rem;">{netas:.2f}</b>
+            </div>""", unsafe_allow_html=True)
         st.write("###")
-        col_rev, col_fin = st.columns(2)
-        with col_rev:
-            if st.button("🔍 REVISAR PREGUNTA A PREGUNTA", width='stretch'):
-                st.session_state.ver_revision = True
-                st.session_state.indice_revision = 0
-                st.rerun()
-        with col_fin:
-            if st.button("🏁 FINALIZAR Y VOLVER", width='stretch', type="primary"):
-                st.session_state.ver_revision = False
-                limpiar_estado_maestro()
-                st.session_state.sub_pantalla = "seleccion_tema"
-                st.rerun()
+        # Botones de acción vertical para móvil (Fáciles de pulsar)
+        if st.button("🔍 REVISAR PREGUNTAS", width='stretch', type="secondary"):
+            st.session_state.ver_revision = True
+            st.session_state.indice_revision = 0
+            st.rerun()
+        if st.button("🏁 SALIR AL MENÚ", width='stretch', type="primary"):
+            st.session_state.ver_revision = False
+            limpiar_estado_maestro()
+            st.session_state.sub_pantalla = "seleccion_tema"
+            st.rerun()
     else:
         idx = st.session_state.indice_pregunta
         p_actual = lista_preguntas[idx]

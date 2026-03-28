@@ -223,11 +223,20 @@ elif st.session_state.sub_pantalla == "login":
 
 elif st.session_state.sub_pantalla == "historial":
     from src.views.screens.historial import render_historial_screen
-    render_historial_screen(supabase, mostrar_examen)
+    render_historial_screen(supabase)
 
 # Esta ruta es para cuando pulsas "Repasar"
 elif st.session_state.sub_pantalla == "repaso_historial":
     mostrar_examen("REPASO EXAMEN", st.session_state.preguntas_examen)
+
+elif st.session_state.sub_pantalla == "examen_runtime":
+    from src.views.screens.examen_runtime import render_examen_runtime
+    render_examen_runtime(
+        titulo=f"REINTENTO: {st.session_state.tipo_test_actual.upper()}",
+        lista_preguntas=st.session_state.preguntas_examen,
+        guardar_resultado_examen=guardar_resultado_examen, # Tu función de guardado
+        limpiar_estado_maestro=limpiar_estado_maestro
+    )
 
 elif _pantallas_tras_menu():
     pass
