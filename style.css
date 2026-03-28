@@ -10,10 +10,10 @@
 /* 3. TÍTULOS (Aquí sí aplicamos Ranchers porque son clases nuestras) */
 .titulo-pantalla {
     font-family: 'Ranchers', cursive !important;
-    font-size: 45px; 
+    font-size: 28px; 
     text-align: center;
     color: white;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-shadow: 2px 2px 0px #1a252f;
     text-transform: uppercase;
 }
@@ -96,4 +96,28 @@ div[role="radiogroup"] > label {
     margin-bottom: 18px !important;
     padding: 12px !important;
     border-radius: 8px;
+}
+
+/* Selecciona el contenedor del texto/emoji dentro del tab */
+.stTabs [data-baseweb="tab"] {
+    height: 60px; /* Ajusta la altura del tab para que el emoji no quede cortado */
+}
+
+.stTabs [data-baseweb="tab"] div p {
+    font-size: 28px !important; /* Tamaño del emoji */
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Opcional: Cambia el color del indicador (la línea de abajo) para que resalte más */
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: #00F2FE !important; /* El color cyan de tu tema */
+    height: 4px !important;
+}
+
+/* Espaciado entre pestañas para que no se amontonen en el móvil */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 15px !important;
 }

@@ -12,23 +12,37 @@ from src.views.screens.importacion import get_modal_importar_csv, get_modal_impo
 from src.views.screens.perfil import render_perfil_screen
 from src.views.screens.progreso import render_progreso_screen
 
+# --- 1. CONFIGURACIÓN Y CONEXIÓN ---
+st.set_page_config(
+    page_title="OpoPMM - Tu Plaza es Nuestra",
+    layout="wide",
+    initial_sidebar_state="collapsed", # Sidebar cerrado para favorecer los Tabs
+)
 
-def mostrar_progreso():
-    render_progreso_screen(supabase=supabase, user_id=st.session_state.user.id)
-    if st.button("📜 HISTORIAL DE EXAMENES", width='stretch'):
-        navegar_a("historial")
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_SERVICE_KEY"]
+supabase = create_client(url, key)
 
+with open("style.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+ensure_defaults(st.session_state)
+
+# --- 2. FUNCIONES DE APOYO ---
+def cambiar_vista(sub):
+    st.session_state.sub_pantalla = sub
+    st.session_state.p_seleccionada = None
+
+def navegar_a(sub):
+    limpiar_estado_maestro()
+    cambiar_vista(sub)
+    st.rerun()
+
+def limpiar_estado_maestro():
+    reset_exam_state(st.session_state)
 
 def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
-    """
-    datos_test: Lista de diccionarios con las preguntas del test
-    respuestas_usuario: Diccionario con {indice: 'A/B/C'}
-    """
-    result = calculate_exam_result(
-        datos_test,
-        respuestas_usuario,
-        user_id=st.session_state.user.id,
-    )
+    result = calculate_exam_result(datos_test, respuestas_usuario, user_id=st.session_state.user.id)
     ids_ordenados = [p.get("id") for p in datos_test]
     persist_exam_result(
         supabase=supabase,
@@ -40,203 +54,135 @@ def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
     )
     return result.nota, result.aciertos, result.fallos
 
-
-def limpiar_estado_maestro():
-    """Resetea estado de examen/importación sin tocar auth."""
-    reset_exam_state(st.session_state)
-
-
 def mostrar_examen(titulo, lista_preguntas):
-    render_examen_runtime(
-        titulo=titulo,
-        lista_preguntas=lista_preguntas,
-        guardar_resultado_examen=guardar_resultado_examen,
-        limpiar_estado_maestro=limpiar_estado_maestro,
-    )
-
-
-# --- 1. CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(
-    page_title="OpoPMM - Tu Plaza es Nuestra",
-    layout="wide",
-    initial_sidebar_state="auto",
-)
-
-# --- 2. CONEXIÓN A SUPABASE ---
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_SERVICE_KEY"]
-supabase = create_client(url, key)
-
-# --- 3. CARGA DE CSS ---
-with open("style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-# --- 4. INICIALIZACIÓN DE ESTADOS (SESSION STATE) ---
-ensure_defaults(st.session_state)
-
-
-def cambiar_vista(sub):
-    st.session_state.sub_pantalla = sub
-    st.session_state.p_seleccionada = None
-
-
-def navegar_a(sub):
-    limpiar_estado_maestro()
-    cambiar_vista(sub)
+    # Cuando iniciamos un examen, cambiamos la vista para que desaparezcan los Tabs
+    st.session_state.preguntas_examen = lista_preguntas
+    st.session_state.titulo_examen_actual = titulo
+    cambiar_vista("examen_runtime")
     st.rerun()
 
-
-def _nombre_perfil_sidebar():
-    try:
-        res = (
-            supabase.table("profiles")
-            .select("nombre")
-            .eq("id", st.session_state.user.id)
-            .single()
-            .execute()
-        )
-        return res.data.get("nombre") if res.data else None
-    except Exception:
-        return None
-
-
-def _pantallas_tras_menu():
-    """Enruta stats, perfil, biblioteca, exámenes y admin (una sola pantalla por ejecución)."""
-    if st.session_state.sub_pantalla == "stats":
-        mostrar_progreso()
-        return True
-    if render_perfil_screen(supabase=supabase):
-        return True
-    if render_biblioteca_screen(
-        supabase=supabase,
-        limpiar_estado_maestro=limpiar_estado_maestro,
-        cambiar_vista=cambiar_vista,
-    ):
-        return True
-    if render_examenes_screen(
-        supabase=supabase,
-        mostrar_examen=mostrar_examen,
-        navegar_a=navegar_a,
-    ):
-        return True
-    if render_admin_preguntas_screens(
-        supabase=supabase,
-        renderizar_formulario_edicion=renderizar_formulario_edicion_pregunta,
-        modal_importar_pdf=modal_importar_pdf,
-        modal_importar=modal_importar,
-        limpiar_estado_maestro=limpiar_estado_maestro,
-        convertir_a_csv=convertir_preguntas_a_csv,
-    ):
-        return True
-    return False
-
-
+# --- 3. COMPONENTES GLOBALES ---
 modal_importar_pdf = get_modal_importar_pdf()
 modal_importar = get_modal_importar_csv()
 
+# --- 4. LÓGICA DE NAVEGACIÓN ---
 
-# --- 5. LÓGICA DE NAVEGACIÓN LATERAL (SIDEBAR) ---
+# A. FLUJO PARA USUARIOS LOGUEADOS
 if st.session_state.user:
-    with st.sidebar:
-        nombre_db = _nombre_perfil_sidebar()
-
-        st.markdown(
-            '<p class="titulo-pantalla" style="font-size: 28px; text-align: left;">OpoPMM 🏆</p>',
-            unsafe_allow_html=True,
+    
+    # --- MODO EXAMEN (Sin Tabs para evitar distracciones/errores) ---
+    if st.session_state.sub_pantalla == "examen_runtime":
+        render_examen_runtime(
+            titulo=st.session_state.get("titulo_examen_actual", "EXAMEN"),
+            lista_preguntas=st.session_state.preguntas_examen,
+            guardar_resultado_examen=guardar_resultado_examen,
+            limpiar_estado_maestro=limpiar_estado_maestro,
+        )
+    
+    elif st.session_state.sub_pantalla == "repaso_historial":
+        render_examen_runtime(
+            titulo="REPASO DE EXAMEN",
+            lista_preguntas=st.session_state.preguntas_examen,
+            guardar_resultado_examen=guardar_resultado_examen,
+            limpiar_estado_maestro=limpiar_estado_maestro,
         )
 
-        saludo = f"¡Hola, **{nombre_db}**!" if nombre_db else "¡Hola!"
-        st.write(saludo)
-        st.divider()
-        if st.button("📊 PROGRESO", width='stretch'):
-            navegar_a("stats")
-        if st.button("👤 MI PERFIL", width='stretch'):
-            navegar_a("perfil")
-        if st.button("📚 BIBLIOTECA DE LEYES", width='stretch'):
-            navegar_a("biblioteca")
-        if st.button("📝 REALIZAR TEST", width='stretch'):
-            navegar_a("seleccion_tema")
+    # --- MODO APP NORMAL (Navegación por Tabs) ---
+    else:
+        st.markdown("""
+            <style>
+            .stTabs [data-baseweb="tab-list"] { gap: 8px; justify-content: space-around; }
+            .stTabs [data-baseweb="tab"] { font-size: 12px; padding: 10px 5px; }
+            </style>
+        """, unsafe_allow_html=True)
+
+        titulos_tabs = ["📊", "👤", "📚", "📝", "📜"]
         if st.session_state.user_role == "admin":
-            st.write("")
-            st.markdown(
-                '<p style="font-size: 11px; opacity: 0.6; margin-left: 5px; letter-spacing: 1px;">ADMINISTRACIÓN</p>',
-                unsafe_allow_html=True,
+            titulos_tabs.append("⚙️")
+        titulos_tabs.append("🚪")
+
+        tabs = st.tabs(titulos_tabs)
+
+        with tabs[0]: # PROGRESO
+            render_progreso_screen(supabase=supabase, user_id=st.session_state.user.id)
+        
+        with tabs[1]: # PERFIL
+            render_perfil_screen(supabase=supabase)
+
+        with tabs[2]: # BIBLIOTECA
+            render_biblioteca_screen(
+                supabase=supabase,
+                limpiar_estado_maestro=limpiar_estado_maestro,
+                cambiar_vista=cambiar_vista
             )
-            if st.button("⚙️ GESTIÓN PREGUNTAS", width='stretch'):
-                navegar_a("admin_preguntas")
-        st.write("###")
-        if st.button("🚪 CERRAR SESIÓN", width='stretch'):
-            supabase.auth.sign_out()
-            st.session_state.clear()
-            st.rerun()
 
-# --- 6. PANTALLAS PRINCIPALES ---
+        with tabs[3]: # TESTS
+            render_examenes_screen(
+                supabase=supabase,
+                mostrar_examen=mostrar_examen,
+                navegar_a=navegar_a
+            )
 
-if st.session_state.sub_pantalla == "inicio":
-    st.markdown('<div class="titulo-pantalla">OpoPMM</div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.write("---")
-        if st.button("¡VAMOS A POR LA PLAZA!", width='stretch', type="primary"):
-            cambiar_vista("login")
-            st.rerun()
+        with tabs[4]: # HISTORIAL
+            from src.views.screens.historial import render_historial_screen
+            render_historial_screen(supabase)
 
-elif st.session_state.sub_pantalla == "login":
-    st.markdown('<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
-    tabs = st.tabs(["Entrar", "Registrarse"])
+        idx_dinamico = 5
+        if st.session_state.user_role == "admin":
+            with tabs[idx_dinamico]:
+                render_admin_preguntas_screens(
+                    supabase=supabase,
+                    renderizar_formulario_edicion=renderizar_formulario_edicion_pregunta,
+                    modal_importar_pdf=modal_importar_pdf,
+                    modal_importar=modal_importar,
+                    limpiar_estado_maestro=limpiar_estado_maestro,
+                    convertir_a_csv=convertir_preguntas_a_csv,
+                )
+            idx_dinamico += 1
 
-    with tabs[0]:
-        email = st.text_input("Email", key="login_email")
-        pw = st.text_input("Contraseña", type="password", key="login_pw")
-        if st.button("INICIAR SESIÓN", width='stretch', type="primary"):
-            try:
-                res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
-                if res.user:
-                    st.session_state.user = res.user
-                    try:
-                        p = (
-                            supabase.table("profiles")
-                            .select("role")
-                            .eq("id", res.user.id)
-                            .single()
-                            .execute()
-                        )
+        with tabs[idx_dinamico]: # SALIR
+            st.warning("¿Quieres cerrar la sesión?")
+            if st.button("CONFIRMAR CIERRE", use_container_width=True, type="primary"):
+                supabase.auth.sign_out()
+                st.session_state.clear()
+                st.rerun()
+
+# B. FLUJO PARA USUARIOS NO LOGUEADOS (Login/Registro)
+else:
+    if st.session_state.sub_pantalla == "inicio":
+        st.markdown('<div class="titulo-pantalla">OpoPMM</div>', unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.write("---")
+            if st.button("¡VAMOS A POR LA PLAZA!", use_container_width=True, type="primary"):
+                cambiar_vista("login")
+                st.rerun()
+
+    elif st.session_state.sub_pantalla == "login":
+        st.markdown('<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
+        t_login, t_reg = st.tabs(["Entrar", "Registrarse"])
+
+        with t_login:
+            email = st.text_input("Email", key="login_email")
+            pw = st.text_input("Contraseña", type="password", key="login_pw")
+            if st.button("INICIAR SESIÓN", use_container_width=True, type="primary"):
+                try:
+                    res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
+                    if res.user:
+                        st.session_state.user = res.user
+                        p = supabase.table("profiles").select("role").eq("id", res.user.id).single().execute()
                         st.session_state.user_role = p.data["role"] if p.data else "regular"
-                    except Exception:
-                        st.session_state.user_role = "regular"
-                    cambiar_vista("stats")
-                    st.rerun()
-                else:
-                    st.error("No se pudo recuperar la información del usuario.")
-            except Exception:
-                st.error("Error de acceso: Revisa tus credenciales.")
+                        cambiar_vista("stats")
+                        st.rerun()
+                except Exception:
+                    st.error("Credenciales incorrectas")
 
-    with tabs[1]:
-        n_email = st.text_input("Nuevo Email", key="reg_email")
-        n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw")
-        if st.button("CREAR CUENTA", width='stretch'):
-            try:
-                supabase.auth.sign_up({"email": n_email, "password": n_pw})
-                st.success("¡Cuenta creada! Intenta loguearte ahora.")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-elif st.session_state.sub_pantalla == "historial":
-    from src.views.screens.historial import render_historial_screen
-    render_historial_screen(supabase)
-
-# Esta ruta es para cuando pulsas "Repasar"
-elif st.session_state.sub_pantalla == "repaso_historial":
-    mostrar_examen("REPASO EXAMEN", st.session_state.preguntas_examen)
-
-elif st.session_state.sub_pantalla == "examen_runtime":
-    from src.views.screens.examen_runtime import render_examen_runtime
-    render_examen_runtime(
-        titulo=f"REINTENTO: {st.session_state.tipo_test_actual.upper()}",
-        lista_preguntas=st.session_state.preguntas_examen,
-        guardar_resultado_examen=guardar_resultado_examen, # Tu función de guardado
-        limpiar_estado_maestro=limpiar_estado_maestro
-    )
-
-elif _pantallas_tras_menu():
-    pass
+        with t_reg:
+            n_email = st.text_input("Nuevo Email", key="reg_email")
+            n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw")
+            if st.button("CREAR CUENTA", use_container_width=True):
+                try:
+                    supabase.auth.sign_up({"email": n_email, "password": n_pw})
+                    st.success("Cuenta creada. ¡Ya puedes entrar!")
+                except Exception as e:
+                    st.error(f"Error: {e}")

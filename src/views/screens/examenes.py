@@ -1,115 +1,100 @@
 """Exam flow screens for Streamlit app."""
 
 from __future__ import annotations
-
 import random
 from typing import Any, Callable
-
 import streamlit as st
-
 
 def render_examenes_screen(
     *,
     supabase: Any,
     mostrar_examen: Callable[[str, list[dict[str, Any]]], None],
     navegar_a: Callable[[str], None],
-) -> bool:
+) -> None:
     """
-    Render exam-related screens.
-
-    Returns True if current `sub_pantalla` was handled.
+    Renderizado principal de la sección de exámenes adaptado para TABS.
     """
-    sub_pantalla = st.session_state.sub_pantalla
+    # Si no hay un paso de configuración definido, empezamos por los botones
+    if "paso_configuracion" not in st.session_state or st.session_state.paso_configuracion is None:
+        st.session_state.paso_configuracion = "botones"
 
-    if sub_pantalla == "seleccion_tema":
+    # 1. FLUJO DE CONFIGURACIÓN (Antes de generar las preguntas)
+    if st.session_state.sub_pantalla not in ["test_ingles", "test_por_temas", "test_simulacro"]:
         _render_selector_modo_examen(supabase)
-        return True
-
-    if sub_pantalla == "test_ingles":
+    
+    # 2. GENERACIÓN DE EXAMEN (Cuando ya hemos elegido cantidad/temas)
+    elif st.session_state.sub_pantalla == "test_ingles":
         _render_test_ingles(supabase, mostrar_examen, navegar_a)
-        return True
 
-    if sub_pantalla == "test_por_temas":
+    elif st.session_state.sub_pantalla == "test_por_temas":
         _render_test_por_temas(supabase, mostrar_examen, navegar_a)
-        return True
 
-    if sub_pantalla == "test_simulacro":
+    elif st.session_state.sub_pantalla == "test_simulacro":
         _render_test_simulacro(supabase, mostrar_examen, navegar_a)
-        return True
-
-    return False
 
 
 def _render_selector_modo_examen(supabase: Any) -> None:
+    # Aseguramos que los botones siempre tengan use_container_width=True para móvil
+    
     if st.session_state.paso_configuracion == "botones":
         st.markdown('<div class="titulo-pantalla">MODO EXAMEN</div>', unsafe_allow_html=True)
-        st.markdown('<div class="contenedor-test">', unsafe_allow_html=True)
+        
+        # Usamos columnas que no se apilen tan agresivamente
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            if st.button("🇬🇧\n\nEXAMEN DE INGLÉS", width='stretch'):
+            if st.button("🇬🇧\n\nINGLÉS", use_container_width=True):
                 st.session_state.modo_seleccionado = "ingles"
                 st.session_state.paso_configuracion = "seleccion_cantidad"
                 st.rerun()
         with col2:
-            if st.button("📚\n\nEXAMEN POR TEMAS", width='stretch'):
+            if st.button("📚\n\nTEMAS", use_container_width=True):
                 st.session_state.modo_seleccionado = "por_temas"
                 st.session_state.paso_configuracion = "seleccion_temas"
                 st.rerun()
         with col3:
-            if st.button("⏱️\n\nSIMULACRO EXAMEN", width='stretch'):
+            if st.button("⏱️\n\nSIMULACRO", use_container_width=True):
                 st.session_state.modo_seleccionado = "simulacro"
                 st.session_state.paso_configuracion = "seleccion_cantidad"
                 st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
 
     elif st.session_state.paso_configuracion == "seleccion_temas":
         st.markdown('<div class="titulo-pantalla">SELECCION DE TEMAS</div>', unsafe_allow_html=True)
         try:
             res = supabase.table("temas").select("id, nombre").order("id").neq("id", 1).execute()
-            temas_db = res.data
-            opciones = {f"Tema {t['nombre']}": t["id"] for t in temas_db if t["id"] != 1}
-            seleccion = st.multiselect("Selecciona una o varias leyes:", options=list(opciones.keys()))
+            opciones = {f"Tema {t['nombre']}": t["id"] for t in res.data}
+            seleccion = st.multiselect("Selecciona leyes:", options=list(opciones.keys()))
 
             st.write("---")
             c1, c2 = st.columns(2)
             with c1:
-                if st.button("⬅️ VOLVER", width='stretch'):
+                if st.button("⬅️ VOLVER", use_container_width=True):
                     st.session_state.paso_configuracion = "botones"
                     st.rerun()
             with c2:
-                if st.button("CONTINUAR ➡️", type="primary", width='stretch', disabled=not seleccion):
+                if st.button("CONTINUAR ➡️", type="primary", use_container_width=True, disabled=not seleccion):
                     st.session_state.temas_seleccionados = [opciones[s] for s in seleccion]
                     st.session_state.paso_configuracion = "seleccion_cantidad"
                     st.rerun()
         except Exception as e:
-            st.error(f"Error cargando temas: {e}")
+            st.error(f"Error: {e}")
 
     elif st.session_state.paso_configuracion == "seleccion_cantidad":
-        st.markdown('<div class="titulo-pantalla">NUMERO DE PREGUNTAS</div>', unsafe_allow_html=True)
-        st.write(f"Modo: **{st.session_state.modo_seleccionado.upper()}**")
+        st.markdown('<div class="titulo-pantalla">Nº PREGUNTAS</div>', unsafe_allow_html=True)
+        st.info(f"Modo seleccionado: **{st.session_state.modo_seleccionado.upper()}**")
 
-        cantidad = st.select_slider(
-            "¿Cuántas preguntas quieres responder?",
-            options=[10, 20, 40, 80, 100],
-            value=20,
-        )
+        cantidad = st.select_slider("Cantidad:", options=[10, 20, 40, 80, 100], value=20)
 
-        st.write("---")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("⬅️ VOLVER", width='stretch'):
-                if st.session_state.modo_seleccionado == "por_temas":
-                    st.session_state.paso_configuracion = "seleccion_temas"
-                else:
-                    st.session_state.paso_configuracion = "botones"
+            if st.button("⬅️ VOLVER", use_container_width=True):
+                st.session_state.paso_configuracion = "por_temas" if st.session_state.modo_seleccionado == "por_temas" else "botones"
                 st.rerun()
         with c2:
-            if st.button("🚀 EMPEZAR EXAMEN", type="primary", width='stretch'):
+            if st.button("🚀 EMPEZAR", type="primary", use_container_width=True):
                 st.session_state.cantidad_preguntas = cantidad
                 st.session_state.sub_pantalla = f"test_{st.session_state.modo_seleccionado}"
                 st.rerun()
-
 
 def _render_test_ingles(supabase: Any, mostrar_examen: Callable, navegar_a: Callable[[str], None]) -> None:
     if not st.session_state.preguntas_examen:

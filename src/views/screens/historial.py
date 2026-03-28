@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def render_historial_screen(supabase):
-    st.markdown('<div class="titulo-pantalla">📜 MI HISTORIAL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="titulo-pantalla">📜 HISTORIAL</div>', unsafe_allow_html=True)
     
     # 1. CSS Limpio y específico para las tarjetas
     st.markdown("""
@@ -34,20 +34,34 @@ def render_historial_screen(supabase):
 
     df_full = pd.DataFrame(res.data)
     
-    # Filtros
-    c_f1, c_f2 = st.columns(2)
-    with c_f1:
-        tipo_filtro = st.segmented_control("Tipo:", ["Todos", "Temas", "Ingles", "Simulacro"], default="Todos", key="f_tipo")
-    with c_f2:
-        alcance_filtro = st.segmented_control("Ver:", ["Últimos 10", "Todos", "Suspendidos"], default="Últimos 10", key="f_alcance")
+    # --- SECCIÓN DE FILTRO ÚNICO ---
+
+    # Inicializamos el estado si no existe
+    if "f_filtro_unico" not in st.session_state:
+        st.session_state.f_filtro_unico = "Todos"
+
+    # Renderizamos los pills (ocupan muy poco espacio)
+    filtro_seleccionado = st.pills(
+        "Filtrar por resultado:",
+        options=["Todos", "Suspensos"],
+        default=st.session_state.f_filtro_unico,
+        key="pills_unico_historial",
+        label_visibility="collapsed" # Ocultamos el texto para que sea más limpio
+    )
+
+    # Si el usuario cambia la opción, guardamos y recargamos
+    if filtro_seleccionado and filtro_seleccionado != st.session_state.f_filtro_unico:
+        st.session_state.f_filtro_unico = filtro_seleccionado
+        st.rerun()
+
+    # --- LÓGICA DE FILTRADO SIMPLIFICADA ---
 
     df_filtrado = df_full.copy()
-    if tipo_filtro != "Todos":
-        df_filtrado = df_filtrado[df_filtrado['tipo_examen'].str.upper() == tipo_filtro.upper()]
-    if alcance_filtro == "Suspendidos":
+
+    # Aplicamos el filtro según la selección
+    if st.session_state.f_filtro_unico == "Suspensos":
+        # Filtramos por nota menor a 5
         df_filtrado = df_filtrado[df_filtrado['nota_final'] < 5]
-    elif alcance_filtro == "Últimos 10":
-        df_filtrado = df_filtrado.head(10)
 
     # 3. Renderizado de Tarjetas
     for _, examen in df_filtrado.iterrows():

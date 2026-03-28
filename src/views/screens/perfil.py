@@ -1,25 +1,23 @@
 """Profile screen renderer."""
 
 from __future__ import annotations
-
 from typing import Any
-
 import streamlit as st
 
-
-def render_perfil_screen(*, supabase: Any) -> bool:
-    """Render profile screen. Returns True when handled."""
-    if st.session_state.sub_pantalla != "perfil":
-        return False
+def render_perfil_screen(*, supabase: Any) -> None:
+    """Render profile screen optimizado para Tabs."""
+    # ELIMINADO: if st.session_state.sub_pantalla != "perfil": return False
 
     st.markdown('<div class="titulo-pantalla">MI PERFIL</div>', unsafe_allow_html=True)
 
-    res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).single().execute()
-    datos_perfil = res.data if res.data else {}
+    try:
+        res = supabase.table("profiles").select("*").eq("id", st.session_state.user.id).single().execute()
+        datos_perfil = res.data if res.data else {}
+    except Exception as e:
+        st.error(f"Error al cargar perfil: {e}")
+        datos_perfil = {}
 
     with st.container():
-        st.write("### 📝 Datos Personales")
-
         col1, col2 = st.columns(2)
         with col1:
             nombre = st.text_input("Nombre", value=datos_perfil.get("nombre", ""))
@@ -35,7 +33,8 @@ def render_perfil_screen(*, supabase: Any) -> bool:
         st.write(f"**Email de cuenta:** {st.session_state.user.email}")
         st.write(f"**Rol de usuario:** {st.session_state.user_role.upper()}")
 
-        if st.button("💾 GUARDAR CAMBIOS", width='stretch', type="primary"):
+        # Cambio width='stretch' por use_container_width=True para compatibilidad móvil
+        if st.button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary"):
             try:
                 actualizacion = {
                     "nombre": nombre,
@@ -49,5 +48,3 @@ def render_perfil_screen(*, supabase: Any) -> bool:
                 st.rerun()
             except Exception as e:
                 st.error(f"Error al guardar: {e}")
-
-    return True

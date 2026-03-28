@@ -16,26 +16,26 @@ def render_admin_preguntas_screens(
     modal_importar: Callable[[], None],
     limpiar_estado_maestro: Callable[[], None],
     convertir_a_csv: Callable[[list[dict]], bytes],
-) -> bool:
-    """Render admin question screens. Returns True when handled."""
-    if st.session_state.sub_pantalla == "admin_preguntas":
+) -> None:
+    """
+    Render admin question screens. 
+    Eliminada la validación de sub_pantalla para compatibilidad con Tabs.
+    """
+    # Si estamos en proceso de revisión de una importación, mostramos esa pantalla
+    if st.session_state.get("sub_pantalla") == "revision_importacion":
+        _render_revision_importacion(
+            supabase=supabase,
+            limpiar_estado_maestro=limpiar_estado_maestro,
+            convertir_a_csv=convertir_a_csv,
+        )
+    # En cualquier otro caso (cuando entramos al Tab), mostramos el panel principal
+    else:
         _render_admin_preguntas(
             supabase=supabase,
             renderizar_formulario_edicion=renderizar_formulario_edicion,
             modal_importar_pdf=modal_importar_pdf,
             modal_importar=modal_importar,
         )
-        return True
-
-    if st.session_state.sub_pantalla == "revision_importacion":
-        _render_revision_importacion(
-            supabase=supabase,
-            limpiar_estado_maestro=limpiar_estado_maestro,
-            convertir_a_csv=convertir_a_csv,
-        )
-        return True
-
-    return False
 
 
 def _render_admin_preguntas(
