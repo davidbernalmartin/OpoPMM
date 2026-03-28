@@ -174,21 +174,26 @@ def render_examen_runtime(
             st.session_state.respuestas_usuario[idx] = seleccion
 
         st.write("---")
-        col1, col2 = st.columns(2)
-        with col1:
-            if idx > 0 and st.button("⬅️ ANTERIOR", width='stretch'):
-                st.session_state.indice_pregunta -= 1
-                st.rerun()
-        with col2:
-            if idx < len(lista_preguntas) - 1:
-                if st.button("SIGUIENTE ➡️", width='stretch'):
+        # --- NAVEGACIÓN DEL EXAMEN (SIEMPRE EN UNA LÍNEA) ---
+        nav_container = st.container(horizontal=True)
+
+        # Botón Anterior (solo si no es la primera pregunta)
+        with nav_container:
+            if st.session_state.indice_pregunta > 0:
+                if st.button("⬅️ Anterior", use_container_width=True):
+                    st.session_state.indice_pregunta -= 1
+                    st.rerun()
+            else:
+                # Botón invisible o deshabilitado para mantener el equilibrio visual
+                st.button("⬅️ Anterior", disabled=True, use_container_width=True)
+
+            # Botón Siguiente o Finalizar
+            if st.session_state.indice_pregunta < len(st.session_state.preguntas_examen) - 1:
+                if st.button("Siguiente ➡️", use_container_width=True, type="primary"):
                     st.session_state.indice_pregunta += 1
                     st.rerun()
-            elif st.button("🏁 FINALIZAR Y GUARDAR", width='stretch'):
-                guardar_resultado_examen(
-                    st.session_state.preguntas_examen,
-                    st.session_state.respuestas_usuario,
-                    tipo=st.session_state.get("tipo_test_actual", "Personalizado"),
-                )
-                st.session_state.examen_finalizado = True
-                st.rerun()
+            else:
+                if st.button("🏁 Finalizar", use_container_width=True, type="primary"):
+                    # Aquí iría tu lógica de finalizar_examen()
+                    finalizar_examen() 
+                    st.rerun()

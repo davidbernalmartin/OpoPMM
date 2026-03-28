@@ -80,6 +80,7 @@ def render_historial_screen(supabase):
             st.session_state.preguntas_examen = [p_dict[pid] for pid in examen['preguntas_ids']]
             st.session_state.respuestas_usuario = {int(k): v for k, v in examen['respuestas_usuario'].items()}
             st.session_state.ver_revision = True
+            st.session_state.indice_revision = 0
             st.session_state.sub_pantalla = "repaso_historial"
             st.rerun()
         # El botón de repetir ahora es más corto "REPETIR" para que quepa mejor
