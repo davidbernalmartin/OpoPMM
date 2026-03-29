@@ -115,7 +115,7 @@ def _render_admin_preguntas(
 
     with b1:
         if p_sel and not modo_crear:
-            if st.button("🗑️ ELIMINAR SELECCIONADA", use_container_width=True):
+            if st.button("🗑️ ELIMINAR", use_container_width=True):
                 supabase.table("preguntas").delete().eq("id", p_sel["id"]).execute()
                 st.session_state.p_seleccionada = None
                 st.rerun()
@@ -128,7 +128,7 @@ def _render_admin_preguntas(
                     del st.session_state["tabla_admin_preguntas"]
                 st.rerun()                
         else:
-            if st.button("❌ CANCELAR CREACIÓN", use_container_width=True):
+            if st.button("❌ CANCELAR", use_container_width=True):
                 st.session_state.modo_creacion_pregunta = False
                 st.rerun()
     with b2:

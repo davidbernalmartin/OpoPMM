@@ -15,8 +15,18 @@ from src.views.screens.progreso import render_progreso_screen
 # --- 1. CONFIGURACIÓN Y CONEXIÓN ---
 st.set_page_config(
     page_title="OpoPMM - Tu Plaza es Nuestra",
+    page_icon="assets/logo.png",  # <--- Ruta actualizada
     layout="wide",
     initial_sidebar_state="collapsed", # Sidebar cerrado para favorecer los Tabs
+)
+
+st.markdown(
+    f"""
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/logo.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/logo.png">
+    """,
+    unsafe_allow_html=True
 )
 
 url = st.secrets["SUPABASE_URL"]
