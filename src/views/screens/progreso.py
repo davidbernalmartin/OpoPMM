@@ -28,20 +28,26 @@ def render_progreso_screen(*, supabase: Any, user_id: str) -> None:
         nota_media = df_notas["nota_final"].mean()
         total_tests = len(df_notas)
         
-        m1, m2 = st.columns(2)
-        with m1:
-            st.markdown(f"""<div style="background: rgba(0, 255, 204, 0.1); border: 1px solid #00ffcc; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px;">
+    with st.container(horizontal=True):
+        # Tarjeta de Nota Media
+        st.markdown(f"""
+            <div style="background: rgba(0, 255, 204, 0.1); border: 1px solid #00ffcc; 
+                        padding: 15px; border-radius: 15px; text-align: center;">
                 <span style="font-size: 0.8rem; color: #00ffcc; font-weight: bold;">NOTA MEDIA</span><br>
                 <b style="font-size: 1.8rem;">{nota_media:.2f}</b>
-            </div>""", unsafe_allow_html=True)
-        with m2:
-            st.markdown(f"""<div style="background: rgba(109, 40, 217, 0.1); border: 1px solid #6D28D9; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px;">
-                <span style="font-size: 0.8rem; color: #6D28D9; font-weight: bold;">TESTS HECHOS</span><br>
+            </div>
+        """, unsafe_allow_html=True, width="stretch")
+
+        # Tarjeta de Tests Hechos
+        st.markdown(f"""
+            <div style="background: rgba(109, 40, 217, 0.1); border: 1px solid #6D28D9; 
+                        padding: 15px; border-radius: 15px; text-align: center;">
+                <span style="font-size: 0.8rem; color: #6D28D9; font-weight: bold;">TESTS</span><br>
                 <b style="font-size: 1.8rem;">{total_tests}</b>
-            </div>""", unsafe_allow_html=True)
+            </div>
+        """, unsafe_allow_html=True, width="stretch")
 
     # 3. Gráficos con width="stretch"
-    
     st.markdown("#### 📈 Evolución de Notas")
     if res_h.data:
         df_notas["Fecha"] = pd.to_datetime(df_notas["created_at"]).dt.date

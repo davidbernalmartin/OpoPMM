@@ -89,47 +89,52 @@ if st.session_state.user:
 
     # --- MODO APP NORMAL (Navegación por Tabs) ---
     else:
-        st.markdown("""
-            <style>
-            .stTabs [data-baseweb="tab-list"] { gap: 8px; justify-content: space-around; }
-            .stTabs [data-baseweb="tab"] { font-size: 12px; padding: 10px 5px; }
-            </style>
-        """, unsafe_allow_html=True)
+        # 1. Definimos qué pestañas verá todo el mundo
+        titulos_tabs = ["📊", "👤", "📝", "📜"] # Progreso, Perfil, Tests, Historial
 
-        titulos_tabs = ["📊", "👤", "📚", "📝", "📜"]
-        if st.session_state.user_role == "admin":
-            titulos_tabs.append("⚙️")
+        # 2. Lógica condicional para Admin / Biblioteca
+        es_admin = st.session_state.get("user_role") == "admin"
+
+        if es_admin:
+            titulos_tabs.append("📚") # Biblioteca (solo admin)
+            titulos_tabs.append("⚙️") # Gestión (solo admin)
+
+        # 3. El botón de salir siempre va al final
         titulos_tabs.append("🚪")
 
+        # 4. Creamos las pestañas
         tabs = st.tabs(titulos_tabs)
 
-        with tabs[0]: # PROGRESO
+        # --- RENDERIZADO ASOCIADO A CADA ÍNDICE ---
+        curr = 0
+
+        with tabs[curr]: # 📊 PROGRESO
             render_progreso_screen(supabase=supabase, user_id=st.session_state.user.id)
-        
-        with tabs[1]: # PERFIL
+        curr += 1
+
+        with tabs[curr]: # 👤 PERFIL
             render_perfil_screen(supabase=supabase)
+        curr += 1
 
-        with tabs[2]: # BIBLIOTECA
-            render_biblioteca_screen(
-                supabase=supabase,
-                limpiar_estado_maestro=limpiar_estado_maestro,
-                cambiar_vista=cambiar_vista
-            )
+        with tabs[curr]: # 📝 TESTS
+            render_examenes_screen(supabase=supabase, mostrar_examen=mostrar_examen, navegar_a=navegar_a)
+        curr += 1
 
-        with tabs[3]: # TESTS
-            render_examenes_screen(
-                supabase=supabase,
-                mostrar_examen=mostrar_examen,
-                navegar_a=navegar_a
-            )
-
-        with tabs[4]: # HISTORIAL
+        with tabs[curr]: # 📜 HISTORIAL
             from src.views.screens.historial import render_historial_screen
             render_historial_screen(supabase)
+        curr += 1
 
-        idx_dinamico = 5
-        if st.session_state.user_role == "admin":
-            with tabs[idx_dinamico]:
+        if es_admin:
+            with tabs[curr]: # 📚 BIBLIOTECA
+                render_biblioteca_screen(
+                    supabase=supabase, 
+                    limpiar_estado_maestro=limpiar_estado_maestro, 
+                    cambiar_vista=cambiar_vista
+                )
+            curr += 1
+
+            with tabs[curr]: # ⚙️ GESTIÓN
                 render_admin_preguntas_screens(
                     supabase=supabase,
                     renderizar_formulario_edicion=renderizar_formulario_edicion_pregunta,
@@ -138,9 +143,9 @@ if st.session_state.user:
                     limpiar_estado_maestro=limpiar_estado_maestro,
                     convertir_a_csv=convertir_preguntas_a_csv,
                 )
-            idx_dinamico += 1
+            curr += 1
 
-        with tabs[idx_dinamico]: # SALIR
+        with tabs[curr]: # 🚪 SALIR
             st.warning("¿Quieres cerrar la sesión?")
             if st.button("CONFIRMAR CIERRE", use_container_width=True, type="primary"):
                 supabase.auth.sign_out()
