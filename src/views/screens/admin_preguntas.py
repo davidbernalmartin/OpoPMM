@@ -47,36 +47,21 @@ def _render_admin_preguntas(
 ) -> None:
     st.markdown('<div class="titulo-pantalla">PANEL DE GESTIÓN DE PREGUNTAS</div>', unsafe_allow_html=True)
 
+    # 1. Carga de datos y preparación (Se mantiene igual)
     res_temas = supabase.table("temas").select("id, nombre").execute()
     id_a_nombre = {t["id"]: t["nombre"] for t in res_temas.data}
     nombre_a_id = {t["nombre"]: t["id"] for t in res_temas.data}
     nombres_temas = sorted(list(nombre_a_id.keys()))
 
-    if st.session_state.get("modo_creacion_pregunta", False):
-        st.markdown(
-            """
-            <style>
-                input, textarea, div[data-baseweb="select"] {
-                    border: 2px solid #00F2FE !important;
-                    box-shadow: 0 0 12px rgba(0, 242, 254, 0.6) !important;
-                }
-                @keyframes pulse-border {
-                    0% { box-shadow: 0 0 5px rgba(0, 242, 254, 0.4); }
-                    50% { box-shadow: 0 0 15px rgba(0, 242, 254, 0.8); }
-                    100% { box-shadow: 0 0 5px rgba(0, 242, 254, 0.4); }
-                }
-                input, textarea { animation: pulse-border 2s infinite !important; }
-            </style>
-        """,
-            unsafe_allow_html=True,
-        )
-
     res_p = supabase.table("preguntas").select("*").order("id", desc=True).execute()
+    
     if res_p.data:
         df_p = pd.DataFrame(res_p.data)
         df_p["tema_nombre"] = df_p["tema_id"].map(id_a_nombre).fillna("Sin Tema")
 
         st.write("### 📋 Banco de Preguntas")
+        
+        # 2. Renderizado de la tabla con lógica de selección
         event = st.dataframe(
             df_p,
             column_order=("id", "enunciado", "tema_nombre"),
@@ -86,49 +71,66 @@ def _render_admin_preguntas(
                 "tema_nombre": st.column_config.TextColumn("Tema", width="medium"),
             },
             hide_index=True,
-            width='stretch',
+            use_container_width=True, # Usamos el parámetro nativo
             on_select="rerun",
             selection_mode="single-row",
             key="tabla_admin_preguntas",
         )
 
-        if event.selection.rows:
+        # --- LÓGICA DE ESTADOS CRÍTICA ---
+        # Si no hay filas seleccionadas en el evento actual
+        if not event.selection.rows:
+            # Solo limpiamos si NO estamos en modo creación (para que el botón NUEVA funcione)
+            if not st.session_state.get("modo_creacion_pregunta"):
+                st.session_state.p_seleccionada = None
+        else:
+            # Si el usuario selecciona algo, desactivamos modo creación y cargamos datos
             st.session_state.modo_creacion_pregunta = False
             st.session_state.p_seleccionada = df_p.iloc[event.selection.rows[0]].to_dict()
 
     st.divider()
+
+    # 3. Determinación de qué formulario mostrar
     modo_crear = st.session_state.get("modo_creacion_pregunta", False)
     p_sel = st.session_state.get("p_seleccionada")
 
     if modo_crear:
         st.markdown('<h3 style="color: #00F2FE;">➕ CREANDO NUEVA PREGUNTA</h3>', unsafe_allow_html=True)
         p_init = {
-            "id": None,
-            "enunciado": "",
-            "explicacion": "",
-            "opcion_a": "",
-            "opcion_b": "",
-            "opcion_c": "",
-            "correcta": "A",
-            "tema_id": res_temas.data[0]["id"] if res_temas.data else None,
+            "id": None, "enunciado": "", "explicacion": "",
+            "opcion_a": "", "opcion_b": "", "opcion_c": "",
+            "correcta": "A", "tema_id": res_temas.data[0]["id"] if res_temas.data else None,
         }
         f_vals = renderizar_formulario_edicion(p_init, nombres_temas)
     elif p_sel:
         st.markdown('<h3 style="color: #FFA500;">📝 EDITANDO PREGUNTA</h3>', unsafe_allow_html=True)
         f_vals = renderizar_formulario_edicion(p_sel, nombres_temas)
     else:
-        st.info("💡 Selecciona una pregunta o pulsa 'NUEVA'.")
+        st.info("💡 Selecciona una pregunta de la tabla para editarla o pulsa 'NUEVA' para crear una desde cero.")
         f_vals = None
 
+    # 4. Botonera de acciones
     st.write("###")
-    b1, b2, b3, b4, b5 = st.columns(5)
+    b1, b2, b3, b4 = st.columns(4)
 
     with b1:
-        if st.button("➕ NUEVA", width='stretch', key="btn_nueva"):
-            st.session_state.p_seleccionada = None
-            st.session_state.modo_creacion_pregunta = True
-            st.rerun()
-
+        if p_sel and not modo_crear:
+            if st.button("🗑️ ELIMINAR SELECCIONADA", use_container_width=True):
+                supabase.table("preguntas").delete().eq("id", p_sel["id"]).execute()
+                st.session_state.p_seleccionada = None
+                st.rerun()
+        elif not modo_crear:
+            if st.button("➕ NUEVA PREGUNTA", use_container_width=True, key="btn_nueva_final", type="primary"):
+                st.session_state.p_seleccionada = None
+                st.session_state.modo_creacion_pregunta = True
+                # Limpiamos la selección de la tabla para que no brille ninguna fila
+                if "tabla_admin_preguntas" in st.session_state:
+                    del st.session_state["tabla_admin_preguntas"]
+                st.rerun()                
+        else:
+            if st.button("❌ CANCELAR CREACIÓN", use_container_width=True):
+                st.session_state.modo_creacion_pregunta = False
+                st.rerun()
     with b2:
         if st.button("📄 PDF A REVISIÓN", width='stretch', key="btn_pdf"):
             modal_importar_pdf()
@@ -169,15 +171,9 @@ def _render_admin_preguntas(
                         st.rerun()
             except Exception as e:
                 st.error(f"Error técnico: {str(e)}")
-
-    with b5:
-        if p_sel and not modo_crear:
-            if st.button("🗑️ ELIMINAR", width='stretch'):
-                supabase.table("preguntas").delete().eq("id", p_sel["id"]).execute()
-                st.session_state.p_seleccionada = None
-                st.rerun()
         else:
-            st.button("🗑️ ELIMINAR", width='stretch', disabled=True)
+            if not(p_sel or st.session_state.modo_creacion_pregunta):
+                st.button("💾 GUARDAR", width='stretch', disabled=True)
 
 
 def _render_revision_importacion(
