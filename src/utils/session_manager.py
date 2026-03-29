@@ -14,6 +14,7 @@ DEFAULT_SESSION_VALUES = {
     "examen_finalizado": False,
     "configurando_examen": False,
     "modo_seleccionado": None,
+    "modo_creacion_pregunta": False,
     "paso_configuracion": "botones",
     "preguntas_pendientes": [],
     "mostrando_revision": False,

@@ -23,41 +23,10 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_SERVICE_KEY"]
 supabase = create_client(url, key)
 
-# Detectar si el usuario viene de vuelta de Google
-if not st.session_state.get("user"):
-    # get_session() extrae automáticamente los datos de la URL si existen
-    session = supabase.auth.get_session()
-    if session:
-        st.session_state.user = session.user
-        try:
-            # Buscamos el rol (Recuerda tener el Trigger de SQL activo)
-            p = supabase.table("profiles").select("role").eq("id", session.user.id).single().execute()
-            st.session_state.user_role = p.data["role"] if p.data else "regular"
-            st.rerun()
-        except:
-            st.session_state.user_role = "regular"
-            st.rerun()
-
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 ensure_defaults(st.session_state)
-
-# --- 2. FUNCIONES DE APOYO ---
-def login_con_google():
-    try:
-        # Supabase genera la URL de redirección a Google
-        res = supabase.auth.sign_in_with_oauth({
-            "provider": "google",
-            "options": {
-                "redirect_to": "https://opopmm.streamlit.app" # Cambia esto por tu URL de producción en Streamlit Cloud
-            }
-        })
-        # Al ser una Web App, Supabase nos devuelve la URL a la que debemos enviar al usuario
-        if res.url:
-            st.link_button("CONTINUAR CON GOOGLE G", res.url, use_container_width=True)
-    except Exception as e:
-        st.error(f"Error al conectar con Google: {e}")
 
 def cambiar_vista(sub):
     st.session_state.sub_pantalla = sub
@@ -224,18 +193,6 @@ else:
                             st.rerun()
                 except Exception:
                     st.error("❌ Credenciales incorrectas o cuenta no verificada")
-            st.write("---")
-            # Función que dispara el flujo OAuth2
-            if st.button("🌐 CONTINUAR CON GOOGLE", use_container_width=True):
-                # Generamos la URL de autenticación
-                auth_data = supabase.auth.sign_in_with_oauth({
-                    "provider": "google",
-                    "options": {
-                        "redirect_to": "https://opopmm.streamlit.app" # ¡OJO! Cambia a tu URL de Streamlit Cloud en producción
-                    }
-                })
-                # Redirigimos al usuario a Google mediante un componente de link oculto o directo
-                st.markdown(f'<meta http-equiv="refresh" content="0;url={auth_data.url}">', unsafe_allow_html=True)
         with t_reg:
             st.write("###")
             st.info("Crea tu cuenta para guardar tu progreso y estadísticas.")
