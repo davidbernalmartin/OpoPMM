@@ -21,12 +21,27 @@ def render_progreso_screen(*, supabase: Any, user_id: str) -> None:
         .execute()
     )
     res_e = supabase.table("errores_usuario").select("tema_id, temas(nombre)").eq("user_id", user_id).execute()
+# 2. VERIFICACIÓN CRÍTICA
+    if not res_h.data:
+        # Si no hay datos, mostramos un mensaje amigable y paramos la ejecución de la pantalla
+        st.write("###")
+        st.info("🚀 ¡Aún no tienes exámenes realizados! Haz tu primer test para empezar a ver tus estadísticas.")
+        
+        # Opcional: Mostrar tarjetas vacías para mantener la estética
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown(f"""<div class="stat-box" style="border-color: #00ffcc; opacity: 0.5;">
+                <span style="font-size: 0.8rem; color: #00ffcc;">NOTA MEDIA</span><br>
+                <b style="font-size: 1.8rem;">0.00</b></div>""", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"""<div class="stat-box" style="border-color: #6D28D9; opacity: 0.5;">
+                <span style="font-size: 0.8rem; color: #6D28D9;">TESTS HECHOS</span><br>
+                <b style="font-size: 1.8rem;">0</b></div>""", unsafe_allow_html=True)
+        return # Salimos de la función aquí para que no intente dibujar gráficas
 
-    # 2. KPIs Superiores
-    if res_h.data:
-        df_notas = pd.DataFrame(res_h.data)
-        nota_media = df_notas["nota_final"].mean()
-        total_tests = len(df_notas)
+    df_notas = pd.DataFrame(res_h.data)
+    nota_media = df_notas["nota_final"].mean()
+    total_tests = len(df_notas)
         
     with st.container(horizontal=True):
         # Tarjeta de Nota Media

@@ -154,40 +154,63 @@ if st.session_state.user:
 
 # B. FLUJO PARA USUARIOS NO LOGUEADOS (Login/Registro)
 else:
-    if st.session_state.sub_pantalla == "inicio":
+    # Forzamos una pantalla de bienvenida limpia si no hay sub_pantalla definida
+    if st.session_state.sub_pantalla not in ["login", "registro"]:
         st.markdown('<div class="titulo-pantalla">OpoPMM</div>', unsafe_allow_html=True)
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.write("---")
-            if st.button("¡VAMOS A POR LA PLAZA!", use_container_width=True, type="primary"):
+        st.markdown("<h4 style='text-align: center; opacity: 0.8;'>Tu Plaza es Nuestra</h4>", unsafe_allow_html=True)
+        
+        st.write("###")
+        _, col_btn, _ = st.columns([1, 2, 1])
+        with col_btn:
+            if st.button("🚀 ¡VAMOS A POR LA PLAZA!", use_container_width=True, type="primary"):
                 cambiar_vista("login")
                 st.rerun()
-
-    elif st.session_state.sub_pantalla == "login":
-        st.markdown('<div class="titulo-pantalla">ACCESO</div>', unsafe_allow_html=True)
-        t_login, t_reg = st.tabs(["Entrar", "Registrarse"])
+    
+    else:
+        # Usamos los nuevos Tabs con estilo emoji para Login/Registro
+        st.markdown('<div class="titulo-pantalla">ACCESO AL SISTEMA</div>', unsafe_allow_html=True)
+        
+        # Sincronizamos el tab activo con la sub_pantalla
+        tab_index = 0 if st.session_state.sub_pantalla == "login" else 1
+        t_login, t_reg = st.tabs(["🔐", "📝"])
 
         with t_login:
-            email = st.text_input("Email", key="login_email")
-            pw = st.text_input("Contraseña", type="password", key="login_pw")
+            st.write("###")
+            email = st.text_input("Email", key="login_email", placeholder="tu@email.com")
+            pw = st.text_input("Contraseña", type="password", key="login_pw", placeholder="••••••••")
+            
             if st.button("INICIAR SESIÓN", use_container_width=True, type="primary"):
                 try:
-                    res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
-                    if res.user:
-                        st.session_state.user = res.user
-                        p = supabase.table("profiles").select("role").eq("id", res.user.id).single().execute()
-                        st.session_state.user_role = p.data["role"] if p.data else "regular"
-                        cambiar_vista("stats")
-                        st.rerun()
+                    with st.spinner("Verificando credenciales..."):
+                        res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
+                        if res.user:
+                            st.session_state.user = res.user
+                            # Obtenemos el perfil para saber el rol
+                            p = supabase.table("profiles").select("role").eq("id", res.user.id).single().execute()
+                            st.session_state.user_role = p.data["role"] if p.data else "regular"
+                            
+                            # Limpieza y redirección
+                            st.session_state.sub_pantalla = "stats" # Vista por defecto al entrar
+                            st.success("¡Bienvenido de nuevo!")
+                            st.rerun()
                 except Exception:
-                    st.error("Credenciales incorrectas")
+                    st.error("❌ Credenciales incorrectas o cuenta no verificada")
 
         with t_reg:
-            n_email = st.text_input("Nuevo Email", key="reg_email")
-            n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw")
+            st.write("###")
+            st.info("Crea tu cuenta para guardar tu progreso y estadísticas.")
+            n_email = st.text_input("Nuevo Email", key="reg_email", placeholder="ejemplo@email.com")
+            n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw", help="Mínimo 6 caracteres")
+            
             if st.button("CREAR CUENTA", use_container_width=True):
-                try:
-                    supabase.auth.sign_up({"email": n_email, "password": n_pw})
-                    st.success("Cuenta creada. ¡Ya puedes entrar!")
-                except Exception as e:
-                    st.error(f"Error: {e}")
+                if len(n_pw) < 6:
+                    st.warning("La contraseña debe tener al menos 6 caracteres")
+                else:
+                    try:
+                        with st.spinner("Creando cuenta..."):
+                            supabase.auth.sign_up({"email": n_email, "password": n_pw})
+                            st.success("✅ ¡Cuenta creada con éxito!")
+                            st.balloons()
+                            st.info("Revisa tu email para confirmar la cuenta (si el envío está activo) y luego entra en el apartado 'Entrar'.")
+                    except Exception as e:
+                        st.error(f"Error al registrar: {str(e)}")
