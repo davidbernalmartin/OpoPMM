@@ -23,17 +23,20 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_SERVICE_KEY"]
 supabase = create_client(url, key)
 
+# Detectar si el usuario viene de vuelta de Google
 if not st.session_state.get("user"):
-    # Intentamos recuperar la sesión del almacenamiento local/URL
-    try:
-        session = supabase.auth.get_session()
-        if session:
-            st.session_state.user = session.user
-            # Recuperamos el rol como hacíamos en el login normal
+    # get_session() extrae automáticamente los datos de la URL si existen
+    session = supabase.auth.get_session()
+    if session:
+        st.session_state.user = session.user
+        try:
+            # Buscamos el rol (Recuerda tener el Trigger de SQL activo)
             p = supabase.table("profiles").select("role").eq("id", session.user.id).single().execute()
             st.session_state.user_role = p.data["role"] if p.data else "regular"
-    except:
-        pass
+            st.rerun()
+        except:
+            st.session_state.user_role = "regular"
+            st.rerun()
 
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -47,7 +50,7 @@ def login_con_google():
         res = supabase.auth.sign_in_with_oauth({
             "provider": "google",
             "options": {
-                "redirect_to": "https://opopmm.streamlit.app/" # Cambia esto por tu URL de producción en Streamlit Cloud
+                "redirect_to": "https://opopmm.streamlit.app" # Cambia esto por tu URL de producción en Streamlit Cloud
             }
         })
         # Al ser una Web App, Supabase nos devuelve la URL a la que debemos enviar al usuario
@@ -228,7 +231,7 @@ else:
                 auth_data = supabase.auth.sign_in_with_oauth({
                     "provider": "google",
                     "options": {
-                        "redirect_to": "https://opopmm.streamlit.app/" # ¡OJO! Cambia a tu URL de Streamlit Cloud en producción
+                        "redirect_to": "https://opopmm.streamlit.app" # ¡OJO! Cambia a tu URL de Streamlit Cloud en producción
                     }
                 })
                 # Redirigimos al usuario a Google mediante un componente de link oculto o directo
