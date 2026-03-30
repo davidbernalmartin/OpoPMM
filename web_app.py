@@ -11,39 +11,14 @@ from src.views.screens.examenes import render_examenes_screen
 from src.views.screens.importacion import get_modal_importar_csv, get_modal_importar_pdf
 from src.views.screens.perfil import render_perfil_screen
 from src.views.screens.progreso import render_progreso_screen
-import base64
-from pathlib import Path
 
-# --- 1. FUNCIÓN PARA CARGAR EL LOGO SIN ERRORES DE MEMORIA ---
-@st.cache_data
-def get_base64_logo(path):
-    try:
-        return base64.b64encode(Path(path).read_bytes()).decode()
-    except:
-        return None
-
-# Cargamos el logo de assets
-logo_b64 = get_base64_logo("assets/logo.png")
-logo_data_url = f"data:image/png;base64,{logo_b64}" if logo_b64 else None
-
-# --- 2. CONFIGURACIÓN DE PÁGINA ---
+# --- 1. CONFIGURACIÓN Y CONEXIÓN ---
 st.set_page_config(
     page_title="OpoPMM - Tu Plaza es Nuestra",
-    page_icon=logo_data_url if logo_data_url else "🚀",
+    page_icon="assets/logo.png",  # <--- Ruta actualizada
     layout="wide",
+    initial_sidebar_state="collapsed", # Sidebar cerrado para favorecer los Tabs
 )
-
-# --- 3. INYECCIÓN PARA ICONO DE APP (iOS/Mac) ---
-if logo_data_url:
-    st.markdown(
-        f"""
-        <link rel="apple-touch-icon" href="{logo_data_url}">
-        <link rel="icon" type="image/png" href="{logo_data_url}">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        """, 
-        unsafe_allow_html=True
-    )
 
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_SERVICE_KEY"]
