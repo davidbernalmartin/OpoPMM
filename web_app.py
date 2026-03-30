@@ -11,53 +11,37 @@ from src.views.screens.examenes import render_examenes_screen
 from src.views.screens.importacion import get_modal_importar_csv, get_modal_importar_pdf
 from src.views.screens.perfil import render_perfil_screen
 from src.views.screens.progreso import render_progreso_screen
-import streamlit as st
 import base64
 from pathlib import Path
 
-# --- 1. FUNCIÓN CACHEADA PARA EL LOGO ---
+# --- 1. FUNCIÓN PARA CARGAR EL LOGO SIN ERRORES DE MEMORIA ---
 @st.cache_data
-def get_logo_base64(path):
+def get_base64_logo(path):
     try:
-        # Leemos el archivo físico
-        binary_fc = Path(path).read_bytes()
-        return base64.b64encode(binary_fc).decode()
-    except Exception:
+        return base64.b64encode(Path(path).read_bytes()).decode()
+    except:
         return None
 
-# Intentamos cargar el logo de la carpeta assets
-logo_b64 = get_logo_base64("assets/logo.png")
+# Cargamos el logo de assets
+logo_b64 = get_base64_logo("assets/logo.png")
+logo_data_url = f"data:image/png;base64,{logo_b64}" if logo_b64 else None
 
 # --- 2. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
     page_title="OpoPMM - Tu Plaza es Nuestra",
-    page_icon=f"data:image/png;base64,{logo_b64}" if logo_b64 else "🚀",
+    page_icon=logo_data_url if logo_data_url else "🚀",
     layout="wide",
 )
 
-# --- 3. INYECCIÓN PARA ICONO DE APP (iOS/Android/Mac) ---
-if logo_b64:
-    logo_url = f"data:image/png;base64,{logo_b64}"
+# --- 3. INYECCIÓN PARA ICONO DE APP (iOS/Mac) ---
+if logo_data_url:
     st.markdown(
         f"""
-        <style>
-            /* Esto oculta posibles errores de carga de media de Streamlit */
-            .element-container img[src^="blob:"] {{ display: none !important; }}
-        </style>
-        <link rel="apple-touch-icon" href="{logo_url}">
-        <link rel="icon" type="image/png" href="{logo_url}">
+        <link rel="apple-touch-icon" href="{logo_data_url}">
+        <link rel="icon" type="image/png" href="{logo_data_url}">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        """,
-        unsafe_allow_html=True
-    )
-
-# --- 4. RENDERIZADO DEL LOGO EN PANTALLA ---
-# Cuando quieras mostrar el logo en el login, usa esto en vez de st.image("ruta"):
-if logo_b64:
-    st.markdown(
-        f'<div style="display: flex; justify-content: center;">'
-        f'<img src="data:image/png;base64,{logo_b64}" width="200">'
-        f'</div>',
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        """, 
         unsafe_allow_html=True
     )
 
