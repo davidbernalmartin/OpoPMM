@@ -20,12 +20,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed", # Sidebar cerrado para favorecer los Tabs
 )
 
+# --- 2. INYECCIÓN DEFINTIVA DE ICONOS (Rompemos Caché) ---
+# Usamos '?v=2' para forzar al navegador a recargar la imagen si la cambió.
 st.markdown(
-    f"""
-    <link rel="apple-touch-icon" href="assets/logo.png">
+    """
+    <link rel="icon" type="image/png" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" sizes="167x167" href="assets/logo.png?v=2">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    """, 
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    """,
     unsafe_allow_html=True
 )
 
