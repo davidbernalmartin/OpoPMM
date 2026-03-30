@@ -12,44 +12,29 @@ from src.views.screens.importacion import get_modal_importar_csv, get_modal_impo
 from src.views.screens.perfil import render_perfil_screen
 from src.views.screens.progreso import render_progreso_screen
 
-import streamlit as st
-import base64
-import os
-
-# --- 1. FUNCIÓN PARA CONVERTIR IMAGEN A TEXTO (BASE64) ---
-def get_base64_of_bin_file(bin_file):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
-
-# --- 2. CARGAMOS TU LOGO ---
-# Asegúrate de que la ruta sea exacta
-logo_path = "assets/logo.png"
-if os.path.exists(logo_path):
-    bin_str = get_base64_of_bin_file(logo_path)
-    # Creamos el enlace que el navegador sí entiende
-    logo_data_url = f"data:image/png;base64,{bin_str}"
-else:
-    logo_data_url = "" # Por si acaso no encuentra el archivo
-
-# --- 3. CONFIGURACIÓN DE PÁGINA ---
+# --- 1. CONFIGURACIÓN Y CONEXIÓN ---
+@st.cache_data
 st.set_page_config(
-    page_title="OpoPMM - Tu Plaza es Nuestra",
-    page_icon=logo_path, # Esto es para la pestaña
+    page_title="OpoPMM",
+    page_icon="assets/logo.png",  # <--- Ruta actualizada
     layout="wide",
+    initial_sidebar_state="collapsed", # Sidebar cerrado para favorecer los Tabs
 )
 
-# --- 4. INYECCIÓN PARA IPHONE / MAC / ANDROID ---
-if logo_data_url:
-    st.markdown(
-        f"""
-        <link rel="apple-touch-icon" href="{logo_data_url}">
-        <link rel="icon" href="{logo_data_url}">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        """,
-        unsafe_allow_html=True
-    )
+# --- 2. INYECCIÓN DEFINTIVA DE ICONOS (Rompemos Caché) ---
+# Usamos '?v=2' para forzar al navegador a recargar la imagen si la cambió.
+st.markdown(
+    """
+    <link rel="icon" type="image/png" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo.png?v=2">
+    <link rel="apple-touch-icon" sizes="167x167" href="assets/logo.png?v=2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    """,
+    unsafe_allow_html=True
+)
 
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_SERVICE_KEY"]
