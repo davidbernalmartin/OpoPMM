@@ -14,7 +14,7 @@
     text-align: center;
     color: white;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 0px #1a252f;
+    text-shadow: 4px 4px 0px #1a252f;
     text-transform: uppercase;
 }
 
@@ -64,25 +64,54 @@
     margin: 0 !important;
 }
 
-/* Botón de descarga mini */
-[data-testid="stSidebar"] div.stButton > button, 
-.boton-descarga-mini button {
-    height: 32px !important;
-    font-size: 13px !important;
-    padding: 0px 15px !important;
-    min-height: 32px !important;
-}
-
-/* 5. BOTONES PRINCIPALES Y TARJETAS */
+/* --- 1. BOTÓN NORMAL (Relieve estándar) --- */
 div.stButton > button {
-    border-radius: 10px !important; 
+    background-color: #2c3e50 !important;
+    color: #00F2FE !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.7rem 1.5rem !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 5px 5px 10px #1e2a36, -5px -5px 10px #3a526a !important;
+    text-transform: uppercase !important;
 }
 
-/* Botón "Primary" resaltado */
-button[data-testid="baseButton-primary"] {
-    background-color: #f1c40f !important;
-    color: #000 !important;
-    font-weight: bold !important;
+/* --- 2. BOTÓN PRIMARY (Relieve con Color) --- 
+   Streamlit usa el atributo data-testid para el botón primario
+*/
+div.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #00F2FE 0%, #00b8d4 100%) !important;
+    color: #1c2833 !important; /* Texto oscuro para contraste */
+    box-shadow: 4px 4px 10px #1a252f, -2px -2px 8px #3a526a !important;
+    border: none !important;
+}
+
+div.stButton > button[kind="primary"]:hover {
+    filter: brightness(1.1);
+    box-shadow: 6px 6px 15px #1a252f !important;
+    transform: scale(1.02);
+}
+
+/* --- 3. BOTÓN DESHABILITADO (Hundido y Apagado) --- */
+div.stButton > button:disabled {
+    background-color: #263544 !important;
+    color: rgba(255, 255, 255, 0.2) !important;
+    /* Efecto de estar "dentro" de la superficie */
+    box-shadow: inset 3px 3px 6px #1e2a36, inset -3px -3px 6px #3a526a !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* --- INTERACCIONES COMUNES --- */
+div.stButton > button:hover:not(:disabled) {
+    color: white !important;
+    transform: translateY(-2px);
+}
+
+div.stButton > button:active:not(:disabled) {
+    box-shadow: inset 4px 4px 8px #1e2a36, inset -4px -4px 8px #3a526a !important;
+    transform: scale(0.98);
 }
 
 /* 6. CORRECCIÓN DE INPUTS */
@@ -156,11 +185,6 @@ div[role="radiogroup"] > label {
     height: 4px !important;
 }
 
-/* Espaciado entre pestañas para que no se amontonen en el móvil */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 15px !important;
-}
-
 /* --- ESTILOS TARJETAS HISTORIAL --- */
 .card-historial {
     background-color: rgba(255, 255, 255, 0.05);
@@ -195,6 +219,21 @@ div[role="radiogroup"] > label {
 .card-nota-grande {
     font-size: 1.4rem; 
     font-weight: bold;
+}
+
+.card-historial {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 15px !important;
+    padding: 15px !important;
+    margin-bottom: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-left: 5px solid #00F2FE !important; /* Unificamos con el color de la pestaña */
+    transition: transform 0.2s !important;
+}
+
+.card-historial:hover {
+    transform: scale(1.01) !important;
+    background: rgba(255, 255, 255, 0.07) !important;
 }
 
 /* --- ESTILOS EXAMEN --- */
