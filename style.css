@@ -1,167 +1,55 @@
-/* 1. IMPORTACIÓN (Las dejamos listas pero no las aplicamos globalmente) */
-@import url('https://fonts.googleapis.com/css2?family=Ranchers&family=Comic+Neue:wght@400;700&display=swap');
+/* ==========================================================
+   CSS REGLAMENTARIO OPOPMM - VERSIÓN FINAL "TÁCTICA MATE"
+   ========================================================== */
 
-/* 2. CONFIGURACIÓN BASE (Colores de fondo y texto) */
-.stApp { 
-    background-color: #2c3e50; 
-    color: white; 
+/* 1. FUENTES */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+
+html, body, [data-testid="stAppViewContainer"] {
+    background-color: #0d141f !important;
+    color: #ffffff !important;
+    font-family: 'DM Sans', sans-serif !important;
 }
 
-/* 3. TÍTULOS (Aquí sí aplicamos Ranchers porque son clases nuestras) */
+/* 2. TÍTULO LEYENDA PMM (DM SANS BLACK 900) */
 .titulo-pantalla {
-    font-family: 'Ranchers', cursive !important;
-    font-size: 28px; 
-    text-align: center;
-    color: white;
-    margin-bottom: 10px;
-    text-shadow: 4px 4px 0px #1a252f;
-    text-transform: uppercase;
-}
-
-/* 4. NAVEGACIÓN LATERAL (SIDEBAR) */
-[data-testid="stSidebar"] {
-    background-color: #1c2833 !important;
-}
-
-/* Estilo de los botones del sidebar (Sin tocar la fuente del sistema) */
-[data-testid="stSidebar"] div.stButton > button {
-    height: 50px !important;
-    margin-bottom: 8px !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    border-radius: 10px !important;
-    background-color: transparent !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    transition: 0.2s;
-}
-
-[data-testid="stSidebar"] div.stButton > button:hover {
-    background-color: rgba(52, 152, 219, 0.15) !important;
-    border-color: #3498db !important;
-}
-
-/* Estilo para la lista compacta de la biblioteca */
-.fila-biblioteca {
-    padding: 8px 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    transition: background 0.2s;
-}
-
-.fila-biblioteca:hover {
-    background-color: rgba(255,255,255,0.02);
-}
-
-/* Texto más pequeño para los temas */
-.texto-ley {
-    font-size: 15px !important;
-    font-weight: 500;
-    margin: 0 !important;
-}
-
-.subtexto-ley {
-    font-size: 12px !important;
-    opacity: 0.6;
-    margin: 0 !important;
-}
-
-/* --- 1. BOTÓN NORMAL (Relieve estándar) --- */
-div.stButton > button {
-    background-color: #2c3e50 !important;
-    color: #00F2FE !important;
-    border: none !important;
-    border-radius: 12px !important;
-    padding: 0.7rem 1.5rem !important;
-    font-weight: 700 !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 5px 5px 10px #1e2a36, -5px -5px 10px #3a526a !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 28px !important;
+    letter-spacing: -1.5px !important;
     text-transform: uppercase !important;
+    color: #e2e8f0 !important;
+    text-align: center !important;
+    margin-bottom: 5px !important;
+    text-shadow: 0px 4px 10px rgba(0,0,0,0.6);
 }
 
-/* --- 2. BOTÓN PRIMARY (Relieve con Color) --- 
-   Streamlit usa el atributo data-testid para el botón primario
-*/
-div.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #00F2FE 0%, #00b8d4 100%) !important;
-    color: #1c2833 !important; /* Texto oscuro para contraste */
-    box-shadow: 4px 4px 10px #1a252f, -2px -2px 8px #3a526a !important;
-    border: none !important;
-}
-
-div.stButton > button[kind="primary"]:hover {
-    filter: brightness(1.1);
-    box-shadow: 6px 6px 15px #1a252f !important;
-    transform: scale(1.02);
-}
-
-/* --- 3. BOTÓN DESHABILITADO (Hundido y Apagado) --- */
-div.stButton > button:disabled {
-    background-color: #263544 !important;
-    color: rgba(255, 255, 255, 0.2) !important;
-    /* Efecto de estar "dentro" de la superficie */
-    box-shadow: inset 3px 3px 6px #1e2a36, inset -3px -3px 6px #3a526a !important;
-    cursor: not-allowed !important;
-    transform: none !important;
-}
-
-/* --- INTERACCIONES COMUNES --- */
-div.stButton > button:hover:not(:disabled) {
-    color: white !important;
-    transform: translateY(-2px);
-}
-
-div.stButton > button:active:not(:disabled) {
-    box-shadow: inset 4px 4px 8px #1e2a36, inset -4px -4px 8px #3a526a !important;
-    transform: scale(0.98);
-}
-
-/* 6. CORRECCIÓN DE INPUTS */
-.stTextInput input {
-    background-color: #1c2833 !important;
-    color: white !important;
-}
-
-/* Separación de opciones en los tests */
-div[role="radiogroup"] > label {
-    margin-bottom: 18px !important;
-    padding: 12px !important;
-    border-radius: 8px;
-}
-
-/* --- NUEVA NAVEGACIÓN POR TABS (ESTILO BOTÓN) --- */
-
-/* Contenedor general de la lista de pestañas */
+/* 3. PESTAÑAS (TABS) - MÁS GRANDES Y CLARAS */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 10px !important;
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    padding: 8px 10px 0px 10px !important;
-    border-radius: 15px 15px 0 0 !important;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+    gap: 12px !important;
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 5px !important;
 }
 
-/* Estilo base de cada pestaña (el "botón") */
 .stTabs [data-baseweb="tab"] {
     height: 55px !important;
     background-color: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-bottom: none !important;
     border-radius: 12px 12px 0 0 !important;
+    color: #64748b !important;
+    /* Aumento de tamaño */
+    padding: 20px 20px !important; 
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    border: none !important;
     transition: all 0.3s ease !important;
-    margin-bottom: -2px !important; /* Para que pise la línea inferior */
-    padding: 0 20px !important;
+    margin-bottom: -2px !important;
 }
 
-/* Efecto al pasar el ratón */
-.stTabs [data-baseweb="tab"]:hover {
-    background-color: rgba(0, 242, 254, 0.1) !important;
-    border-color: rgba(0, 242, 254, 0.3) !important;
-    transform: translateY(-2px);
-}
-
-/* Pestaña Seleccionada */
-.stTabs [data-baseweb="tab"][aria-selected="true"] {
-    background-color: rgba(0, 242, 254, 0.15) !important;
-    border-inline-color: rgba(0, 242, 254, 0.5) !important;
-    border-top-color: rgba(0, 242, 254, 0.5) !important;
+/* Pestaña Activa */
+.stTabs [aria-selected="true"] {
+    background-color: #1e3a5f !important; 
+    color: #ffffff !important;
 }
 
 /* Ajuste del Emoji dentro del botón */
@@ -171,69 +59,176 @@ div[role="radiogroup"] > label {
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
-/* Indicador neón inferior (la línea de selección) */
-.stTabs [data-baseweb="tab-highlight"] {
-    background-color: #00F2FE !important;
-    height: 4px !important;
-    border-radius: 2px;
-    box-shadow: 0 -2px 10px rgba(0, 242, 254, 0.8);
+/* 4. BOTONES "EQUIPO TÁCTICO" */
+
+/* Botón Estándar */
+div.stButton > button {
+    background-color: #162235 !important;
+    color: #cbd5e1 !important;
+    border: 1px solid #1e3a5f !important; 
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    padding: 0.7rem 1.4rem !important;
+    box-shadow: 4px 4px 8px #090e16, -2px -2px 8px #1f2d44 !important;
 }
 
-/* Opcional: Cambia el color del indicador (la línea de abajo) para que resalte más */
-.stTabs [data-baseweb="tab-highlight"] {
-    background-color: #00F2FE !important; /* El color cyan de tu tema */
-    height: 4px !important;
+div.stButton > button:hover:not(:disabled) {
+    border: 1px solid #38bdf8 !important;
+    color: white !important;
+    transform: translateY(-1px);
 }
 
-/* --- ESTILOS TARJETAS HISTORIAL --- */
+/* Botón Primario */
+div.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #1e3a5f 0%, #112236 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid #38bdf8 !important;
+}
+
+/* --- BOTÓN DESHABILITADO (Aspecto inactivo) --- */
+div.stButton > button:disabled {
+    background-color: #0a0f18 !important; /* Más oscuro que el fondo */
+    color: #475569 !important; /* Gris apagado */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    opacity: 0.6 !important;
+    /* Efecto "hundido" en la superficie */
+    box-shadow: inset 4px 4px 8px #05080d, inset -2px -2px 8px #141c2a !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Click en botones activos */
+div.stButton > button:active:not(:disabled) {
+    box-shadow: inset 4px 4px 8px #090e16 !important;
+    transform: scale(0.98);
+}
+
+/* --- 5. TARJETAS DE HISTORIAL (ESTILO SEMÁFORO) --- */
 .card-historial {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 5px;
-    border-left: 6px solid #4e4e4e;
+    background: #162235 !important;
+    border-radius: 12px !important;
+    border-left: 6px solid #1e3a5f !important;
+    padding: 16px 20px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3) !important;
 }
 
 .card-header-flex {
     display: flex; 
     justify-content: space-between; 
     align-items: center;
+    width: 100%;
 }
 
-.card-meta-fecha {
-    font-size: 0.7rem; 
-    opacity: 0.5;
+.card-info-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .card-titulo-tipo {
-    font-size: 0.95rem;
-    font-weight: bold;
-    display: block;
+    font-weight: 700 !important;
+    font-size: 1.05rem !important;
+    color: #ffffff !important;
+    text-transform: uppercase;
+}
+
+.card-meta-fecha {
+    font-size: 0.8rem !important;
+    color: #64748b !important;
 }
 
 .card-stats-iconos {
-    font-size: 0.8rem; 
-    opacity: 0.8;
+    font-size: 0.9rem !important;
+    margin-top: 6px;
+    display: flex;
+    gap: 12px;
+}
+
+/* --- CLASES PARA NOTAS (COLOR DINÁMICO) --- */
+.card-nota-container {
+    text-align: right;
+    min-width: 90px;
+}
+
+.card-label-nota {
+    font-size: 0.65rem !important;
+    text-transform: uppercase;
+    color: #64748b;
+    display: block;
+    margin-bottom: -2px;
 }
 
 .card-nota-grande {
-    font-size: 1.4rem; 
-    font-weight: bold;
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    line-height: 1;
 }
 
-.card-historial {
-    background: rgba(255, 255, 255, 0.03) !important;
-    border-radius: 15px !important;
+/* Verdes para aprobados (>= 5) */
+.nota-aprobado {
+    color: #22c55e !important; /* Verde Esmeralda */
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+}
+
+/* Rojos para suspensos (< 5) */
+.nota-suspenso {
+    color: #ef4444 !important; /* Rojo Alerta */
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+.stTextInput input {
+    background-color: #0d141f !important;
+    border: 1px solid #1e3a5f !important;
+    padding: 10px !important;
+}
+
+/* --- 6. INTERFAZ DE EXAMEN Y REVISIÓN --- */
+
+/* Espaciado entre opciones de respuesta (Radio Buttons) */
+[data-testid="stMarkdownContainer"] + div[role="radiogroup"] > div {
+    margin-bottom: 12px !important; /* Espacio entre cada opción A, B, C... */
+    padding: 8px !important;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+/* Efecto hover suave al pasar por encima de una respuesta */
+[data-testid="stMarkdownContainer"] + div[role="radiogroup"] > div:hover {
+    background: rgba(56, 189, 248, 0.05);
+}
+
+/* Espaciado para la EXPLICACIÓN en la revisión */
+.opcion-revision {
     padding: 15px !important;
-    margin-bottom: 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-left: 5px solid #00F2FE !important; /* Unificamos con el color de la pestaña */
-    transition: transform 0.2s !important;
+    margin-top: 10px !important;
+    margin-bottom: 25px !important; /* Espacio extra para separar de la siguiente pregunta */
+    border-radius: 10px !important;
+    line-height: 1.6 !important;
+    border-left: 4px solid #38bdf8;
+    background-color: rgba(30, 41, 59, 0.7) !important;
 }
 
-.card-historial:hover {
-    transform: scale(1.01) !important;
-    background: rgba(255, 255, 255, 0.07) !important;
+/* Estilo para el texto de la explicación/justificación */
+.opcion-revision p {
+    margin-top: 10px !important;
+    color: #cbd5e1 !important;
+    font-size: 0.95rem !important;
+}
+
+/* Título de "Explicación" o "Justificación" */
+.opcion-revision strong {
+    color: #38bdf8 !important;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+/* Separación entre el bloque de la pregunta y el de la respuesta */
+div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div {
+    margin-bottom: 15px !important;
 }
 
 /* --- ESTILOS EXAMEN --- */
@@ -266,4 +261,11 @@ div[role="radiogroup"] > label {
     border-radius: 10px; 
     border-left: 5px solid #0891B2;
     margin-bottom: 20px;
+}
+
+/* Separación de opciones en los tests */
+div[role="radiogroup"] > label {
+    margin-bottom: 18px !important;
+    padding: 12px !important;
+    border-radius: 8px;
 }
