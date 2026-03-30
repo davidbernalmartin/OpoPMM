@@ -14,12 +14,15 @@ from src.views.screens.progreso import render_progreso_screen
 
 # --- 1. CONFIGURACIÓN Y CONEXIÓN ---
 @st.cache_data
-st.set_page_config(
-    page_title="OpoPMM",
-    page_icon="assets/logo.png",  # <--- Ruta actualizada
-    layout="wide",
-    initial_sidebar_state="collapsed", # Sidebar cerrado para favorecer los Tabs
-)
+def config_page():
+    st.set_page_config(
+        page_title="OpoPMM",
+        page_icon="assets/logo.png",  # <--- Ruta actualizada
+        layout="wide",
+        initial_sidebar_state="collapsed", # Sidebar cerrado para favorecer los Tabs
+    )
+
+config_page()
 
 # --- 2. INYECCIÓN DEFINTIVA DE ICONOS (Rompemos Caché) ---
 # Usamos '?v=2' para forzar al navegador a recargar la imagen si la cambió.
