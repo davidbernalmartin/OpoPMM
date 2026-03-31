@@ -34,7 +34,7 @@ def render_examenes_screen(
 
 
 def _render_selector_modo_examen(supabase: Any) -> None:
-    # Aseguramos que los botones siempre tengan use_container_width=True para móvil
+    # Aseguramos que los botones siempre tengan width='stretch' para móvil
     
     if st.session_state.paso_configuracion == "botones":
         st.markdown('<div class="titulo-pantalla">MODO EXAMEN</div>', unsafe_allow_html=True)
@@ -43,17 +43,17 @@ def _render_selector_modo_examen(supabase: Any) -> None:
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            if st.button("🇬🇧\n\nINGLÉS", use_container_width=True):
+            if st.button("🇬🇧\n\nINGLÉS", width='stretch'):
                 st.session_state.modo_seleccionado = "ingles"
                 st.session_state.paso_configuracion = "seleccion_cantidad"
                 st.rerun()
         with col2:
-            if st.button("📚\n\nTEMAS", use_container_width=True):
+            if st.button("📚\n\nTEMAS", width='stretch'):
                 st.session_state.modo_seleccionado = "por_temas"
                 st.session_state.paso_configuracion = "seleccion_temas"
                 st.rerun()
         with col3:
-            if st.button("⏱️\n\nSIMULACRO", use_container_width=True):
+            if st.button("⏱️\n\nSIMULACRO", width='stretch'):
                 st.session_state.modo_seleccionado = "simulacro"
                 st.session_state.paso_configuracion = "seleccion_cantidad"
                 st.rerun()
@@ -68,11 +68,11 @@ def _render_selector_modo_examen(supabase: Any) -> None:
             st.write("---")
             c1, c2 = st.columns(2)
             with c1:
-                if st.button("⬅️ VOLVER", use_container_width=True):
+                if st.button("⬅️ VOLVER", width='stretch'):
                     st.session_state.paso_configuracion = "botones"
                     st.rerun()
             with c2:
-                if st.button("CONTINUAR ➡️", type="primary", use_container_width=True, disabled=not seleccion):
+                if st.button("CONTINUAR ➡️", type="primary", width='stretch', disabled=not seleccion):
                     st.session_state.temas_seleccionados = [opciones[s] for s in seleccion]
                     st.session_state.paso_configuracion = "seleccion_cantidad"
                     st.rerun()
@@ -87,11 +87,11 @@ def _render_selector_modo_examen(supabase: Any) -> None:
 
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("⬅️ VOLVER", use_container_width=True):
+            if st.button("⬅️ VOLVER", width='stretch'):
                 st.session_state.paso_configuracion = "por_temas" if st.session_state.modo_seleccionado == "por_temas" else "botones"
                 st.rerun()
         with c2:
-            if st.button("🚀 EMPEZAR", type="primary", use_container_width=True):
+            if st.button("🚀 EMPEZAR", type="primary", width='stretch'):
                 st.session_state.cantidad_preguntas = cantidad
                 st.session_state.sub_pantalla = f"test_{st.session_state.modo_seleccionado}"
                 st.rerun()

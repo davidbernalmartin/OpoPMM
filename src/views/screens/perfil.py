@@ -33,8 +33,8 @@ def render_perfil_screen(*, supabase: Any) -> None:
         st.write(f"**Email de cuenta:** {st.session_state.user.email}")
         st.write(f"**Rol de usuario:** {st.session_state.user_role.upper()}")
 
-        # Cambio width='stretch' por use_container_width=True para compatibilidad móvil
-        if st.button("💾 GUARDAR CAMBIOS", use_container_width=True, type="primary"):
+        # Cambio width='stretch' por width='stretch' para compatibilidad móvil
+        if st.button("💾 GUARDAR CAMBIOS", width='stretch', type="primary"):
             try:
                 actualizacion = {
                     "nombre": nombre,

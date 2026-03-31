@@ -45,7 +45,7 @@ def get_modal_importar_csv() -> Callable[[], None]:
                     sep=";",
                     encoding="utf-8",
                     header=0,
-                    names=["Enunciado", "opcion_a", "opcion_b", "opcion_c", "correcta", "Explicación", "Tema"],
+                    names=["enunciado", "opcion_a", "opcion_b", "opcion_c", "correcta", "explicacion", "tema_id"],
                 ).fillna("")
 
                 st.session_state.preguntas_pendientes = df_temp.to_dict("records")

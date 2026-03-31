@@ -47,14 +47,14 @@ def render_biblioteca_screen(
                 c1, c2 = st.columns(2)
                 with c1:
                     if ley["url_pdf"]:
-                        st.link_button("📥 VER PDF", ley["url_pdf"], use_container_width=True)
+                        st.link_button("📥 VER PDF", ley["url_pdf"], width='stretch')
                     else:
                         st.caption("PDF no disponible")
                 
                 # Lógica para Admin dentro de la propia tarjeta
                 if st.session_state.get("user_role") == "admin":
                     with c2:
-                        if st.button("🗑️ ELIMINAR", key=f"del_{ley['id']}", use_container_width=True, type="secondary"):
+                        if st.button("🗑️ ELIMINAR", key=f"del_{ley['id']}", width='stretch', type="secondary"):
                             supabase.table("biblioteca").delete().eq("id", ley['id']).execute()
                             st.toast("Registro eliminado")
                             st.rerun()
@@ -69,7 +69,7 @@ def render_biblioteca_screen(
                 siguiente_orden = int(df_biblio["orden"].max() + 1) if not df_biblio.empty else 1
                 nuevo_orden = st.number_input("Orden", value=siguiente_orden)
 
-                if st.form_submit_button("GUARDAR EN BIBLIOTECA", use_container_width=True):
+                if st.form_submit_button("GUARDAR EN BIBLIOTECA", width='stretch'):
                     if nuevo_nombre:
                         nueva_data = {"name": nuevo_nombre, "url_pdf": nueva_url, "orden": nuevo_orden}
                         supabase.table("biblioteca").insert(nueva_data).execute()

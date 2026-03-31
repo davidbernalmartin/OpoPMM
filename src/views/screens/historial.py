@@ -53,10 +53,10 @@ def render_historial_screen(supabase):
         nav_container = st.container(horizontal=True)
         
         with nav_container:
-            if st.button("🔍 REPASAR", key=f"rev_{examen['id']}", use_container_width=True):
+            if st.button("🔍 REPASAR", key=f"rev_{examen['id']}", width='stretch'):
                 _cargar_y_navegar(supabase, examen, modo_reintento=False)
                 
-            if st.button("🔄 REPETIR", key=f"rep_{examen['id']}", use_container_width=True, type="primary"):
+            if st.button("🔄 REPETIR", key=f"rep_{examen['id']}", width='stretch', type="primary"):
                 _cargar_y_navegar(supabase, examen, modo_reintento=True)
         
         st.write("") 

@@ -53,18 +53,18 @@ def _render_revision(lista_preguntas):
     # Navegación horizontal (Replica tu diseño favorito)
     nav = st.container(horizontal=True)
     with nav:
-        if idx > 0 and st.button("⬅️ ANTERIOR", key="rev_p", use_container_width=True):
+        if idx > 0 and st.button("⬅️ ANTERIOR", key="rev_p", width='stretch'):
             st.session_state.indice_revision -= 1
             st.rerun()
         
         txt_volver = "VOLVER AL HISTORIAL" if st.session_state.get("sub_pantalla") == "repaso_historial" else "VOLVER AL RESUMEN"
-        if st.button(txt_volver, use_container_width=True):
+        if st.button(txt_volver, width='stretch'):
             st.session_state.ver_revision = False
             if st.session_state.get("sub_pantalla") == "repaso_historial":
                 st.session_state.sub_pantalla = "historial"
             st.rerun()
 
-        if idx < len(lista_preguntas) - 1 and st.button("SIGUIENTE ➡️", key="rev_n", use_container_width=True):
+        if idx < len(lista_preguntas) - 1 and st.button("SIGUIENTE ➡️", key="rev_n", width='stretch'):
             st.session_state.indice_revision += 1
             st.rerun()
 
@@ -89,11 +89,11 @@ def _render_resultado_final(lista_preguntas, limpiar_estado_maestro):
         st.markdown(f'<div class="stat-box" style="border-color:#e74c3c; background:rgba(231,76,60,0.1); color:#e74c3c;">❌ FALLOS<br><b>{fallos}</b></div>', unsafe_allow_html=True)
         st.markdown(f'<div class="stat-box" style="border-color:#6D28D9; background:rgba(109,40,217,0.1); color:#6D28D9;">🎯 NETAS<br><b>{resumen.netas:.2f}</b></div>', unsafe_allow_html=True)
 
-    if st.button("🔍 REVISAR PREGUNTAS", use_container_width=True):
+    if st.button("🔍 REVISAR PREGUNTAS", width='stretch'):
         st.session_state.ver_revision = True
         st.session_state.indice_revision = 0
         st.rerun()
-    if st.button("🏁 SALIR AL MENÚ", use_container_width=True, type="primary"):
+    if st.button("🏁 SALIR AL MENÚ", width='stretch', type="primary"):
         limpiar_estado_maestro()
         st.session_state.sub_pantalla = "seleccion_tema"
         st.rerun()
@@ -120,7 +120,7 @@ def _render_pregunta_activa(lista_preguntas, guardar_resultado_examen, titulo):
     nav = st.container(horizontal=True)
     with nav:
         # Botón Anterior
-        btn_ant = st.button("⬅️ Anterior", use_container_width=True, disabled=(idx == 0))
+        btn_ant = st.button("⬅️ Anterior", width='stretch', disabled=(idx == 0))
         if btn_ant:
             st.session_state.indice_pregunta -= 1
             st.rerun()
@@ -128,7 +128,7 @@ def _render_pregunta_activa(lista_preguntas, guardar_resultado_examen, titulo):
         # Botón Siguiente / Finalizar
         es_ultima = (idx == len(lista_preguntas) - 1)
         txt_sig = "🏁 Finalizar" if es_ultima else "Siguiente ➡️"
-        if st.button(txt_sig, use_container_width=True, type="primary"):
+        if st.button(txt_sig, width='stretch', type="primary"):
             if es_ultima:
                 with st.spinner("Registrando resultados en el sistema..."):
                     guardar_resultado_examen(lista_preguntas, st.session_state.respuestas_usuario, titulo)                

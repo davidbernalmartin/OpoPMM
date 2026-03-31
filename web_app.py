@@ -147,7 +147,7 @@ if st.session_state.user:
 
         with tabs[curr]: # 🚪 SALIR
             st.warning("¿Quieres cerrar la sesión?")
-            if st.button("CONFIRMAR CIERRE", use_container_width=True, type="primary"):
+            if st.button("CONFIRMAR CIERRE", width='stretch', type="primary"):
                 supabase.auth.sign_out()
                 st.session_state.clear()
                 st.rerun()
@@ -162,7 +162,7 @@ else:
         st.write("###")
         _, col_btn, _ = st.columns([1, 2, 1])
         with col_btn:
-            if st.button("🚀 ¡VAMOS A POR LA PLAZA!", use_container_width=True, type="primary"):
+            if st.button("🚀 ¡VAMOS A POR LA PLAZA!", width='stretch', type="primary"):
                 cambiar_vista("login")
                 st.rerun()
     
@@ -179,7 +179,7 @@ else:
             email = st.text_input("Email", key="login_email", placeholder="tu@email.com")
             pw = st.text_input("Contraseña", type="password", key="login_pw", placeholder="••••••••")
             
-            if st.button("INICIAR SESIÓN", use_container_width=True, type="primary"):
+            if st.button("INICIAR SESIÓN", width='stretch', type="primary"):
                 try:
                     with st.spinner("Verificando credenciales..."):
                         res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
@@ -199,7 +199,7 @@ else:
             st.info("Crea tu cuenta para guardar tu progreso y estadísticas.")
             n_email = st.text_input("Nuevo Email", key="reg_email", placeholder="ejemplo@email.com")
             n_pw = st.text_input("Nueva Contraseña", type="password", key="reg_pw", help="Mínimo 6 caracteres")
-            if st.button("CREAR CUENTA", use_container_width=True):
+            if st.button("CREAR CUENTA", width='stretch'):
                 if len(n_pw) < 6:
                     st.warning("La contraseña debe tener al menos 6 caracteres")
                 else:
