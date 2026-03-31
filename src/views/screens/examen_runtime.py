@@ -22,7 +22,7 @@ def render_examen_runtime(
 
     # 3. MODO EXAMEN ACTIVO
     else:
-        _render_pregunta_activa(lista_preguntas)
+        _render_pregunta_activa(lista_preguntas, guardar_resultado_examen, titulo)
 
 # --- BLOQUES DE RENDERIZADO (Lógica Refactorizada) ---
 
@@ -32,7 +32,7 @@ def _render_revision(lista_preguntas):
     resp_u = st.session_state.respuestas_usuario.get(idx)
     
     st.progress((idx + 1) / len(lista_preguntas), text=f"Revisando {idx + 1} de {len(lista_preguntas)}")
-    st.markdown(f"#### {p['enunciado']}")
+    st.markdown(f'<div class="enunciado-container">{p['enunciado']}</div>', unsafe_allow_html=True)
 
     for letra, texto in [("A", p["opcion_a"]), ("B", p["opcion_b"]), ("C", p["opcion_c"])]:
         # Lógica de colores idéntica a la original
@@ -43,11 +43,13 @@ def _render_revision(lista_preguntas):
         else:
             st.markdown(f'<div class="opcion-revision" style="color: #bdc3c7;">{letra}) {texto}</div>', unsafe_allow_html=True)
 
+    st.write("---")
     # Explicación
     exp = p.get("explicacion", "")
     if exp and str(exp).strip():
         st.markdown(f'<div class="explicacion-container"><p style="color:#0891B2; font-weight:bold;">💡 EXPLICACIÓN</p>{exp}</div>', unsafe_allow_html=True)
-    
+        st.write("---")
+
     # Navegación horizontal (Replica tu diseño favorito)
     nav = st.container(horizontal=True)
     with nav:
@@ -76,8 +78,8 @@ def _render_resultado_final(lista_preguntas, limpiar_estado_maestro):
     
     color = "#2ecc71" if resumen.nota_sobre_diez >= 5 else "#e74c3c"
     
-    st.markdown(f'<h2 style="text-align:center; color:{color};">{"¡ENHORABUENA!" if resumen.nota_sobre_diez >= 5 else "SIGUE INTENTÁNDOLO"}</h2>', unsafe_allow_html=True)
-    st.markdown(f'<div class="tarjeta-nota-final" style="background:{color};"><p>PUNTUACIÓN FINAL</p><h1>{resumen.nota_sobre_diez:.2f}</h1><p>sobre 10</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<h4 style="text-align:center; color:{color};">{"¡ENHORABUENA!" if resumen.nota_sobre_diez >= 5 else "SIGUE INTENTÁNDOLO"}</h4>', unsafe_allow_html=True)
+    st.markdown(f'<div class="tarjeta-nota-final" style="background:rgba(46,204,113,0.1)"><p>PUNTUACIÓN FINAL</p><div class="nota-final"><p>{resumen.nota_sobre_diez:.2f}</p></div><p>sobre 10</p></div>', unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
     with c1:
@@ -96,12 +98,12 @@ def _render_resultado_final(lista_preguntas, limpiar_estado_maestro):
         st.session_state.sub_pantalla = "seleccion_tema"
         st.rerun()
 
-def _render_pregunta_activa(lista_preguntas):
+def _render_pregunta_activa(lista_preguntas, guardar_resultado_examen, titulo):
     idx = st.session_state.indice_pregunta
     p = lista_preguntas[idx]
     
     st.progress((idx + 1) / len(lista_preguntas), text=f"Pregunta {idx + 1} de {len(lista_preguntas)}")
-    st.markdown(f"#### {p['enunciado']}")
+    st.markdown(f'<div class="enunciado-container">{p['enunciado']}</div>', unsafe_allow_html=True)
 
     res_actual = st.session_state.respuestas_usuario.get(idx)
     letras = ["A", "B", "C"]
@@ -128,7 +130,8 @@ def _render_pregunta_activa(lista_preguntas):
         txt_sig = "🏁 Finalizar" if es_ultima else "Siguiente ➡️"
         if st.button(txt_sig, use_container_width=True, type="primary"):
             if es_ultima:
-                # Aquí llamarías a tu lógica de guardado
+                with st.spinner("Registrando resultados en el sistema..."):
+                    guardar_resultado_examen(lista_preguntas, st.session_state.respuestas_usuario, titulo)                
                 st.session_state.examen_finalizado = True
             else:
                 st.session_state.indice_pregunta += 1

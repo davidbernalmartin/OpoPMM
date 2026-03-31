@@ -1,55 +1,90 @@
 /* ==========================================================
-   CSS REGLAMENTARIO OPOPMM - VERSIÓN FINAL "TÁCTICA MATE"
+   CSS REGLAMENTARIO OPOPMM - REFACTORIZACIÓN TÁCTICA
    ========================================================== */
 
-/* 1. FUENTES */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+/* 1. FUENTES Y CONFIGURACIÓN BASE */
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+
+:root {
+    --pmm-cyan: #0891B2;
+    --pmm-cyan-bright: #38bdf8;
+    --bg-dark: #0d141f;
+    --bg-card: #162235;
+    --text-silver: #D1D5DB;
+}
 
 html, body, [data-testid="stAppViewContainer"] {
-    background-color: #0d141f !important;
-    color: #ffffff !important;
-    font-family: 'DM Sans', sans-serif !important;
+    background-color: var(--bg-dark) !important;
+    color: var(--text-silver) !important;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
 }
 
-/* 2. TÍTULO LEYENDA PMM (DM SANS BLACK 900) */
-.titulo-pantalla {
-    font-family: 'DM Sans', sans-serif !important;
+/* 2. TÍTULOS (ESTILO UNIFORME PMM) */
+.titulo-pantalla, h1, h2, h3 {
+    font-family: 'Michroma', sans-serif !important;
     font-weight: 900 !important;
-    font-size: 28px !important;
-    letter-spacing: -1.5px !important;
+    font-style: italic !important;
     text-transform: uppercase !important;
-    color: #e2e8f0 !important;
-    text-align: center !important;
-    margin-bottom: 5px !important;
-    text-shadow: 0px 4px 10px rgba(0,0,0,0.6);
+    letter-spacing: 3px !important;
+    color: var(--text-silver) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5) !important;
+    border-bottom: 3px solid var(--pmm-cyan) !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 30px !important;
+    text-align: center;
 }
 
-/* 3. PESTAÑAS (TABS) - MÁS GRANDES Y CLARAS */
+.titulo-pantalla {
+    font-size: 30px;
+}
+
+/* 3. CONTENEDORES DE TEXTO (ENUNCIADOS Y EXPLICACIONES) */
+.enunciado-container, .explicacion-container {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-left: 5px solid var(--pmm-cyan);
+    padding: 20px !important;
+    border-radius: 10px !important;
+    margin-bottom: 20px !important;
+    line-height: 1.6 !important;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.enunciado-container { font-size: 1.15rem; color: var(--text-silver); }
+.enunciado-container strong { color: var(--pmm-cyan); }
+
+.explicacion-container {
+    background-color: rgba(30, 41, 59, 0.7) !important;
+    border-left-color: var(--pmm-cyan-bright);
+    font-size: 0.95rem !important;
+}
+
+.opcion-revision strong {
+    color: var(--pmm-cyan-bright) !important;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+/* 4. PESTAÑAS (TABS) */
 .stTabs [data-baseweb="tab-list"] {
     gap: 12px !important;
-    background-color: transparent !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    padding-bottom: 5px !important;
 }
 
 .stTabs [data-baseweb="tab"] {
     height: 55px !important;
     background-color: rgba(255, 255, 255, 0.03) !important;
-    border-radius: 12px 12px 0 0 !important;
+    border-radius: 15px 15px 0 0 !important;
     color: #64748b !important;
-    /* Aumento de tamaño */
-    padding: 20px 20px !important; 
+    padding: 20px !important; 
     font-size: 1.1rem !important;
     font-weight: 700 !important;
-    border: none !important;
     transition: all 0.3s ease !important;
-    margin-bottom: -2px !important;
 }
 
-/* Pestaña Activa */
 .stTabs [aria-selected="true"] {
     background-color: #1e3a5f !important; 
-    color: #ffffff !important;
+    color: var(--text-silver) !important;
 }
 
 /* Ajuste del Emoji dentro del botón */
@@ -59,11 +94,9 @@ html, body, [data-testid="stAppViewContainer"] {
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
-/* 4. BOTONES "EQUIPO TÁCTICO" */
-
-/* Botón Estándar */
+/* 5. BOTONES "EQUIPO TÁCTICO" */
 div.stButton > button {
-    background-color: #162235 !important;
+    background-color: var(--bg-card) !important;
     color: #cbd5e1 !important;
     border: 1px solid #1e3a5f !important; 
     border-radius: 8px !important;
@@ -71,42 +104,31 @@ div.stButton > button {
     text-transform: uppercase !important;
     padding: 0.7rem 1.4rem !important;
     box-shadow: 4px 4px 8px #090e16, -2px -2px 8px #1f2d44 !important;
+    transition: all 0.3s ease !important;
 }
 
 div.stButton > button:hover:not(:disabled) {
-    border: 1px solid #38bdf8 !important;
-    color: white !important;
+    border: 1px solid var(--pmm-cyan-bright) !important;
+    color: var(--text-silver) !important;
     transform: translateY(-1px);
 }
 
-/* Botón Primario */
 div.stButton > button[kind="primary"] {
     background: linear-gradient(135deg, #1e3a5f 0%, #112236 100%) !important;
-    color: #ffffff !important;
-    border: 1px solid #38bdf8 !important;
+    border-color: var(--pmm-cyan-bright) !important;
 }
 
-/* --- BOTÓN DESHABILITADO (Aspecto inactivo) --- */
 div.stButton > button:disabled {
-    background-color: #0a0f18 !important; /* Más oscuro que el fondo */
-    color: #475569 !important; /* Gris apagado */
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background-color: #0a0f18 !important;
+    color: #475569 !important;
     opacity: 0.6 !important;
-    /* Efecto "hundido" en la superficie */
     box-shadow: inset 4px 4px 8px #05080d, inset -2px -2px 8px #141c2a !important;
     cursor: not-allowed !important;
-    transform: none !important;
 }
 
-/* Click en botones activos */
-div.stButton > button:active:not(:disabled) {
-    box-shadow: inset 4px 4px 8px #090e16 !important;
-    transform: scale(0.98);
-}
-
-/* --- 5. TARJETAS DE HISTORIAL (ESTILO SEMÁFORO) --- */
+/* 6. TARJETAS HISTORIAL Y RESULTADOS */
 .card-historial {
-    background: #162235 !important;
+    background: var(--bg-card) !important;
     border-radius: 12px !important;
     border-left: 6px solid #1e3a5f !important;
     padding: 16px 20px !important;
@@ -130,7 +152,7 @@ div.stButton > button:active:not(:disabled) {
 .card-titulo-tipo {
     font-weight: 700 !important;
     font-size: 1.05rem !important;
-    color: #ffffff !important;
+    color: var(--text-silver) !important;
     text-transform: uppercase;
 }
 
@@ -146,7 +168,6 @@ div.stButton > button:active:not(:disabled) {
     gap: 12px;
 }
 
-/* --- CLASES PARA NOTAS (COLOR DINÁMICO) --- */
 .card-nota-container {
     text-align: right;
     min-width: 90px;
@@ -166,69 +187,23 @@ div.stButton > button:active:not(:disabled) {
     line-height: 1;
 }
 
-/* Verdes para aprobados (>= 5) */
-.nota-aprobado {
-    color: #22c55e !important; /* Verde Esmeralda */
-    text-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+.nota-aprobado { color: #22c55e !important; text-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+.nota-suspenso { color: #ef4444 !important; text-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+
+.stat-box {
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    margin-bottom: 10px;
+    border: 1px solid;
 }
 
-/* Rojos para suspensos (< 5) */
-.nota-suspenso {
-    color: #ef4444 !important; /* Rojo Alerta */
-    text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
-}
-
-.stTextInput input {
-    background-color: #0d141f !important;
-    border: 1px solid #1e3a5f !important;
-    padding: 10px !important;
-}
-
-/* --- 6. INTERFAZ DE EXAMEN Y REVISIÓN --- */
-
-/* Espaciado entre opciones de respuesta (Radio Buttons) */
-[data-testid="stMarkdownContainer"] + div[role="radiogroup"] > div {
-    margin-bottom: 12px !important; /* Espacio entre cada opción A, B, C... */
+/* 7. WIDGETS DE ENTRADA (RADIO Y TEXTO) */
+div[role="radiogroup"] > div {
+    margin-bottom: 12px !important;
     padding: 8px !important;
     background: rgba(255, 255, 255, 0.02);
     border-radius: 8px;
-    transition: background 0.2s;
-}
-
-/* Efecto hover suave al pasar por encima de una respuesta */
-[data-testid="stMarkdownContainer"] + div[role="radiogroup"] > div:hover {
-    background: rgba(56, 189, 248, 0.05);
-}
-
-/* Espaciado para la EXPLICACIÓN en la revisión */
-.opcion-revision {
-    padding: 15px !important;
-    margin-top: 10px !important;
-    margin-bottom: 25px !important; /* Espacio extra para separar de la siguiente pregunta */
-    border-radius: 10px !important;
-    line-height: 1.6 !important;
-    border-left: 4px solid #38bdf8;
-    background-color: rgba(30, 41, 59, 0.7) !important;
-}
-
-/* Estilo para el texto de la explicación/justificación */
-.opcion-revision p {
-    margin-top: 10px !important;
-    color: #cbd5e1 !important;
-    font-size: 0.95rem !important;
-}
-
-/* Título de "Explicación" o "Justificación" */
-.opcion-revision strong {
-    color: #38bdf8 !important;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-}
-
-/* Separación entre el bloque de la pregunta y el de la respuesta */
-div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div {
-    margin-bottom: 15px !important;
 }
 
 /* --- ESTILOS EXAMEN --- */
@@ -247,20 +222,17 @@ div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div 
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-.stat-box {
-    padding: 15px;
-    border-radius: 15px;
+.nota-final {
+    font-family: 'Michroma', sans-serif !important;
+    font-weight: 900 !important;
+    font-style: italic !important;
+    font-size: 48px;
+    text-transform: uppercase !important;
+    letter-spacing: 3px !important;
+    color: var(--text-silver) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5) !important;
+    padding-bottom: 10px !important;
     text-align: center;
-    margin-bottom: 10px;
-    border: 1px solid;
-}
-
-.explicacion-container {
-    background-color: rgba(0, 150, 255, 0.1); 
-    padding: 20px; 
-    border-radius: 10px; 
-    border-left: 5px solid #0891B2;
-    margin-bottom: 20px;
 }
 
 /* Separación de opciones en los tests */
@@ -268,4 +240,9 @@ div[role="radiogroup"] > label {
     margin-bottom: 18px !important;
     padding: 12px !important;
     border-radius: 8px;
+}
+
+.stTextInput input {
+    background-color: var(--bg-dark) !important;
+    border: 1px solid #1e3a5f !important;
 }
