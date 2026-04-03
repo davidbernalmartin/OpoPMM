@@ -33,6 +33,7 @@ def render_historial_screen(supabase):
     # 3. Renderizado de Tarjetas
     for _, examen in df_filtrado.iterrows():
         nota = examen['nota_final']
+        riesgo = examen['nota_con_riesgo']
         color = "#2ecc71" if nota >= 5 else "#e74c3c"
         
         # HTML usando las nuevas clases del CSS
@@ -42,8 +43,9 @@ def render_historial_screen(supabase):
                     <div style="line-height: 1.2;">
                         <span class="card-meta-fecha">{examen['created_at'][:10]}</span><br>
                         <span class="card-titulo-tipo">{examen['tipo_examen'].upper()}</span>
-                        <div class="card-stats-iconos">{examen['aciertos']}✅ {examen['fallos']}❌</div>
+                        <div class="card-stats-iconos">{examen['aciertos']}✅ {examen['fallos']}❌ {examen['blancos']}⚪</div>
                     </div>
+                    <div class="card-nota-grande" style="color: #fdfd96;">{riesgo:.1f}</div>
                     <div class="card-nota-grande" style="color: {color};">{nota:.1f}</div>
                 </div>
             </div>
@@ -69,6 +71,7 @@ def _cargar_y_navegar(supabase, examen, modo_reintento):
         
         # Seteo de variables comunes
         st.session_state.preguntas_examen = [p_dict[pid] for pid in examen['preguntas_ids']]
+        st.session_state.preguntas_dudosas = examen['preguntas_dudosas']
         st.session_state.tipo_test_actual = examen['tipo_examen']
         st.session_state.indice_pregunta = 0
         st.session_state.indice_revision = 0
@@ -80,6 +83,7 @@ def _cargar_y_navegar(supabase, examen, modo_reintento):
             st.session_state.sub_pantalla = "examen_runtime"
         else:
             st.session_state.respuestas_usuario = {int(k): v for k, v in examen['respuestas_usuario'].items()}
+            st.session_state.preguntas_dudosas = examen['preguntas_dudosas']
             st.session_state.ver_revision = True
             st.session_state.sub_pantalla = "repaso_historial"
         

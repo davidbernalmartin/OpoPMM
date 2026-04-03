@@ -56,7 +56,17 @@ def calculate_exam_result(
     )
 
 
-def persist_exam_result(supabase: Any, user_id: str, exam_type: str, result: ExamResult, preguntas_ids: list[int], respuestas_usuario: dict[int, str]) -> None:
+def persist_exam_result(
+    supabase: Any, 
+    user_id: str, 
+    exam_type: str, 
+    result: ExamResult,         # Esta es la nota CONSERVADORA (oficial)
+    preguntas_ids: list[int], 
+    respuestas_usuario: dict[int, str], 
+    tiempo_segundos: int = 0,
+    preguntas_dudosas: dict[int, bool] = None, # <--- NUEVO
+    nota_con_riesgo: float = 0.0               # <--- NUEVO
+) -> None:
     """Persist exam summary and related wrong answers in Supabase."""
     res_h = (
         supabase.table("historial_examenes")
@@ -69,8 +79,11 @@ def persist_exam_result(supabase: Any, user_id: str, exam_type: str, result: Exa
                 "fallos": result.fallos,
                 "blancos": result.blancos,
                 "nota_final": result.nota,
+                "nota_con_riesgo": nota_con_riesgo,
                 "preguntas_ids": preguntas_ids,
                 "respuestas_usuario": respuestas_usuario,
+                "preguntas_dudosas": preguntas_dudosas or {},
+                "tiempo_segundos": tiempo_segundos,
             }
         )
         .execute()

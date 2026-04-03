@@ -4,6 +4,7 @@ from __future__ import annotations
 import random
 from typing import Any, Callable
 import streamlit as st
+import time
 
 def render_examenes_screen(
     *,
@@ -109,6 +110,7 @@ def _render_test_ingles(supabase: Any, mostrar_examen: Callable, navegar_a: Call
                 st.session_state.indice_pregunta = 0
                 st.session_state.respuestas_usuario = {}
                 st.session_state.examen_finalizado = False
+                st.session_state.inicio_examen = time.time()
                 st.rerun()
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
@@ -135,6 +137,7 @@ def _render_test_por_temas(
                 st.session_state.indice_pregunta = 0
                 st.session_state.respuestas_usuario = {}
                 st.session_state.examen_finalizado = False
+                st.session_state.inicio_examen = time.time()
                 st.rerun()
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")
@@ -160,6 +163,7 @@ def _render_test_simulacro(
                 st.session_state.indice_pregunta = 0
                 st.session_state.respuestas_usuario = {}
                 st.session_state.examen_finalizado = False
+                st.session_state.inicio_examen = time.time()
                 st.rerun()
         except Exception as e:
             st.error(f"Error al conectar con la base de datos: {e}")

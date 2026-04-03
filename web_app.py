@@ -41,18 +41,36 @@ def navegar_a(sub):
 def limpiar_estado_maestro():
     reset_exam_state(st.session_state)
 
-def guardar_resultado_examen(datos_test, respuestas_usuario, tipo):
-    result = calculate_exam_result(datos_test, respuestas_usuario, user_id=st.session_state.user.id)
+# --- En web_app.py ---
+
+# --- En web_app.py ---
+
+def guardar_resultado_examen(datos_test, respuestas_usuario, tipo, tiempo_segundos):
+    dudas = st.session_state.get("preguntas_dudosas", {})
+    user_id = st.session_state.user.id
+
+    # 1. Escenario RIESGO (Todas las respuestas)
+    res_riesgo = calculate_exam_result(datos_test, respuestas_usuario, user_id)
+    
+    # 2. Escenario CONSERVADOR (Filtrando dudosas)
+    resp_cons = {i: (None if dudas.get(i) else r) for i, r in respuestas_usuario.items()}
+    res_conservador = calculate_exam_result(datos_test, resp_cons, user_id)
+    
+    # 3. PERSISTENCIA COMPLETA
     ids_ordenados = [p.get("id") for p in datos_test]
     persist_exam_result(
         supabase=supabase,
-        user_id=st.session_state.user.id,
+        user_id=user_id,
         exam_type=tipo,
-        result=result,
+        result=res_conservador,      # Nota "Oficial"
         preguntas_ids=ids_ordenados,
         respuestas_usuario=respuestas_usuario,
+        tiempo_segundos=tiempo_segundos,
+        preguntas_dudosas=dudas,     # Guardamos qué preguntas fueron dudas
+        nota_con_riesgo=res_riesgo.nota # Guardamos la nota proyectada
     )
-    return result.nota, result.aciertos, result.fallos
+    
+    return res_conservador.nota, res_conservador.aciertos, res_conservador.fallos
 
 def mostrar_examen(titulo, lista_preguntas):
     # Cuando iniciamos un examen, cambiamos la vista para que desaparezcan los Tabs

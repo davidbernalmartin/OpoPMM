@@ -18,6 +18,7 @@ DEFAULT_SESSION_VALUES = {
     "paso_configuracion": "botones",
     "preguntas_pendientes": [],
     "mostrando_revision": False,
+    "preguntas_dudosas" : {},
 }
 
 
@@ -36,6 +37,7 @@ RESETTABLE_KEYS = [
     "error_importacion",
     "test_generado",
     "paso_configuracion",
+    "preguntas_dudosas",
 ]
 
 
