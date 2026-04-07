@@ -103,6 +103,7 @@ if st.session_state.user:
             lista_preguntas=st.session_state.preguntas_examen,
             guardar_resultado_examen=guardar_resultado_examen,
             limpiar_estado_maestro=limpiar_estado_maestro,
+            supabase=supabase,
         )
 
     # --- MODO APP NORMAL (Navegación por Tabs) ---

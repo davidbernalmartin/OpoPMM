@@ -320,7 +320,9 @@ def _render_pantalla_revision_importar(supabase, temas_dict):
         # Eliminamos columna auxiliar antes de guardar
         if not df_export.empty and 'descartar' in df_export.columns:
             df_export = df_export.drop(columns=['descartar'])
-            
+        
+        st.info(df_export)
+
         csv = df_export.to_csv(index=False, sep=";").encode('utf-8')
         st.download_button("💾 GUARDAR PROGRESO (CSV)", data=csv, file_name="revision_pmm.csv", mime="text/csv", use_container_width=True)
 

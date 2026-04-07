@@ -4,17 +4,70 @@ import streamlit as st
 from src.models.examen import Examen
 import time
 
+# --- DIÁLOGO 2: EDICIÓN / CREACIÓN ---
+@st.dialog("✏️ Editor de Pregunta", width="large")
+def modal_editar_pregunta(pregunta, supabase):
+    """Muestra el formulario de edición usando el componente existente."""
+    from src.views.components.pregunta_form import renderizar_formulario_edicion_pregunta
+    
+    res_temas = supabase.table("temas").select("id, nombre").execute()
+    temas_db = res_temas.data if res_temas.data else []
+    temas_nombres = [t["nombre"] for t in temas_db]
+    temas_dict = {t["nombre"]: t["id"] for t in temas_db}
+    id_a_nombre = {t["id"]: t["nombre"] for t in temas_db}
+
+    pregunta["tema_nombre"] = id_a_nombre.get(pregunta.get("tema_id"), "")
+    st.subheader("Edición de Pregunta" if pregunta.get('id') else "Nueva Pregunta")
+    
+    # Renderizamos tu formulario
+    f_enun, f_exp, f_a, f_b, f_c, f_corr, f_tema_nom = renderizar_formulario_edicion_pregunta(pregunta, temas_nombres)
+    
+    st.divider()
+    col_g, col_c = st.columns(2)
+    
+    if col_g.button("💾 GUARDAR CAMBIOS", type="primary", width='stretch'):
+        data_save = {
+            "enunciado": f_enun,
+            "explicacion": f_exp,
+            "opcion_a": f_a,
+            "opcion_b": f_b,
+            "opcion_c": f_c,
+            "correcta": f_corr,
+            "tema_id": temas_dict.get(f_tema_nom)
+        }
+        
+        with st.spinner("Sincronizando con base de datos..."):
+            try:
+                # 1. Actualización en Supabase
+                supabase.table("preguntas").update(data_save).eq("id", pregunta["id"]).execute()
+                
+                # 2. ACTUALIZACIÓN EN CALIENTE (La clave del éxito)
+                # Como 'pregunta' es una referencia al objeto dentro de st.session_state.preguntas_examen,
+                # al usar .update() estamos modificando la lista real que usa el runtime.
+                pregunta.update(data_save)
+                pregunta["tema_nombre"] = f_tema_nom # Sincronizamos también el nombre para el formulario
+                
+                st.success("✅ ¡Base de datos y vista sincronizadas!")
+                time.sleep(0.8)
+                st.rerun() # Esto recargará la pantalla de revisión con los datos ya actualizados
+            except Exception as e:
+                st.error(f"Error al guardar: {e}")
+
+    if col_c.button("❌ CANCELAR", width='stretch'):
+        st.rerun()
+
 def render_examen_runtime(
     *,
     titulo: str,
     lista_preguntas: list[dict],
     guardar_resultado_examen: Callable[[list[dict], dict[int, str], str, int], tuple[float, int, int]],
     limpiar_estado_maestro: Callable[[], None],
+    supabase: Any,
 ) -> None:
     st.markdown(f'<div class="titulo-pantalla">{titulo}</div>', unsafe_allow_html=True)
     # 1. MODO REVISIÓN
     if st.session_state.get("ver_revision", False):
-        _render_revision(lista_preguntas)
+        _render_revision(lista_preguntas, supabase)
 
     # 2. MODO RESULTADO FINAL
     elif st.session_state.examen_finalizado:
@@ -26,7 +79,7 @@ def render_examen_runtime(
 
 # --- BLOQUES DE RENDERIZADO (Lógica Refactorizada) ---
 
-def _render_revision(lista_preguntas):
+def _render_revision(lista_preguntas, supabase):
     idx = st.session_state.get("indice_revision", 0)
     p = lista_preguntas[idx]
     resp_u = st.session_state.respuestas_usuario.get(idx)
@@ -101,6 +154,10 @@ def _render_revision(lista_preguntas):
         if idx < len(lista_preguntas) - 1 and st.button("SIGUIENTE ➡️", key="rev_n", width='stretch'):
             st.session_state.indice_revision += 1
             st.rerun()
+        
+        if st.session_state.get("user_role") == "admin":
+            if st.button("🛠️ Modificar esta pregunta", use_container_width=True):
+                modal_editar_pregunta(p, supabase)
 
 def _render_resultado_final(lista_preguntas, limpiar_estado_maestro):
     # --- 1. LÓGICA DE CÁLCULO (Escenario REAL) ---
