@@ -162,8 +162,23 @@ def _render_admin_preguntas(supabase, renderizar_formulario_edicion, modal_impor
 
     if not data_for_df:
         st.warning("No hay preguntas que coincidan con los filtros seleccionados.")
+        c1, c2, c3, c4 = st.columns(4)
+
         # Mostramos botones de importación aunque no haya datos
-        _render_botones_accion(None, None, None, modal_importar_pdf, modal_importar)
+        with c1:
+            if st.button("➕ NUEVA", type="primary", width='stretch'):
+                nueva = {"id": None, "enunciado": "", "opcion_a": "", "opcion_b": "", "opcion_c": "", "correcta": "A", "explicacion": "", "tema_nombre": ""}
+                modal_edicion(nueva, supabase, temas_nombres, temas_dict)
+
+        with c2:
+            st.button("📄 PDF", width='stretch', on_click=modal_importar_pdf)
+
+        with c3:
+            st.button("📊 CSV", width='stretch', on_click=modal_importar)
+
+        with c4:
+            if st.button("🗑️ BORRAR", width='stretch', disabled=True):
+                modal_eliminar_pregunta(pregunta_sel, supabase)        
         return
 
     df = pd.DataFrame(data_for_df)
