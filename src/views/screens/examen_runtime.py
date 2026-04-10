@@ -4,6 +4,35 @@ import streamlit as st
 from src.models.examen import Examen
 import time
 
+@st.dialog("📢 Reportar Error o Duda")
+def modal_enviar_feedback(pregunta, supabase):
+    st.markdown(f"**Pregunta ID:** `{pregunta['id']}`")
+    st.info("Escribe tu duda o reporta un error. Te responderemos en tu perfil.")
+    
+    comentario = st.text_area("Tu mensaje:", placeholder="Ej: La respuesta correcta creo que es la B porque...", height=150)
+    
+    col1, col2 = st.columns(2)
+    if col1.button("ENVIAR REPORTE", type="primary", use_container_width=True):
+        if not comentario.strip():
+            st.error("Escribe algo antes de enviar.")
+            return
+            
+        try:
+            supabase.table("feedback_tickets").insert({
+                "user_id": st.session_state.user.id,
+                "pregunta_id": pregunta['id'],
+                "mensaje_usuario": comentario,
+                "enunciado_momento": pregunta['enunciado']
+            }).execute()
+            st.success("✅ Enviado. Podrás ver la respuesta en tu Perfil.")
+            time.sleep(1.5)
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error al enviar: {e}")
+            
+    if col2.button("CANCELAR", use_container_width=True):
+        st.rerun()
+
 # --- DIÁLOGO 2: EDICIÓN / CREACIÓN ---
 @st.dialog("✏️ Editor de Pregunta", width="large")
 def modal_editar_pregunta(pregunta, supabase):
@@ -158,6 +187,9 @@ def _render_revision(lista_preguntas, supabase):
         if st.session_state.get("user_role") == "admin":
             if st.button("🛠️ Modificar esta pregunta", use_container_width=True):
                 modal_editar_pregunta(p, supabase)
+        else:
+            if st.button("🛠️ Reportar error o duda", use_container_width=True):
+                modal_enviar_feedback(p, supabase)  
 
 def _render_resultado_final(lista_preguntas, limpiar_estado_maestro):
     # --- 1. LÓGICA DE CÁLCULO (Escenario REAL) ---

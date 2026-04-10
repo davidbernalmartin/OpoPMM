@@ -95,6 +95,7 @@ if st.session_state.user:
             lista_preguntas=st.session_state.preguntas_examen,
             guardar_resultado_examen=guardar_resultado_examen,
             limpiar_estado_maestro=limpiar_estado_maestro,
+            supabase=supabase,
         )
     
     elif st.session_state.sub_pantalla == "repaso_historial":
