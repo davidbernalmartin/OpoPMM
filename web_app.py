@@ -41,10 +41,6 @@ def navegar_a(sub):
 def limpiar_estado_maestro():
     reset_exam_state(st.session_state)
 
-# --- En web_app.py ---
-
-# --- En web_app.py ---
-
 def guardar_resultado_examen(datos_test, respuestas_usuario, tipo, tiempo_segundos):
     dudas = st.session_state.get("preguntas_dudosas", {})
     user_id = st.session_state.user.id
@@ -87,6 +83,20 @@ modal_importar = get_modal_importar_csv()
 
 # A. FLUJO PARA USUARIOS LOGUEADOS
 if st.session_state.user:
+    def mostrar_notificaciones_pendientes(supabase, user_id):
+        # Contamos cuántos tickets tienen respuesta y no han sido leídos
+        res = supabase.table("feedback_tickets")\
+            .select("id", count='exact')\
+            .eq("user_id", user_id)\
+            .eq("leido_por_usuario", False)\
+            .not_.is_("respuesta_admin", "null")\
+            .execute()
+        
+        count = res.count if res.count else 0
+        if count > 0:
+            st.toast(f"🔔 Tienes {count} respuestas nuevas en tu perfil", icon="📩")
+        # Opcionalmente, un aviso más intrusivo si quieres:
+        # st.info(f"Tienes {count} respuestas nuevas de los profesores en la pestaña Perfil.")
     
     # --- MODO EXAMEN (Sin Tabs para evitar distracciones/errores) ---
     if st.session_state.sub_pantalla == "examen_runtime":
@@ -109,6 +119,7 @@ if st.session_state.user:
 
     # --- MODO APP NORMAL (Navegación por Tabs) ---
     else:
+        mostrar_notificaciones_pendientes(supabase, st.session_state.user.id)
         # 1. Definimos qué pestañas verá todo el mundo
         titulos_tabs = ["📊", "👤", "📝", "📜"] # Progreso, Perfil, Tests, Historial
 
@@ -116,9 +127,9 @@ if st.session_state.user:
         es_admin = st.session_state.get("user_role") == "admin"
 
         if es_admin:
-            titulos_tabs.append("📚") # Biblioteca (solo admin)
-            titulos_tabs.append("⚙️") # Gestión (solo admin)
-
+            titulos_tabs.append("📚") # Biblioteca
+            titulos_tabs.append("⚙️") 
+            titulos_tabs.append("📥") 
         # 3. El botón de salir siempre va al final
         titulos_tabs.append("🚪")
 
@@ -163,6 +174,10 @@ if st.session_state.user:
                     limpiar_estado_maestro=limpiar_estado_maestro,
                     convertir_a_csv=convertir_preguntas_a_csv,
                 )
+            curr += 1
+            with tabs[curr]: # 📥 BANDEJA DE FEEDBACK
+                from src.views.screens.admin_feedback import render_admin_feedback_screen
+                render_admin_feedback_screen(supabase)
             curr += 1
 
         with tabs[curr]: # 🚪 SALIR
