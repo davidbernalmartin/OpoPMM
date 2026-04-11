@@ -4,26 +4,45 @@ from __future__ import annotations
 from typing import Any, Callable
 import pandas as pd
 import streamlit as st
+import requests
+import base64
 
-@st.dialog("📖 Lectura de Ley", width="large")
-def modal_visor_pdf_nativo(ley):
+@st.dialog("📖 Visor de Ley", width="large")
+def modal_visor_pdf(ley):
     st.subheader(ley['name'])
+    url_pdf = ley.get('url_pdf')
     
-    # URL de tu bucket de Supabase Storage
-    pdf_url = ley.get('url_pdf') 
-    
-    if pdf_url:
+    if url_pdf:
         try:
-            # Comando nativo de Streamlit
-            st.pdf(pdf_url)
+            # 1. Python descarga el PDF (esto NO tiene restricciones de CORS)
+            with st.spinner("Cargando documento desde la fuente oficial..."):
+                response = requests.get(url_pdf, timeout=10)
+                response.raise_for_status() # Verifica que la URL es válida y responde
+            
+            # 2. Convertimos el PDF a Base64 para "inyectarlo" en el visor
+            b64_pdf = base64.b64encode(response.content).decode('utf-8')
+            
+            # 3. Creamos el visor embebido con los datos ya cargados localmente
+            # Usamos un objeto 'data' para que el navegador no tenga que ir a internet
+            pdf_display = f'''
+                <iframe 
+                    src="data:application/pdf;base64,{b64_pdf}" 
+                    width="100%" 
+                    height="800px" 
+                    type="application/pdf" 
+                    style="border:none; border-radius:10px;">
+                </iframe>
+            '''
+            st.markdown(pdf_display, unsafe_allow_html=True)
+            
         except Exception as e:
-            st.error(f"No se pudo cargar el visor nativo: {e}")
-            st.info("Puedes intentar descargarla directamente.")
-            st.link_button("Descargar PDF", pdf_url)
+            st.error("No se pudo cargar el visor dinámico (posible bloqueo de la fuente original).")
+            st.info("Puedes visualizar el documento directamente en el enlace oficial:")
+            st.link_button("🌐 Abrir PDF en el BOE", url_pdf, use_container_width=True)
     else:
-        st.error("Archivo no disponible.")
+        st.error("No se ha proporcionado una URL para esta ley.")
 
-    if st.button("CERRAR VISOR", use_container_width=True):
+    if st.button("CERRAR"):
         st.rerun()
 
 def render_biblioteca_screen(
@@ -69,7 +88,7 @@ def render_biblioteca_screen(
                 with c1:
                     # Acción: Abrir el diálogo con st.pdf
                     if st.button("📖 Abrir Visor", key=f"btn_pdf_{ley['id']}", use_container_width=True):
-                        modal_visor_pdf_nativo(ley)
+                        modal_visor_pdf(ley)
                 
                 # Lógica para Admin dentro de la propia tarjeta
                 if st.session_state.get("user_role") == "admin":
