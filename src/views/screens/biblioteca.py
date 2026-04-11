@@ -5,6 +5,27 @@ from typing import Any, Callable
 import pandas as pd
 import streamlit as st
 
+@st.dialog("📖 Lectura de Ley", width="large")
+def modal_visor_pdf_nativo(ley):
+    st.subheader(ley['name'])
+    
+    # URL de tu bucket de Supabase Storage
+    pdf_url = ley.get('url_pdf') 
+    
+    if pdf_url:
+        try:
+            # Comando nativo de Streamlit
+            st.pdf(pdf_url)
+        except Exception as e:
+            st.error(f"No se pudo cargar el visor nativo: {e}")
+            st.info("Puedes intentar descargarla directamente.")
+            st.link_button("Descargar PDF", pdf_url)
+    else:
+        st.error("Archivo no disponible.")
+
+    if st.button("CERRAR VISOR", use_container_width=True):
+        st.rerun()
+
 def render_biblioteca_screen(
     *,
     supabase: Any,
@@ -46,10 +67,9 @@ def render_biblioteca_screen(
                 # Acciones de la Ley
                 c1, c2 = st.columns(2)
                 with c1:
-                    if ley["url_pdf"]:
-                        st.link_button("📥 VER PDF", ley["url_pdf"], width='stretch')
-                    else:
-                        st.caption("PDF no disponible")
+                    # Acción: Abrir el diálogo con st.pdf
+                    if st.button("📖 Abrir Visor", key=f"btn_pdf_{ley['id']}", use_container_width=True):
+                        modal_visor_pdf_nativo(ley)
                 
                 # Lógica para Admin dentro de la propia tarjeta
                 if st.session_state.get("user_role") == "admin":
