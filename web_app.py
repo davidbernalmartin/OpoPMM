@@ -5,7 +5,6 @@ from src.services.examen_service import calculate_exam_result, persist_exam_resu
 from src.utils.session_manager import ensure_defaults, reset_exam_state
 from src.views.components.pregunta_form import renderizar_formulario_edicion_pregunta
 from src.views.screens.admin_preguntas import render_admin_preguntas_screens
-from src.views.screens.biblioteca import render_biblioteca_screen
 from src.views.screens.examen_runtime import render_examen_runtime
 from src.views.screens.examenes import render_examenes_screen
 from src.views.screens.importacion import get_modal_importar_csv, get_modal_importar_pdf
@@ -120,25 +119,14 @@ if st.session_state.user:
     # --- MODO APP NORMAL (Navegación por Tabs) ---
     else:
         mostrar_notificaciones_pendientes(supabase, st.session_state.user.id)
-        # 1. Definimos qué pestañas verá todo el mundo
         titulos_tabs = ["📊", "👤", "📝", "📜"] # Progreso, Perfil, Tests, Historial
-
-        # 2. Lógica condicional para Admin / Biblioteca
         es_admin = st.session_state.get("user_role") == "admin"
-
         if es_admin:
-            titulos_tabs.append("📚") # Biblioteca
             titulos_tabs.append("⚙️") 
             titulos_tabs.append("📥") 
-        # 3. El botón de salir siempre va al final
         titulos_tabs.append("🚪")
-
-        # 4. Creamos las pestañas
         tabs = st.tabs(titulos_tabs)
-
-        # --- RENDERIZADO ASOCIADO A CADA ÍNDICE ---
         curr = 0
-
         with tabs[curr]: # 📊 PROGRESO
             render_progreso_screen(supabase=supabase, user_id=st.session_state.user.id)
         curr += 1
@@ -157,14 +145,6 @@ if st.session_state.user:
         curr += 1
 
         if es_admin:
-            with tabs[curr]: # 📚 BIBLIOTECA
-                render_biblioteca_screen(
-                    supabase=supabase, 
-                    limpiar_estado_maestro=limpiar_estado_maestro, 
-                    cambiar_vista=cambiar_vista
-                )
-            curr += 1
-
             with tabs[curr]: # ⚙️ GESTIÓN
                 render_admin_preguntas_screens(
                     supabase=supabase,
