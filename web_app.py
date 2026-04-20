@@ -35,6 +35,7 @@ def cambiar_vista(sub):
 def navegar_a(sub):
     limpiar_estado_maestro()
     cambiar_vista(sub)
+    
     st.rerun()
 
 def limpiar_estado_maestro():
