@@ -40,22 +40,17 @@ def renderizar_formulario_edicion_pregunta(p: dict[str, Any], nombres_temas: lis
 
         with col_izq:
             st.markdown('<p class="label-admin">OPCIONES DE RESPUESTA:</p>', unsafe_allow_html=True)
+            opciones_vals = {}
             for letra in ["a", "b", "c"]:
                 c_lab, c_inp = st.columns([0.05, 0.95])
                 c_lab.markdown(f'<p style="margin-top:10px; font-weight:bold;">{letra.upper()}:</p>', unsafe_allow_html=True)
-                val_opcion = str(p[f"opcion_{letra}"])
-                if letra == "a":
-                    f_a = c_inp.text_input(
-                        f"L_{letra}", value=val_opcion, label_visibility="collapsed", key=f"in_{letra}_{p['id']}"
-                    )
-                if letra == "b":
-                    f_b = c_inp.text_input(
-                        f"L_{letra}", value=val_opcion, label_visibility="collapsed", key=f"in_{letra}_{p['id']}"
-                    )
-                if letra == "c":
-                    f_c = c_inp.text_input(
-                        f"L_{letra}", value=val_opcion, label_visibility="collapsed", key=f"in_{letra}_{p['id']}"
-                    )
+                opciones_vals[letra] = c_inp.text_input(
+                    f"L_{letra}",
+                    value=str(p[f"opcion_{letra}"]),
+                    label_visibility="collapsed",
+                    key=f"in_{letra}_{p['id']}",
+                )
+            f_a, f_b, f_c = opciones_vals["a"], opciones_vals["b"], opciones_vals["c"]
 
         with col_der:
             st.markdown('<p class="label-admin">CONFIGURACIÓN:</p>', unsafe_allow_html=True)
