@@ -15,7 +15,6 @@ class Config:
         "menu_principal": "menu_principal",
         "stats": "stats",
         "perfil": "perfil",
-        "biblioteca": "biblioteca",
         "seleccion_tema": "seleccion_tema",
         "test_ingles": "test_ingles",
         "test_por_temas": "test_por_temas",
